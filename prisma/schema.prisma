@@ -1,0 +1,61 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Client {
+  id           String           @id @default(uuid())
+  name         String
+  phone        String?
+  email        String?
+  address      String?
+  notes        String?
+  password     String?          // NEW: Portal password for the client
+  contracts    Contract[]
+  documents    ClientDocument[] // NEW: Links to the new infinite files box
+  transactions Transaction[]
+  createdAt    DateTime         @default(now())
+}
+
+model Contract {
+  id             String   @id @default(uuid())
+  clientId       String
+  client         Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  // WE CHANGED THIS LINE (From fileUrl to fileUrls)
+  fileUrls       String   @default("[]") 
+  
+  startDate      DateTime
+  expirationDate DateTime
+  status         String   @default("Active")
+}
+
+// ==========================================
+// NEW MODEL: For Unlimited Custom Files
+// ==========================================
+model ClientDocument {
+  id          String    @id @default(uuid())
+  clientId    String
+  client      Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  title       String    // e.g., "Passport", "ID Card", "Project Images"
+  details     String?   // Facultatif (Optional Remarque)
+  date        DateTime? // Facultatif (Optional Date)
+  fileUrls    String    // We will save multiple files here as a long string!
+  createdAt   DateTime  @default(now())
+}
+
+model Transaction {
+  id          String   @id @default(uuid())
+  currency    String
+  type        String
+  amount      Float
+  category    String
+  description String?
+  date        DateTime @default(now())
+  clientId    String?
+  client      Client?  @relation(fields: [clientId], references: [id], onDelete: SetNull)
+}

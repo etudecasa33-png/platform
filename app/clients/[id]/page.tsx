@@ -55,7 +55,7 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
 
   useEffect(() => { fetchClientData(); }, [clientId]);
 
-  const getFileName = (url: string) => url.split('-').slice(1).join('-') || url.split('/').pop();
+  const getFileName = (url: string) => url.split('-').slice(1).join('-') || url.split('/').pop() || "Document";
 
   // --- CONTRACT LOGIC ---
   const handleContractSubmit = async (e: React.FormEvent) => {

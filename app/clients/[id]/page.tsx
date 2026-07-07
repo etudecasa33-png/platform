@@ -37,19 +37,16 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
   const [docFiles, setDocFiles] = useState<FileList | null>(null);
   const [retainedDocFiles, setRetainedDocFiles] = useState<string[]>([]);
 
-// Add this somewhere BEFORE your return() statement
+  // Removal Functions
   const removeRetainedDocFile = (urlToRemove: string) => {
-    // This looks at your current array of files and filters out the one you clicked
     setRetainedDocFiles((prevFiles) => prevFiles.filter((url) => url !== urlToRemove));
   };
 
-  // 👉 ADD THIS MISSING FUNCTION RIGHT HERE:
   const removeRetainedContractFile = (urlToRemove: string) => {
     setRetainedContractFiles((prevFiles) => prevFiles.filter((url) => url !== urlToRemove));
   };
 
-  const fetchClientData = async () => {
-    const res = await fetch(`/api/clients/${clientId}`, { cache: 'no-store' });
+  // Data Fetching
   const fetchClientData = async () => {
     const res = await fetch(`/api/clients/${clientId}`, { cache: 'no-store' });
     const data = await res.json();

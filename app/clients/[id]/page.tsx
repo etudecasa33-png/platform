@@ -42,6 +42,14 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
     // This looks at your current array of files and filters out the one you clicked
     setRetainedDocFiles((prevFiles) => prevFiles.filter((url) => url !== urlToRemove));
   };
+
+  // 👉 ADD THIS MISSING FUNCTION RIGHT HERE:
+  const removeRetainedContractFile = (urlToRemove: string) => {
+    setRetainedContractFiles((prevFiles) => prevFiles.filter((url) => url !== urlToRemove));
+  };
+
+  const fetchClientData = async () => {
+    const res = await fetch(`/api/clients/${clientId}`, { cache: 'no-store' });
   const fetchClientData = async () => {
     const res = await fetch(`/api/clients/${clientId}`, { cache: 'no-store' });
     const data = await res.json();

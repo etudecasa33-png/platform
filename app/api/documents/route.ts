@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import { writeFile } from 'fs/promises';
-import path from 'path';
+import { put } from '@vercel/blob';
 
 const prisma = new PrismaClient();
 
@@ -17,17 +16,19 @@ export async function POST(request: Request) {
     const files = formData.getAll('files') as File[];
     const savedFilePaths: string[] = [];
 
-    // Loop through and save every single file
+    // Loop through and save every single file to Vercel Blob
     for (const file of files) {
       if (file && file.size > 0) {
-        const bytes = await file.arrayBuffer();
-        const buffer = Buffer.from(bytes);
         const safeFilename = file.name.replace(/\s+/g, '_');
         const uniqueName = `${Date.now()}-${safeFilename}`;
-        const filepath = path.join(process.cwd(), 'public', 'uploads', uniqueName);
         
-        await writeFile(filepath, buffer);
-        savedFilePaths.push(`/uploads/${uniqueName}`);
+        // Upload the file directly to Vercel Blob cloud storage
+        const blob = await put(uniqueName, file, {
+          access: 'public',
+        });
+
+        // Save the permanent cloud URL
+        savedFilePaths.push(blob.url);
       }
     }
 
@@ -37,7 +38,7 @@ export async function POST(request: Request) {
         title,
         details,
         date: dateStr ? new Date(dateStr) : null,
-        // We compress all the file URLs into a single string to save to the database safely
+        // Compress all the file URLs into a single string to save to the database safely
         fileUrls: JSON.stringify(savedFilePaths), 
       }
     });

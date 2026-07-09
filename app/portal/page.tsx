@@ -36,7 +36,6 @@ export default function ClientPortal() {
               <span className="text-emerald-400 font-bold text-sm tracking-widest uppercase">Secure Portal Connection</span>
             </div>
             <h1 className="text-3xl font-black mb-1">Welcome, {client.name}</h1>
-            <p className="text-slate-400">Read-Only View. Documents are protected and cannot be downloaded.</p>
           </div>
         </div>
 

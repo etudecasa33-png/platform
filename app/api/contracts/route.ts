@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import { writeFile } from 'fs/promises';
-import path from 'path';
+import { put } from '@vercel/blob';
 
 const prisma = new PrismaClient();
 
@@ -19,13 +18,16 @@ export async function POST(request: Request) {
 
     for (const file of files) {
       if (file && file.size > 0) {
-        const bytes = await file.arrayBuffer();
-        const buffer = Buffer.from(bytes);
         const safeFilename = file.name.replace(/\s+/g, '_');
         const uniqueName = `${Date.now()}-${safeFilename}`;
-        const filepath = path.join(process.cwd(), 'public', 'uploads', uniqueName);
-        await writeFile(filepath, buffer);
-        savedFilePaths.push(`/uploads/${uniqueName}`);
+
+        // Upload the file directly to Vercel Blob cloud storage
+        const blob = await put(uniqueName, file, {
+          access: 'public',
+        });
+
+        // Save the permanent cloud URL to your database
+        savedFilePaths.push(blob.url);
       }
     }
 
@@ -35,12 +37,13 @@ export async function POST(request: Request) {
         startDate: new Date(startDate),
         expirationDate: new Date(expirationDate),
         status: status || 'Active',
-        fileUrls: JSON.stringify(savedFilePaths), // Save infinite files as a JSON string
+        fileUrls: JSON.stringify(savedFilePaths),
       }
     });
 
     return NextResponse.json(newContract, { status: 201 });
   } catch (error) {
+    console.error("Upload error:", error);
     return NextResponse.json({ error: "Failed to create contract" }, { status: 500 });
   }
 }

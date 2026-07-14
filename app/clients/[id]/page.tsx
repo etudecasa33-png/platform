@@ -3,8 +3,8 @@ import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, FileText, Calendar, AlertCircle, Paperclip, Download, Pencil, Trash2, X, Phone, Mail, MapPin, Building2, Plus, CreditCard } from 'lucide-react';
 
-// --- TYPES ---
-type Document = {
+// --- TYPES (Fixed Document Name Clash) ---
+type ClientDocument = {
   id: string; title: string; details: string | null; date: string | null; fileUrls: string; createdAt: string;
 };
 
@@ -17,7 +17,7 @@ type Invoice = {
 };
 
 type ClientProfile = {
-  id: string; name: string; email: string | null; phone: string | null; address: string | null; notes: string | null; contracts: Contract[]; documents: Document[]; invoices: Invoice[];
+  id: string; name: string; email: string | null; phone: string | null; address: string | null; notes: string | null; contracts: Contract[]; documents: ClientDocument[]; invoices: Invoice[];
 };
 
 export default function ClientProfilePage({ params }: { params: Promise<{ id: string }> }) {
@@ -175,7 +175,7 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
     setEditingDocId(null); setIsDocFormOpen(false); setDocForm({ title: '', details: '', date: '' }); setDocFiles(null); setRetainedDocFiles([]); fetchClientData();
   };
 
-  const handleEditDocument = (doc: Document) => {
+  const handleEditDocument = (doc: ClientDocument) => {
     setEditingDocId(doc.id);
     setDocForm({ title: doc.title, details: doc.details || '', date: doc.date ? new Date(doc.date).toISOString().split('T')[0] : '' });
     try { setRetainedDocFiles(JSON.parse(doc.fileUrls || "[]")); } catch (e) { setRetainedDocFiles([]); }
@@ -211,9 +211,7 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
         </div>
       </div>
 
-      {/* =========================================================================
-          MANUAL PAYMENT CALCULATOR & HISTORY
-          ========================================================================= */}
+      {/* MANUAL PAYMENT CALCULATOR & HISTORY */}
       <div className="mb-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
         
         {/* THE CALCULATOR */}
@@ -226,7 +224,6 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
               </h3>
             </div>
             
-            {/* Form changed to a 2x2 grid to fit the title neatly! */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-1">Title / Description</label>
@@ -289,7 +286,6 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
                         <button onClick={() => handleDeleteInvoice(inv.id)} className="text-gray-400 hover:text-red-600"><Trash2 size={14}/></button>
                       </div>
                     </div>
-                    {/* The new title now appears directly above the amount! */}
                     <h5 className="font-bold text-gray-800 mb-1 truncate" title={inv.title}>{inv.title}</h5>
                     <p className="text-2xl font-extrabold text-gray-900 mb-1">{inv.totalAmount.toLocaleString()} <span className="text-sm text-gray-500">{inv.currency}</span></p>
                     <div className="flex justify-between text-sm mt-3 border-t border-gray-100 pt-3">
@@ -354,7 +350,6 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
                   </div>
                 </div>
 
-                {/* Retained Files Management */}
                 {editingContractId && retainedContractFiles.length > 0 && (
                   <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
                     <p className="text-xs font-bold text-gray-500 uppercase mb-2">Current Attached Files</p>
@@ -391,7 +386,6 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
               return (
                 <div key={contract.id} className={`bg-white border p-5 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-4 transition-shadow hover:shadow-md ${isExpired ? 'border-red-200' : 'border-gray-200'}`}>
                   
-                  {/* Info Column */}
                   <div>
                     <div className="flex items-center gap-3 mb-1">
                       <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider ${isExpired ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
@@ -405,16 +399,15 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
                     </div>
                   </div>
 
-                  {/* Files Column */}
                   <div className="flex-1 max-w-md flex flex-wrap gap-2">
                     {files.map((url, i) => (
-                      <a key={i} href={url} target="_blank" className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-sm hover:bg-purple-50 hover:text-purple-700 hover:border-purple-200 transition">
+                      {/* FIXED SECURITY RISK HERE */}
+                      <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-sm hover:bg-purple-50 hover:text-purple-700 hover:border-purple-200 transition">
                         <Paperclip size={14}/> {getFileName(url).substring(0, 15)}...
                       </a>
                     ))}
                   </div>
 
-                  {/* Actions Column */}
                   <div className="flex items-center gap-2">
                     <button onClick={() => handleEditContract(contract)} className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition"><Pencil size={18}/></button>
                     <button onClick={() => handleDeleteContract(contract.id)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"><Trash2 size={18}/></button>
@@ -439,7 +432,6 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
             )}
           </div>
 
-          {/* HIDDEN DOCUMENT FORM */}
           {isDocFormOpen && (
             <div className="bg-white p-6 rounded-xl border border-blue-200 shadow-md relative">
               <button onClick={() => { setIsDocFormOpen(false); setEditingDocId(null); setDocForm({ title: '', details: '', date: '' }); }} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700"><X size={20}/></button>
@@ -487,7 +479,6 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
             </div>
           )}
 
-          {/* STREAMLINED DOCUMENT ROWS */}
           <div className="grid grid-cols-1 gap-4">
             {client.documents.map((doc) => {
               let files: string[] = [];
@@ -496,23 +487,21 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
               return (
                 <div key={doc.id} className="bg-white border border-gray-200 p-5 rounded-xl flex flex-col md:flex-row gap-6 transition-shadow hover:shadow-md">
                   
-                  {/* Info Column */}
                   <div className="flex-1">
                     <h4 className="font-bold text-lg text-gray-900">{doc.title}</h4>
                     {doc.date && <p className="text-sm text-gray-500 mt-1 flex items-center gap-1"><Calendar size={14}/> {new Date(doc.date).toLocaleDateString()}</p>}
                     {doc.details && <p className="text-sm text-gray-600 mt-3 border-l-2 border-blue-200 pl-3">{doc.details}</p>}
                   </div>
 
-                  {/* Files Column */}
                   <div className="flex-1 flex flex-wrap content-start gap-2">
                     {files.map((url, i) => (
-                      <a key={i} href={url} target="_blank" className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-sm hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 transition">
+                      {/* FIXED SECURITY RISK HERE */}
+                      <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-sm hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 transition">
                         <Download size={14}/> {getFileName(url).substring(0, 15)}...
                       </a>
                     ))}
                   </div>
 
-                  {/* Actions Column */}
                   <div className="flex items-start gap-2">
                     <button onClick={() => handleEditDocument(doc)} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"><Pencil size={18}/></button>
                     <button onClick={() => handleDeleteDocument(doc.id)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"><Trash2 size={18}/></button>

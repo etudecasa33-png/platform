@@ -8,16 +8,20 @@ const SecurePdfViewer = dynamic(() => import('../components/SecurePdfViewer'), {
   loading: () => <div className="flex h-full items-center justify-center font-bold text-gray-400">Initializing secure viewer...</div>
 });
 
+// --- TYPES (Fixed Vercel TypeScript Errors) ---
+type ClientDocument = { id: string; title: string; details: string | null; date: string | null; fileUrls: string; createdAt: string; };
+type Contract = { id: string; startDate: string; expirationDate: string; status: string; fileUrls: string; };
+type Invoice = { id: string; title: string; currency: string; totalAmount: number; paidAmount: number; createdAt: string; };
+type ClientProfile = { id: string; name: string; contracts: Contract[]; documents: ClientDocument[]; invoices: Invoice[]; };
+
 export default function ClientPortal() {
-  const [client, setClient] = useState<any>(null);
+  const [client, setClient] = useState<ClientProfile | null>(null);
   const [activeTab, setActiveTab] = useState<'contracts' | 'documents'>('contracts');
   const [secureFileUrl, setSecureFileUrl] = useState<string | null>(null);
 
   useEffect(() => {
     fetch('/api/portal').then(res => res.json()).then(setClient);
   }, []);
-
-  const getFileName = (url: string) => url.split('-').slice(1).join('-') || url.split('/').pop();
 
   if (!client) return <div className="min-h-screen flex items-center justify-center text-gray-500 font-bold">Loading your secure portal...</div>;
 
@@ -39,21 +43,18 @@ export default function ClientPortal() {
           </div>
         </div>
 
-        {/* =========================================================================
-            CLIENT INVOICE DASHBOARD (READ-ONLY)
-            ========================================================================= */}
+        {/* CLIENT INVOICE DASHBOARD */}
         {client.invoices && client.invoices.length > 0 && (
           <div className="mb-10">
             <h3 className="text-xl font-bold text-gray-800 mb-5 px-1">Billing & Invoices</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {client.invoices.map((inv: any) => {
+              {client.invoices.map((inv) => {
                 const remaining = Math.max(0, inv.totalAmount - inv.paidAmount);
                 const isPaidOff = remaining <= 0;
 
                 return (
                   <div key={inv.id} className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm relative overflow-hidden transition hover:shadow-md">
-                    {/* Status Color Bar */}
                     <div className={`absolute top-0 left-0 w-full h-1.5 ${isPaidOff ? 'bg-green-500' : 'bg-amber-400'}`} />
                     
                     <div className="flex justify-between items-start mb-4 mt-1">
@@ -73,7 +74,6 @@ export default function ClientPortal() {
                       </div>
                     </div>
 
-                    {/* Payment Breakdown Math */}
                     <div className="flex justify-between items-center bg-gray-50 p-3.5 rounded-xl border border-gray-100">
                       <div>
                         <p className="text-xs text-gray-500 font-medium mb-0.5">Amount Paid</p>
@@ -88,7 +88,6 @@ export default function ClientPortal() {
                         </p>
                       </div>
                     </div>
-                    
                   </div>
                 );
               })}
@@ -109,7 +108,7 @@ export default function ClientPortal() {
         {/* CONTRACTS VIEW */}
         {activeTab === 'contracts' && (
           <div className="space-y-4">
-            {client.contracts.map((contract: any) => {
+            {client.contracts.map((contract) => {
               let files: string[] = [];
               try { files = JSON.parse(contract.fileUrls); } catch (e) {}
 
@@ -138,7 +137,7 @@ export default function ClientPortal() {
         {/* DOCUMENTS VIEW */}
         {activeTab === 'documents' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {client.documents.map((doc: any) => {
+            {client.documents.map((doc) => {
               let files: string[] = [];
               try { files = JSON.parse(doc.fileUrls); } catch (e) {}
 
@@ -160,9 +159,7 @@ export default function ClientPortal() {
         )}
       </div>
 
-      {/* =======================================================
-          UPGRADED: THE SMART SECURE IN-APP FILE VIEWER
-          ======================================================= */}
+      {/* THE SMART SECURE IN-APP FILE VIEWER */}
       {secureFileUrl && (
         <div className="fixed inset-0 z-50 bg-slate-900/95 flex flex-col items-center justify-center p-4 backdrop-blur-sm">
           
@@ -175,7 +172,6 @@ export default function ClientPortal() {
 
           <div className="relative w-full max-w-5xl h-[85vh] bg-white rounded-2xl overflow-hidden shadow-2xl flex items-center justify-center">
             
-            {/* 1. The Repeating Grid Watermark */}
             <div 
               className="absolute inset-0 z-20 pointer-events-none opacity-20 mix-blend-multiply"
               style={{
@@ -184,10 +180,7 @@ export default function ClientPortal() {
               }}
             />
 
-            {/* 2. The Smart File Renderer */}
             {secureFileUrl.match(/\.(jpeg|jpg|gif|png|webp)$/i) ? (
-              
-              // IMAGE VIEWER
               <div className="relative w-full h-full flex items-center justify-center">
                 <div 
                   className="absolute inset-0 z-30 cursor-default" 
@@ -200,12 +193,8 @@ export default function ClientPortal() {
                   draggable={false} 
                 />
               </div>
-
             ) : (
-              
-              // SECURE PDF VIEWER
               <SecurePdfViewer url={secureFileUrl} />
-
             )}
             
           </div>

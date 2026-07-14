@@ -6,11 +6,12 @@ const prisma = new PrismaClient();
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { clientId, currency, totalAmount, paidAmount } = body;
+    const { clientId, title, currency, totalAmount, paidAmount } = body;
 
     const newInvoice = await prisma.invoice.create({
       data: {
         clientId,
+        title: title || "Standard Invoice", // <-- Added title!
         currency,
         totalAmount: parseFloat(totalAmount),
         paidAmount: parseFloat(paidAmount),

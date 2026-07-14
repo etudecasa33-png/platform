@@ -25,6 +25,20 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
   const [isContractFormOpen, setIsContractFormOpen] = useState(false);
   const [isDocFormOpen, setIsDocFormOpen] = useState(false);
 
+// --- INVOICE & PAYMENT STATES ---
+  const [invoiceTotal, setInvoiceTotal] = useState<number>(500); // Set your total here
+  const [amountPaid, setAmountPaid] = useState<number>(0);
+  const [newPaymentAmount, setNewPaymentAmount] = useState<string>('');
+
+  const remainingBalance = invoiceTotal - amountPaid;
+
+  const handleAddPayment = () => {
+    const payment = parseFloat(newPaymentAmount);
+    if (!isNaN(payment) && payment > 0) {
+      setAmountPaid(prev => prev + payment);
+      setNewPaymentAmount(''); // Clear the input after paying
+    }
+  };
   // Contract States
   const [editingContractId, setEditingContractId] = useState<string | null>(null);
   const [contractForm, setContractForm] = useState({ startDate: '', expirationDate: '', status: 'Active' });
@@ -175,36 +189,69 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
       </div>
 
       {/* =========================================================================
-          PAYMENT SECTION (NEW)
+          INTERACTIVE PAYMENT SECTION
           ========================================================================= */}
       <div className="mb-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="flex h-3 w-3 rounded-full bg-amber-500 animate-pulse" />
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-8">
+          
+          {/* Left Side: Invoice Details & Math */}
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-2">
+              <span className={`flex h-3 w-3 rounded-full ${remainingBalance <= 0 ? 'bg-green-500' : 'bg-amber-500 animate-pulse'}`} />
               <p className="text-xs font-semibold tracking-wide uppercase text-gray-500">
-                Pending Payment
+                {remainingBalance <= 0 ? 'Fully Paid' : 'Pending Payment'}
               </p>
             </div>
-            <h3 className="mt-1 text-xl font-bold text-gray-800">
+            <h3 className="text-xl font-bold text-gray-800">
               Invoice #INV-2026-004
             </h3>
-            <p className="text-sm text-gray-500 mt-0.5">
-              Due Date: 30/07/2026 • Amount Due: <span className="font-semibold text-gray-700">$250.00</span>
-            </p>
+            
+            {/* The Math Dashboard */}
+            <div className="mt-5 grid grid-cols-3 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-100 max-w-md">
+              <div>
+                <p className="text-xs text-gray-500 uppercase font-bold mb-1">Total</p>
+                <p className="text-xl font-extrabold text-gray-900">${invoiceTotal.toFixed(2)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 uppercase font-bold mb-1">Paid</p>
+                <p className="text-xl font-extrabold text-green-600">${amountPaid.toFixed(2)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 uppercase font-bold mb-1">Remaining</p>
+                <p className="text-xl font-extrabold text-red-500">${Math.max(0, remainingBalance).toFixed(2)}</p>
+              </div>
+            </div>
           </div>
           
-          <div>
-            <button 
-              onClick={() => alert("Manage invoice logic goes here...")}
-              className="w-full md:w-auto bg-gray-900 hover:bg-black text-white font-medium px-6 py-3 rounded-xl transition duration-200 shadow-sm flex items-center justify-center gap-2"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" />
-              </svg>
-              Manage Invoice
-            </button>
+          {/* Right Side: Add Payment Input */}
+          <div className="w-full md:w-80 bg-gray-50 p-5 rounded-xl border border-gray-200">
+            <h4 className="text-sm font-bold text-gray-800 mb-3">Record Received Payment</h4>
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <span className="absolute left-3 top-2.5 text-gray-400 font-bold">$</span>
+                <input 
+                  type="number" 
+                  value={newPaymentAmount}
+                  onChange={(e) => setNewPaymentAmount(e.target.value)}
+                  placeholder="0.00"
+                  className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+                />
+              </div>
+              <button 
+                onClick={handleAddPayment}
+                disabled={remainingBalance <= 0 || !newPaymentAmount}
+                className="bg-gray-900 hover:bg-black disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-5 py-2 rounded-lg font-medium transition shadow-sm"
+              >
+                Save
+              </button>
+            </div>
+            {remainingBalance <= 0 && (
+               <p className="text-xs text-green-600 font-bold mt-3 text-center bg-green-50 p-2 rounded-lg">
+                 Invoice is fully paid!
+               </p>
+            )}
           </div>
+
         </div>
       </div>
 

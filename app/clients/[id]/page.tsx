@@ -1,8 +1,9 @@
 "use client";
 import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, FileText, Calendar, AlertCircle, Paperclip, Download, Pencil, Trash2, FolderPlus, X, Phone, Mail, MapPin, Building2, Plus } from 'lucide-react';
+import { ArrowLeft, FileText, Calendar, AlertCircle, Paperclip, Download, Pencil, Trash2, X, Phone, Mail, MapPin, Building2, Plus, CreditCard } from 'lucide-react';
 
+// --- TYPES ---
 type Document = {
   id: string; title: string; details: string | null; date: string | null; fileUrls: string; createdAt: string;
 };
@@ -11,8 +12,12 @@ type Contract = {
   id: string; startDate: string; expirationDate: string; status: string; fileUrls: string;
 };
 
+type Invoice = {
+  id: string; title: string; currency: string; totalAmount: number; paidAmount: number; createdAt: string;
+};
+
 type ClientProfile = {
-  id: string; name: string; email: string | null; phone: string | null; address: string | null; notes: string | null; contracts: Contract[]; documents: Document[];
+  id: string; name: string; email: string | null; phone: string | null; address: string | null; notes: string | null; contracts: Contract[]; documents: Document[]; invoices: Invoice[];
 };
 
 export default function ClientProfilePage({ params }: { params: Promise<{ id: string }> }) {
@@ -20,44 +25,41 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
   const clientId = unwrappedParams.id;
   const [client, setClient] = useState<ClientProfile | null>(null);
 
-  // UI Organization State (Tabs & Forms)
+  // --- UI STATE ---
   const [activeTab, setActiveTab] = useState<'contracts' | 'documents'>('contracts');
   const [isContractFormOpen, setIsContractFormOpen] = useState(false);
   const [isDocFormOpen, setIsDocFormOpen] = useState(false);
 
-// --- MANUAL PAYMENT CALCULATOR STATES ---
-  const [currency, setCurrency] = useState<string>('DZD'); // Defaults to Dinar
+  // --- INVOICE & PAYMENT STATES (NEW FULL CRUD) ---
+  const [currency, setCurrency] = useState<string>('DZD');
   const [invoiceTotal, setInvoiceTotal] = useState<string>('');
   const [amountReceived, setAmountReceived] = useState<string>('');
+  const [editingInvoiceId, setEditingInvoiceId] = useState<string | null>(null);
 
-  // Calculate the math instantly as you type
+  // Dynamic Math
   const totalNum = parseFloat(invoiceTotal) || 0;
   const receivedNum = parseFloat(amountReceived) || 0;
   const remainingNum = Math.max(0, totalNum - receivedNum);
   const isFullyPaid = totalNum > 0 && remainingNum <= 0;
 
-  // Contract States
+  // --- CONTRACT STATES ---
   const [editingContractId, setEditingContractId] = useState<string | null>(null);
   const [contractForm, setContractForm] = useState({ startDate: '', expirationDate: '', status: 'Active' });
   const [contractFiles, setContractFiles] = useState<FileList | null>(null);
   const [retainedContractFiles, setRetainedContractFiles] = useState<string[]>([]);
 
-  // Document States
+  // --- DOCUMENT STATES ---
   const [editingDocId, setEditingDocId] = useState<string | null>(null);
   const [docForm, setDocForm] = useState({ title: '', details: '', date: '' });
   const [docFiles, setDocFiles] = useState<FileList | null>(null);
   const [retainedDocFiles, setRetainedDocFiles] = useState<string[]>([]);
 
-  // Removal Functions
-  const removeRetainedDocFile = (urlToRemove: string) => {
-    setRetainedDocFiles((prevFiles) => prevFiles.filter((url) => url !== urlToRemove));
-  };
+  // --- HELPER FUNCTIONS ---
+  const removeRetainedDocFile = (url: string) => setRetainedDocFiles(prev => prev.filter(u => u !== url));
+  const removeRetainedContractFile = (url: string) => setRetainedContractFiles(prev => prev.filter(u => u !== url));
+  const getFileName = (url: string) => url.split('-').slice(1).join('-') || url.split('/').pop() || "Document";
 
-  const removeRetainedContractFile = (urlToRemove: string) => {
-    setRetainedContractFiles((prevFiles) => prevFiles.filter((url) => url !== urlToRemove));
-  };
-
-  // Data Fetching
+  // --- DATA FETCHING ---
   const fetchClientData = async () => {
     const res = await fetch(`/api/clients/${clientId}`, { cache: 'no-store' });
     const data = await res.json();
@@ -66,9 +68,58 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
 
   useEffect(() => { fetchClientData(); }, [clientId]);
 
-  const getFileName = (url: string) => url.split('-').slice(1).join('-') || url.split('/').pop() || "Document";
+  // ==========================================
+  // INVOICE LOGIC (PHASE 3)
+  // ==========================================
+  const handleSaveInvoice = async () => {
+    if (totalNum <= 0) return alert("Please enter a total amount!");
 
-  // --- CONTRACT LOGIC ---
+    const payload = {
+      clientId,
+      currency,
+      totalAmount: totalNum,
+      paidAmount: receivedNum
+    };
+
+    if (editingInvoiceId) {
+      await fetch(`/api/invoices/${editingInvoiceId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+    } else {
+      await fetch('/api/invoices', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+    }
+
+    // Reset Calculator & Fetch Data
+    setInvoiceTotal('');
+    setAmountReceived('');
+    setEditingInvoiceId(null);
+    fetchClientData();
+  };
+
+  const handleEditInvoice = (inv: Invoice) => {
+    setEditingInvoiceId(inv.id);
+    setCurrency(inv.currency);
+    setInvoiceTotal(inv.totalAmount.toString());
+    setAmountReceived(inv.paidAmount.toString());
+    window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll back up to the calculator
+  };
+
+  const handleDeleteInvoice = async (id: string) => {
+    if (window.confirm("Delete this payment record forever?")) {
+      await fetch(`/api/invoices/${id}`, { method: 'DELETE' });
+      fetchClientData();
+    }
+  };
+
+  // ==========================================
+  // CONTRACT LOGIC
+  // ==========================================
   const handleContractSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const formData = new FormData();
@@ -85,33 +136,23 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
       await fetch('/api/contracts', { method: 'POST', body: formData });
     }
     
-    setEditingContractId(null);
-    setIsContractFormOpen(false);
-    setContractForm({ startDate: '', expirationDate: '', status: 'Active' });
-    setContractFiles(null);
-    setRetainedContractFiles([]);
-    fetchClientData();
+    setEditingContractId(null); setIsContractFormOpen(false); setContractForm({ startDate: '', expirationDate: '', status: 'Active' }); setContractFiles(null); setRetainedContractFiles([]); fetchClientData();
   };
 
   const handleEditContract = (contract: Contract) => {
     setEditingContractId(contract.id);
-    setContractForm({
-      startDate: new Date(contract.startDate).toISOString().split('T')[0],
-      expirationDate: new Date(contract.expirationDate).toISOString().split('T')[0],
-      status: contract.status
-    });
+    setContractForm({ startDate: new Date(contract.startDate).toISOString().split('T')[0], expirationDate: new Date(contract.expirationDate).toISOString().split('T')[0], status: contract.status });
     try { setRetainedContractFiles(JSON.parse(contract.fileUrls || "[]")); } catch (e) { setRetainedContractFiles([]); }
     setIsContractFormOpen(true);
   };
 
   const handleDeleteContract = async (id: string) => {
-    if (window.confirm("Delete this contract and ALL its files forever?")) {
-      await fetch(`/api/contracts/${id}`, { method: 'DELETE' });
-      fetchClientData();
-    }
+    if (window.confirm("Delete this contract and ALL its files forever?")) { await fetch(`/api/contracts/${id}`, { method: 'DELETE' }); fetchClientData(); }
   };
 
-  // --- DOCUMENT LOGIC ---
+  // ==========================================
+  // DOCUMENT LOGIC
+  // ==========================================
   const handleDocSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const formData = new FormData();
@@ -128,30 +169,18 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
       await fetch('/api/documents', { method: 'POST', body: formData });
     }
 
-    setEditingDocId(null);
-    setIsDocFormOpen(false);
-    setDocForm({ title: '', details: '', date: '' });
-    setDocFiles(null);
-    setRetainedDocFiles([]);
-    fetchClientData();
+    setEditingDocId(null); setIsDocFormOpen(false); setDocForm({ title: '', details: '', date: '' }); setDocFiles(null); setRetainedDocFiles([]); fetchClientData();
   };
 
   const handleEditDocument = (doc: Document) => {
     setEditingDocId(doc.id);
-    setDocForm({
-      title: doc.title,
-      details: doc.details || '',
-      date: doc.date ? new Date(doc.date).toISOString().split('T')[0] : ''
-    });
+    setDocForm({ title: doc.title, details: doc.details || '', date: doc.date ? new Date(doc.date).toISOString().split('T')[0] : '' });
     try { setRetainedDocFiles(JSON.parse(doc.fileUrls || "[]")); } catch (e) { setRetainedDocFiles([]); }
     setIsDocFormOpen(true);
   };
 
   const handleDeleteDocument = async (id: string) => {
-    if (window.confirm("Delete this document box and ALL its files forever?")) {
-      await fetch(`/api/documents/${id}`, { method: 'DELETE' });
-      fetchClientData();
-    }
+    if (window.confirm("Delete this document box and ALL its files forever?")) { await fetch(`/api/documents/${id}`, { method: 'DELETE' }); fetchClientData(); }
   };
 
   if (!client) return <div className="p-8 text-center text-gray-500">Loading profile...</div>;
@@ -159,12 +188,12 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
   return (
     <div className="p-8 max-w-6xl mx-auto bg-gray-50 min-h-screen">
       
-      {/* 1. TOP NAVIGATION */}
+      {/* TOP NAVIGATION */}
       <Link href="/clients" className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-900 mb-6 font-medium transition-colors">
         <ArrowLeft size={18} /> Back to Directory
       </Link>
 
-      {/* 2. PROFILE HEADER */}
+      {/* PROFILE HEADER */}
       <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 mb-8 flex flex-col md:flex-row gap-6 items-start">
         <div className="bg-purple-100 p-4 rounded-2xl text-purple-600 flex-shrink-0">
           <Building2 size={40} />
@@ -176,108 +205,108 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
             {client.phone && <div className="flex items-center gap-2"><Phone size={16} className="text-gray-400"/> {client.phone}</div>}
             {client.address && <div className="flex items-center gap-2"><MapPin size={16} className="text-gray-400"/> {client.address}</div>}
           </div>
-          {client.notes && (
-            <div className="mt-6 p-4 bg-gray-50 rounded-xl border border-gray-100 text-gray-700 text-sm">
-              <span className="font-bold text-gray-500 uppercase text-xs block mb-1">Internal Notes</span>
-              {client.notes}
-            </div>
-          )}
         </div>
       </div>
 
-   {/* =========================================================================
-          MANUAL PAYMENT CALCULATOR
+      {/* =========================================================================
+          MANUAL PAYMENT CALCULATOR & HISTORY
           ========================================================================= */}
       <div className="mb-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-        <div className="flex flex-col md:flex-row gap-8">
-          
-          {/* Left Side: Input Fields */}
+        
+        {/* THE CALCULATOR */}
+        <div className="flex flex-col md:flex-row gap-8 mb-8 pb-8 border-b border-gray-100">
           <div className="flex-1 space-y-4">
             <div className="flex items-center gap-2 mb-2">
-              <span className={`flex h-3 w-3 rounded-full ${isFullyPaid ? 'bg-green-500' : (totalNum > 0 ? 'bg-amber-500 animate-pulse' : 'bg-gray-300')}`} />
-              <h3 className="text-xl font-bold text-gray-800">Payment Calculator</h3>
+              <CreditCard className="text-purple-600" size={24} />
+              <h3 className="text-xl font-bold text-gray-800">
+                {editingInvoiceId ? 'Edit Payment Record' : 'Record New Payment'}
+              </h3>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Currency Selector */}
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-1">Currency</label>
-                <select 
-                  value={currency} 
-                  onChange={(e) => setCurrency(e.target.value)}
-                  className="w-full p-2.5 border border-gray-300 rounded-lg bg-gray-50 focus:ring-2 focus:ring-purple-500 outline-none transition"
-                >
+                <select value={currency} onChange={(e) => setCurrency(e.target.value)} className="w-full p-2.5 border border-gray-300 rounded-lg bg-gray-50 focus:ring-2 focus:ring-purple-500 outline-none">
                   <option value="DZD">DZD (Dinar)</option>
                   <option value="MAD">MAD (Dirham)</option>
                   <option value="USD">USD ($)</option>
                   <option value="EUR">EUR (€)</option>
                 </select>
               </div>
-
-              {/* Total Input */}
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-1">Total Amount</label>
-                <input 
-                  type="number" 
-                  value={invoiceTotal}
-                  onChange={(e) => setInvoiceTotal(e.target.value)}
-                  placeholder="0.00"
-                  className="w-full p-2.5 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-purple-500 outline-none transition"
-                />
+                <input type="number" value={invoiceTotal} onChange={(e) => setInvoiceTotal(e.target.value)} placeholder="0.00" className="w-full p-2.5 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-purple-500 outline-none" />
               </div>
-
-              {/* Received Input */}
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-1">Amount Received</label>
-                <input 
-                  type="number" 
-                  value={amountReceived}
-                  onChange={(e) => setAmountReceived(e.target.value)}
-                  placeholder="0.00"
-                  className="w-full p-2.5 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-green-500 outline-none transition"
-                />
+                <input type="number" value={amountReceived} onChange={(e) => setAmountReceived(e.target.value)} placeholder="0.00" className="w-full p-2.5 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-green-500 outline-none" />
               </div>
             </div>
           </div>
 
-          {/* Right Side: The Math Result */}
           <div className="w-full md:w-72 bg-gray-50 p-5 rounded-xl border border-gray-200 flex flex-col justify-center items-center">
             <p className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-2">Remaining Balance</p>
             <p className={`text-4xl font-extrabold text-center ${isFullyPaid ? 'text-green-600' : 'text-red-500'}`}>
               {remainingNum.toLocaleString()} <span className="text-xl">{currency}</span>
             </p>
-            
-            {isFullyPaid && (
-              <p className="text-xs text-green-700 font-bold mt-3 text-center bg-green-100 px-3 py-1.5 rounded-lg w-full">
-                Account is Fully Paid!
-              </p>
+            <button 
+              onClick={handleSaveInvoice}
+              className="mt-4 w-full bg-gray-900 hover:bg-black text-white px-4 py-2.5 rounded-lg font-bold transition shadow-sm"
+            >
+              {editingInvoiceId ? 'Update Record' : 'Save Payment'}
+            </button>
+            {editingInvoiceId && (
+               <button onClick={() => { setEditingInvoiceId(null); setInvoiceTotal(''); setAmountReceived(''); }} className="mt-2 text-sm text-gray-500 hover:text-gray-800 font-medium">Cancel Edit</button>
             )}
           </div>
+        </div>
 
+        {/* PAYMENT HISTORY LIST */}
+        <div>
+          <h4 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Payment History ({client.invoices.length})</h4>
+          {client.invoices.length === 0 ? (
+            <p className="text-sm text-gray-500 italic">No payments recorded yet.</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {client.invoices.map((inv) => {
+                const isPaidOff = (inv.totalAmount - inv.paidAmount) <= 0;
+                return (
+                  <div key={inv.id} className="p-4 border border-gray-200 rounded-xl hover:shadow-md transition bg-white relative group">
+                    <div className="flex justify-between items-start mb-2">
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${isPaidOff ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
+                        {isPaidOff ? 'Fully Paid' : 'Pending'}
+                      </span>
+                      <div className="opacity-0 group-hover:opacity-100 transition flex gap-2">
+                        <button onClick={() => handleEditInvoice(inv)} className="text-gray-400 hover:text-purple-600"><Pencil size={14}/></button>
+                        <button onClick={() => handleDeleteInvoice(inv.id)} className="text-gray-400 hover:text-red-600"><Trash2 size={14}/></button>
+                      </div>
+                    </div>
+                    <p className="text-2xl font-extrabold text-gray-900 mb-1">{inv.totalAmount.toLocaleString()} <span className="text-sm text-gray-500">{inv.currency}</span></p>
+                    <div className="flex justify-between text-sm mt-3 border-t border-gray-100 pt-3">
+                      <span className="text-gray-500 font-medium">Paid: <span className="text-green-600 font-bold">{inv.paidAmount.toLocaleString()}</span></span>
+                      <span className="text-gray-500 font-medium">Owes: <span className="text-red-500 font-bold">{Math.max(0, inv.totalAmount - inv.paidAmount).toLocaleString()}</span></span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* 3. TABS SYSTEM */}
+      {/* TABS SYSTEM */}
       <div className="flex gap-8 border-b border-gray-200 mb-8">
-        <button 
-          onClick={() => setActiveTab('contracts')} 
-          className={`pb-4 text-lg font-bold transition-colors relative ${activeTab === 'contracts' ? 'text-purple-600' : 'text-gray-400 hover:text-gray-600'}`}
-        >
+        <button onClick={() => setActiveTab('contracts')} className={`pb-4 text-lg font-bold transition-colors relative ${activeTab === 'contracts' ? 'text-purple-600' : 'text-gray-400 hover:text-gray-600'}`}>
           Contracts ({client.contracts.length})
           {activeTab === 'contracts' && <div className="absolute bottom-0 left-0 w-full h-1 bg-purple-600 rounded-t-full" />}
         </button>
-        <button 
-          onClick={() => setActiveTab('documents')} 
-          className={`pb-4 text-lg font-bold transition-colors relative ${activeTab === 'documents' ? 'text-blue-600' : 'text-gray-400 hover:text-gray-600'}`}
-        >
+        <button onClick={() => setActiveTab('documents')} className={`pb-4 text-lg font-bold transition-colors relative ${activeTab === 'documents' ? 'text-blue-600' : 'text-gray-400 hover:text-gray-600'}`}>
           Documents & Files ({client.documents.length})
           {activeTab === 'documents' && <div className="absolute bottom-0 left-0 w-full h-1 bg-blue-600 rounded-t-full" />}
         </button>
       </div>
 
-      {/* =========================================================================
-          TAB 1: CONTRACTS 
-          ========================================================================= */}
+      {/* TAB 1: CONTRACTS */}
       {activeTab === 'contracts' && (
         <div className="space-y-6">
           <div className="flex justify-between items-center">
@@ -388,10 +417,7 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
         </div>
       )}
 
-
-      {/* =========================================================================
-          TAB 2: DOCUMENTS 
-          ========================================================================= */}
+      {/* TAB 2: DOCUMENTS */}
       {activeTab === 'documents' && (
         <div className="space-y-6">
           <div className="flex justify-between items-center">
@@ -481,7 +507,6 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
                     <button onClick={() => handleEditDocument(doc)} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"><Pencil size={18}/></button>
                     <button onClick={() => handleDeleteDocument(doc.id)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"><Trash2 size={18}/></button>
                   </div>
-
                 </div>
               );
             })}
@@ -489,7 +514,6 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
           </div>
         </div>
       )}
-
     </div>
   );
 }

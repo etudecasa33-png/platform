@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-// FETCH Client + Contracts + Documents
+// FETCH Client + Contracts + Documents + Invoices
 export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const params = await context.params;
@@ -11,7 +11,8 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
       where: { id: params.id },
       include: { 
         contracts: { orderBy: { expirationDate: 'asc' } },
-        documents: { orderBy: { createdAt: 'desc' } } // We added Documents here!
+        documents: { orderBy: { createdAt: 'desc' } },
+        invoices: { orderBy: { createdAt: 'desc' } } // <-- ADDED INVOICES HERE!
       } 
     });
     if (!client) return NextResponse.json({ error: "Client not found" }, { status: 404 });
@@ -34,7 +35,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
         email: body.email, 
         address: body.address, 
         notes: body.notes,
-        password: body.password // <-- ADD THIS LINE to your existing file!
+        password: body.password
       }
     });
     return NextResponse.json(updatedClient);
@@ -43,7 +44,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
   }
 }
 
-// DELETE Client (This will automatically delete all their contracts and files too!)
+// DELETE Client (This will automatically delete all their contracts, files, and invoices too!)
 export async function DELETE(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const params = await context.params;

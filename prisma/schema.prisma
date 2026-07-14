@@ -20,6 +20,7 @@ model Client {
   documents    ClientDocument[] // NEW: Links to the new infinite files box
   transactions Transaction[]
   createdAt    DateTime         @default(now())
+  invoices    Invoice[]
 }
 
 model Contract {
@@ -59,4 +60,18 @@ model Transaction {
   date        DateTime @default(now())
   clientId    String?
   client      Client?  @relation(fields: [clientId], references: [id], onDelete: SetNull)
+}
+model Invoice {
+  id          String   @id @default(cuid())
+  
+  // This is the missing link! It tells Prisma exactly how to connect the data
+  clientId    String
+  client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  title       String   @default("Standard Invoice")
+  currency    String   @default("DZD")
+  totalAmount Float
+  paidAmount  Float    @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

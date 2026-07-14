@@ -25,20 +25,17 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
   const [isContractFormOpen, setIsContractFormOpen] = useState(false);
   const [isDocFormOpen, setIsDocFormOpen] = useState(false);
 
-// --- INVOICE & PAYMENT STATES ---
-  const [invoiceTotal, setInvoiceTotal] = useState<number>(500); // Set your total here
-  const [amountPaid, setAmountPaid] = useState<number>(0);
-  const [newPaymentAmount, setNewPaymentAmount] = useState<string>('');
+// --- MANUAL PAYMENT CALCULATOR STATES ---
+  const [currency, setCurrency] = useState<string>('DZD'); // Defaults to Dinar
+  const [invoiceTotal, setInvoiceTotal] = useState<string>('');
+  const [amountReceived, setAmountReceived] = useState<string>('');
 
-  const remainingBalance = invoiceTotal - amountPaid;
+  // Calculate the math instantly as you type
+  const totalNum = parseFloat(invoiceTotal) || 0;
+  const receivedNum = parseFloat(amountReceived) || 0;
+  const remainingNum = Math.max(0, totalNum - receivedNum);
+  const isFullyPaid = totalNum > 0 && remainingNum <= 0;
 
-  const handleAddPayment = () => {
-    const payment = parseFloat(newPaymentAmount);
-    if (!isNaN(payment) && payment > 0) {
-      setAmountPaid(prev => prev + payment);
-      setNewPaymentAmount(''); // Clear the input after paying
-    }
-  };
   // Contract States
   const [editingContractId, setEditingContractId] = useState<string | null>(null);
   const [contractForm, setContractForm] = useState({ startDate: '', expirationDate: '', status: 'Active' });
@@ -188,67 +185,72 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
         </div>
       </div>
 
-      {/* =========================================================================
-          INTERACTIVE PAYMENT SECTION
+   {/* =========================================================================
+          MANUAL PAYMENT CALCULATOR
           ========================================================================= */}
       <div className="mb-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-8">
+        <div className="flex flex-col md:flex-row gap-8">
           
-          {/* Left Side: Invoice Details & Math */}
-          <div className="flex-1">
+          {/* Left Side: Input Fields */}
+          <div className="flex-1 space-y-4">
             <div className="flex items-center gap-2 mb-2">
-              <span className={`flex h-3 w-3 rounded-full ${remainingBalance <= 0 ? 'bg-green-500' : 'bg-amber-500 animate-pulse'}`} />
-              <p className="text-xs font-semibold tracking-wide uppercase text-gray-500">
-                {remainingBalance <= 0 ? 'Fully Paid' : 'Pending Payment'}
-              </p>
+              <span className={`flex h-3 w-3 rounded-full ${isFullyPaid ? 'bg-green-500' : (totalNum > 0 ? 'bg-amber-500 animate-pulse' : 'bg-gray-300')}`} />
+              <h3 className="text-xl font-bold text-gray-800">Payment Calculator</h3>
             </div>
-            <h3 className="text-xl font-bold text-gray-800">
-              Invoice #INV-2026-004
-            </h3>
             
-            {/* The Math Dashboard */}
-            <div className="mt-5 grid grid-cols-3 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-100 max-w-md">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Currency Selector */}
               <div>
-                <p className="text-xs text-gray-500 uppercase font-bold mb-1">Total</p>
-                <p className="text-xl font-extrabold text-gray-900">${invoiceTotal.toFixed(2)}</p>
+                <label className="block text-sm font-bold text-gray-700 mb-1">Currency</label>
+                <select 
+                  value={currency} 
+                  onChange={(e) => setCurrency(e.target.value)}
+                  className="w-full p-2.5 border border-gray-300 rounded-lg bg-gray-50 focus:ring-2 focus:ring-purple-500 outline-none transition"
+                >
+                  <option value="DZD">DZD (Dinar)</option>
+                  <option value="MAD">MAD (Dirham)</option>
+                  <option value="USD">USD ($)</option>
+                  <option value="EUR">EUR (€)</option>
+                </select>
               </div>
+
+              {/* Total Input */}
               <div>
-                <p className="text-xs text-gray-500 uppercase font-bold mb-1">Paid</p>
-                <p className="text-xl font-extrabold text-green-600">${amountPaid.toFixed(2)}</p>
+                <label className="block text-sm font-bold text-gray-700 mb-1">Total Amount</label>
+                <input 
+                  type="number" 
+                  value={invoiceTotal}
+                  onChange={(e) => setInvoiceTotal(e.target.value)}
+                  placeholder="0.00"
+                  className="w-full p-2.5 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-purple-500 outline-none transition"
+                />
               </div>
+
+              {/* Received Input */}
               <div>
-                <p className="text-xs text-gray-500 uppercase font-bold mb-1">Remaining</p>
-                <p className="text-xl font-extrabold text-red-500">${Math.max(0, remainingBalance).toFixed(2)}</p>
+                <label className="block text-sm font-bold text-gray-700 mb-1">Amount Received</label>
+                <input 
+                  type="number" 
+                  value={amountReceived}
+                  onChange={(e) => setAmountReceived(e.target.value)}
+                  placeholder="0.00"
+                  className="w-full p-2.5 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-green-500 outline-none transition"
+                />
               </div>
             </div>
           </div>
-          
-          {/* Right Side: Add Payment Input */}
-          <div className="w-full md:w-80 bg-gray-50 p-5 rounded-xl border border-gray-200">
-            <h4 className="text-sm font-bold text-gray-800 mb-3">Record Received Payment</h4>
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <span className="absolute left-3 top-2.5 text-gray-400 font-bold">$</span>
-                <input 
-                  type="number" 
-                  value={newPaymentAmount}
-                  onChange={(e) => setNewPaymentAmount(e.target.value)}
-                  placeholder="0.00"
-                  className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
-                />
-              </div>
-              <button 
-                onClick={handleAddPayment}
-                disabled={remainingBalance <= 0 || !newPaymentAmount}
-                className="bg-gray-900 hover:bg-black disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-5 py-2 rounded-lg font-medium transition shadow-sm"
-              >
-                Save
-              </button>
-            </div>
-            {remainingBalance <= 0 && (
-               <p className="text-xs text-green-600 font-bold mt-3 text-center bg-green-50 p-2 rounded-lg">
-                 Invoice is fully paid!
-               </p>
+
+          {/* Right Side: The Math Result */}
+          <div className="w-full md:w-72 bg-gray-50 p-5 rounded-xl border border-gray-200 flex flex-col justify-center items-center">
+            <p className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-2">Remaining Balance</p>
+            <p className={`text-4xl font-extrabold text-center ${isFullyPaid ? 'text-green-600' : 'text-red-500'}`}>
+              {remainingNum.toLocaleString()} <span className="text-xl">{currency}</span>
+            </p>
+            
+            {isFullyPaid && (
+              <p className="text-xs text-green-700 font-bold mt-3 text-center bg-green-100 px-3 py-1.5 rounded-lg w-full">
+                Account is Fully Paid!
+              </p>
             )}
           </div>
 

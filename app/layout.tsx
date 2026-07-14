@@ -13,6 +13,14 @@ export const metadata: Metadata = {
   description: "Secure Finance & CRM Management",
 };
 
+// 1. ADD THIS VIEWPORT CONSTANT
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
+
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   // Check the security keys!
   const cookieStore = await cookies();

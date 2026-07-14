@@ -30,7 +30,8 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
   const [isContractFormOpen, setIsContractFormOpen] = useState(false);
   const [isDocFormOpen, setIsDocFormOpen] = useState(false);
 
-  // --- INVOICE & PAYMENT STATES (NEW FULL CRUD) ---
+  // --- INVOICE & PAYMENT STATES ---
+  const [invoiceTitle, setInvoiceTitle] = useState<string>('');
   const [currency, setCurrency] = useState<string>('DZD');
   const [invoiceTotal, setInvoiceTotal] = useState<string>('');
   const [amountReceived, setAmountReceived] = useState<string>('');
@@ -69,13 +70,14 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
   useEffect(() => { fetchClientData(); }, [clientId]);
 
   // ==========================================
-  // INVOICE LOGIC (PHASE 3)
+  // INVOICE LOGIC
   // ==========================================
   const handleSaveInvoice = async () => {
     if (totalNum <= 0) return alert("Please enter a total amount!");
 
     const payload = {
       clientId,
+      title: invoiceTitle || "Standard Invoice",
       currency,
       totalAmount: totalNum,
       paidAmount: receivedNum
@@ -95,7 +97,7 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
       });
     }
 
-    // Reset Calculator & Fetch Data
+    setInvoiceTitle('');
     setInvoiceTotal('');
     setAmountReceived('');
     setEditingInvoiceId(null);
@@ -104,10 +106,11 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
 
   const handleEditInvoice = (inv: Invoice) => {
     setEditingInvoiceId(inv.id);
+    setInvoiceTitle(inv.title || '');
     setCurrency(inv.currency);
     setInvoiceTotal(inv.totalAmount.toString());
     setAmountReceived(inv.paidAmount.toString());
-    window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll back up to the calculator
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleDeleteInvoice = async (id: string) => {
@@ -216,19 +219,24 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
         {/* THE CALCULATOR */}
         <div className="flex flex-col md:flex-row gap-8 mb-8 pb-8 border-b border-gray-100">
           <div className="flex-1 space-y-4">
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center gap-2 mb-4">
               <CreditCard className="text-purple-600" size={24} />
               <h3 className="text-xl font-bold text-gray-800">
                 {editingInvoiceId ? 'Edit Payment Record' : 'Record New Payment'}
               </h3>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Form changed to a 2x2 grid to fit the title neatly! */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-1">Title / Description</label>
+                <input type="text" value={invoiceTitle} onChange={(e) => setInvoiceTitle(e.target.value)} placeholder="e.g., Website Deposit" className="w-full p-2.5 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-purple-500 outline-none" />
+              </div>
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-1">Currency</label>
                 <select value={currency} onChange={(e) => setCurrency(e.target.value)} className="w-full p-2.5 border border-gray-300 rounded-lg bg-gray-50 focus:ring-2 focus:ring-purple-500 outline-none">
                   <option value="DZD">DZD (Dinar)</option>
-                  <option value="MAD">MAD (Dirham)</option>
+                  <option value="AED">AED (Emirati Dirham)</option>
                   <option value="USD">USD ($)</option>
                   <option value="EUR">EUR (€)</option>
                 </select>
@@ -256,7 +264,7 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
               {editingInvoiceId ? 'Update Record' : 'Save Payment'}
             </button>
             {editingInvoiceId && (
-               <button onClick={() => { setEditingInvoiceId(null); setInvoiceTotal(''); setAmountReceived(''); }} className="mt-2 text-sm text-gray-500 hover:text-gray-800 font-medium">Cancel Edit</button>
+               <button onClick={() => { setEditingInvoiceId(null); setInvoiceTitle(''); setInvoiceTotal(''); setAmountReceived(''); }} className="mt-2 text-sm text-gray-500 hover:text-gray-800 font-medium">Cancel Edit</button>
             )}
           </div>
         </div>
@@ -281,6 +289,8 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
                         <button onClick={() => handleDeleteInvoice(inv.id)} className="text-gray-400 hover:text-red-600"><Trash2 size={14}/></button>
                       </div>
                     </div>
+                    {/* The new title now appears directly above the amount! */}
+                    <h5 className="font-bold text-gray-800 mb-1 truncate" title={inv.title}>{inv.title}</h5>
                     <p className="text-2xl font-extrabold text-gray-900 mb-1">{inv.totalAmount.toLocaleString()} <span className="text-sm text-gray-500">{inv.currency}</span></p>
                     <div className="flex justify-between text-sm mt-3 border-t border-gray-100 pt-3">
                       <span className="text-gray-500 font-medium">Paid: <span className="text-green-600 font-bold">{inv.paidAmount.toLocaleString()}</span></span>

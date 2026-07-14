@@ -2,7 +2,7 @@
 import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, FileText, Calendar, AlertCircle, Paperclip, Download, Pencil, Trash2, X, Phone, Mail, MapPin, Building2, Plus, CreditCard } from 'lucide-react';
-// Add this new type:
+
 // --- TYPES ---
 type Document = {
   id: string; title: string; details: string | null; date: string | null; fileUrls: string; createdAt: string;

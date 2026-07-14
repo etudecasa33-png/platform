@@ -174,6 +174,40 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
         </div>
       </div>
 
+      {/* =========================================================================
+          PAYMENT SECTION (NEW)
+          ========================================================================= */}
+      <div className="mb-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="flex h-3 w-3 rounded-full bg-amber-500 animate-pulse" />
+              <p className="text-xs font-semibold tracking-wide uppercase text-gray-500">
+                Pending Payment
+              </p>
+            </div>
+            <h3 className="mt-1 text-xl font-bold text-gray-800">
+              Invoice #INV-2026-004
+            </h3>
+            <p className="text-sm text-gray-500 mt-0.5">
+              Due Date: 30/07/2026 • Amount Due: <span className="font-semibold text-gray-700">$250.00</span>
+            </p>
+          </div>
+          
+          <div>
+            <button 
+              onClick={() => alert("Manage invoice logic goes here...")}
+              className="w-full md:w-auto bg-gray-900 hover:bg-black text-white font-medium px-6 py-3 rounded-xl transition duration-200 shadow-sm flex items-center justify-center gap-2"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" />
+              </svg>
+              Manage Invoice
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* 3. TABS SYSTEM */}
       <div className="flex gap-8 border-b border-gray-200 mb-8">
         <button 

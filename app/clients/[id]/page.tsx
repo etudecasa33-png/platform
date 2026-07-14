@@ -3,19 +3,6 @@ import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, FileText, Calendar, AlertCircle, Paperclip, Download, Pencil, Trash2, X, Phone, Mail, MapPin, Building2, Plus, CreditCard } from 'lucide-react';
 // Add this new type:
-type Invoice = {
-  id: string; title: string; currency: string; totalAmount: number; paidAmount: number; createdAt: string;
-};
-
-// Update your existing ClientProfile type to include invoices:
-type ClientProfile = {
-  id: string; 
-  name: string; 
-  // ... your other existing fields ...
-  contracts: Contract[]; 
-  documents: Document[]; 
-  invoices: Invoice[]; // <-- Add this!
-};
 // --- TYPES ---
 type Document = {
   id: string; title: string; details: string | null; date: string | null; fileUrls: string; createdAt: string;
@@ -133,62 +120,6 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
     }
   };
 
-{/* =========================================================================
-          CLIENT INVOICE DASHBOARD (READ-ONLY)
-          ========================================================================= */}
-      {client.invoices && client.invoices.length > 0 && (
-        <div className="mb-8">
-          <h3 className="text-lg font-bold text-gray-800 mb-4 px-1">Billing & Invoices</h3>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {client.invoices.map((inv) => {
-              const remaining = Math.max(0, inv.totalAmount - inv.paidAmount);
-              const isPaidOff = remaining <= 0;
-
-              return (
-                <div key={inv.id} className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm relative overflow-hidden transition hover:shadow-md">
-                  {/* Status Color Bar */}
-                  <div className={`absolute top-0 left-0 w-full h-1.5 ${isPaidOff ? 'bg-green-500' : 'bg-amber-400'}`} />
-                  
-                  <div className="flex justify-between items-start mb-4 mt-1">
-                    <div>
-                      <span className={`inline-block px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider mb-2 ${isPaidOff ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'}`}>
-                        {isPaidOff ? 'Fully Paid' : 'Pending Payment'}
-                      </span>
-                      <h4 className="font-extrabold text-gray-900 text-lg truncate pr-4" title={inv.title}>
-                        {inv.title}
-                      </h4>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <p className="text-[11px] text-gray-400 uppercase font-bold tracking-wider mb-0.5">Total</p>
-                      <p className="text-xl font-black text-gray-900">
-                        {inv.totalAmount.toLocaleString()} <span className="text-sm font-semibold text-gray-500">{inv.currency}</span>
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Payment Breakdown Math */}
-                  <div className="flex justify-between items-center bg-gray-50 p-3.5 rounded-xl border border-gray-100">
-                    <div>
-                      <p className="text-xs text-gray-500 font-medium mb-0.5">Amount Paid</p>
-                      <p className="text-sm font-bold text-green-600">
-                        {inv.paidAmount.toLocaleString()} <span className="text-xs">{inv.currency}</span>
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-xs text-gray-500 font-medium mb-0.5">Remaining Balance</p>
-                      <p className={`text-base font-black ${isPaidOff ? 'text-gray-400' : 'text-red-500'}`}>
-                        {remaining.toLocaleString()} <span className="text-xs">{inv.currency}</span>
-                      </p>
-                    </div>
-                  </div>
-                  
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
   // ==========================================
   // CONTRACT LOGIC
   // ==========================================

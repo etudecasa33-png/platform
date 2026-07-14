@@ -39,6 +39,63 @@ export default function ClientPortal() {
           </div>
         </div>
 
+        {/* =========================================================================
+            CLIENT INVOICE DASHBOARD (READ-ONLY)
+            ========================================================================= */}
+        {client.invoices && client.invoices.length > 0 && (
+          <div className="mb-10">
+            <h3 className="text-xl font-bold text-gray-800 mb-5 px-1">Billing & Invoices</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {client.invoices.map((inv: any) => {
+                const remaining = Math.max(0, inv.totalAmount - inv.paidAmount);
+                const isPaidOff = remaining <= 0;
+
+                return (
+                  <div key={inv.id} className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm relative overflow-hidden transition hover:shadow-md">
+                    {/* Status Color Bar */}
+                    <div className={`absolute top-0 left-0 w-full h-1.5 ${isPaidOff ? 'bg-green-500' : 'bg-amber-400'}`} />
+                    
+                    <div className="flex justify-between items-start mb-4 mt-1">
+                      <div className="pr-4">
+                        <span className={`inline-block px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider mb-2 ${isPaidOff ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'}`}>
+                          {isPaidOff ? 'Fully Paid' : 'Pending Payment'}
+                        </span>
+                        <h4 className="font-extrabold text-gray-900 text-lg truncate" title={inv.title}>
+                          {inv.title}
+                        </h4>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="text-[11px] text-gray-400 uppercase font-bold tracking-wider mb-0.5">Total</p>
+                        <p className="text-xl font-black text-gray-900">
+                          {inv.totalAmount.toLocaleString()} <span className="text-sm font-semibold text-gray-500">{inv.currency}</span>
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Payment Breakdown Math */}
+                    <div className="flex justify-between items-center bg-gray-50 p-3.5 rounded-xl border border-gray-100">
+                      <div>
+                        <p className="text-xs text-gray-500 font-medium mb-0.5">Amount Paid</p>
+                        <p className="text-sm font-bold text-green-600">
+                          {inv.paidAmount.toLocaleString()} <span className="text-xs">{inv.currency}</span>
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs text-gray-500 font-medium mb-0.5">Remaining Balance</p>
+                        <p className={`text-base font-black ${isPaidOff ? 'text-gray-400' : 'text-red-500'}`}>
+                          {remaining.toLocaleString()} <span className="text-xs">{inv.currency}</span>
+                        </p>
+                      </div>
+                    </div>
+                    
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Tabs */}
         <div className="flex gap-4 mb-8">
           <button onClick={() => setActiveTab('contracts')} className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${activeTab === 'contracts' ? 'bg-purple-600 text-white shadow-lg shadow-purple-200' : 'bg-white text-gray-500 hover:bg-gray-100 border border-gray-200'}`}>
@@ -106,7 +163,7 @@ export default function ClientPortal() {
       {/* =======================================================
           UPGRADED: THE SMART SECURE IN-APP FILE VIEWER
           ======================================================= */}
-   {secureFileUrl && (
+      {secureFileUrl && (
         <div className="fixed inset-0 z-50 bg-slate-900/95 flex flex-col items-center justify-center p-4 backdrop-blur-sm">
           
           <button 
@@ -118,7 +175,7 @@ export default function ClientPortal() {
 
           <div className="relative w-full max-w-5xl h-[85vh] bg-white rounded-2xl overflow-hidden shadow-2xl flex items-center justify-center">
             
-            {/* 1. The Repeating Grid Watermark (pointer-events-none lets the scroll pass through it) */}
+            {/* 1. The Repeating Grid Watermark */}
             <div 
               className="absolute inset-0 z-20 pointer-events-none opacity-20 mix-blend-multiply"
               style={{
@@ -130,7 +187,7 @@ export default function ClientPortal() {
             {/* 2. The Smart File Renderer */}
             {secureFileUrl.match(/\.(jpeg|jpg|gif|png|webp)$/i) ? (
               
-              // IMAGE VIEWER: Has its own specific glass shield
+              // IMAGE VIEWER
               <div className="relative w-full h-full flex items-center justify-center">
                 <div 
                   className="absolute inset-0 z-30 cursor-default" 
@@ -146,7 +203,7 @@ export default function ClientPortal() {
 
             ) : (
               
-              // THE NEW SECURE PDF VIEWER: Handles its own scrolling and right-click blocking!
+              // SECURE PDF VIEWER
               <SecurePdfViewer url={secureFileUrl} />
 
             )}

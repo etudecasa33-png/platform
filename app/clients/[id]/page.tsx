@@ -227,7 +227,7 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-1">Title / Description</label>
-                <input type="text" value={invoiceTitle} onChange={(e) => setInvoiceTitle(e.target.value)} placeholder="e.g., Website Deposit" className="w-full p-2.5 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-purple-500 outline-none" />
+                <input type="text" value={invoiceTitle} onChange={(e) => setInvoiceTitle(e.target.value)} placeholder="e.g., Car Deposit" className="w-full p-2.5 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-purple-500 outline-none" />
               </div>
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-1">Currency</label>

@@ -15,7 +15,8 @@ export async function GET() {
       where: { id: clientId },
       include: { 
         contracts: { orderBy: { expirationDate: 'asc' } },
-        documents: { orderBy: { createdAt: 'desc' } }
+        documents: { orderBy: { createdAt: 'desc' } },
+        invoices: { orderBy: { createdAt: 'desc' } } // <-- ADDED THIS LINE!
       }
     });
 

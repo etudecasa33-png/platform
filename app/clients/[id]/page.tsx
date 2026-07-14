@@ -401,7 +401,6 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
 
                   <div className="flex-1 max-w-md flex flex-wrap gap-2">
                     {files.map((url, i) => (
-                      {/* FIXED SECURITY RISK HERE */}
                       <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-sm hover:bg-purple-50 hover:text-purple-700 hover:border-purple-200 transition">
                         <Paperclip size={14}/> {getFileName(url).substring(0, 15)}...
                       </a>
@@ -495,7 +494,6 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
 
                   <div className="flex-1 flex flex-wrap content-start gap-2">
                     {files.map((url, i) => (
-                      {/* FIXED SECURITY RISK HERE */}
                       <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-sm hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 transition">
                         <Download size={14}/> {getFileName(url).substring(0, 15)}...
                       </a>

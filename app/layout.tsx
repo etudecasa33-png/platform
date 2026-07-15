@@ -8,7 +8,6 @@ import LogoutButton from './components/LogoutButton';
 
 const inter = Inter({ subsets: ['latin'] });
 
-// 1. ADDED: Strict viewport to force mobile rendering
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
@@ -28,15 +27,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html lang="en">
-      {/* 2. FIXED: Added flex-col for mobile, md:flex-row for desktop */}
       <body className={`${inter.className} bg-slate-50 flex flex-col md:flex-row h-screen overflow-hidden`}>
         
-        {/* ONLY RENDER SIDEBAR IF IT IS THE ADMIN */}
         {isAdmin && (
-          {/* 3. FIXED: Sidebar spans w-full on mobile, and w-72 on desktop */}
           <aside className="w-full md:w-72 md:h-screen bg-gradient-to-b from-slate-950 to-slate-900 text-slate-300 flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.05)] border-b md:border-b-0 md:border-r border-slate-800 z-20 shrink-0">
             
-            {/* Logo Section */}
             <div className="p-4 md:p-8 border-b border-slate-800/60 relative overflow-hidden flex justify-between items-center">
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-600"></div>
               <div>
@@ -49,7 +44,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               </div>
             </div>
             
-            {/* 4. FIXED: Menu scrolls horizontally on mobile, stacks vertically on desktop */}
             <nav className="flex md:flex-col gap-2 px-4 py-3 md:py-6 overflow-x-auto md:overflow-y-auto scrollbar-hide">
               <Link href="/" className="flex shrink-0 items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3 rounded-xl hover:bg-slate-800/50 hover:text-white hover:shadow-inner transition-all group">
                 <LayoutDashboard size={18} className="text-slate-400 group-hover:text-blue-400 transition-colors" /> 
@@ -69,7 +63,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               </Link>
             </nav>
 
-            {/* User Profile Section (Hidden on mobile to save space) */}
             <div className="hidden md:block p-6 border-t border-slate-800/60 bg-slate-950/50 mt-auto">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold shadow-lg shadow-purple-500/20">A</div>
@@ -83,7 +76,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           </aside>
         )}
 
-        {/* MAIN CONTENT */}
         <main className="flex-1 w-full overflow-y-auto bg-slate-50 relative">
           {children}
           {(isAdmin || isClient) && <LogoutButton />}

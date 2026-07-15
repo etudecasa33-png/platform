@@ -1,15 +1,16 @@
 "use client";
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Search, Plus, Building2, ChevronRight, Mail, Phone, Pencil, Trash2, X } from 'lucide-react';
+import { Search, Plus, Building2, ChevronRight, Mail, Phone, Pencil, Trash2, X, Key, AlignLeft } from 'lucide-react';
 
-// --- TYPES ---
 type Client = {
   id: string;
   name: string;
   email: string | null;
   phone: string | null;
   address: string | null;
+  password: string | null;
+  notes: string | null; // or remarques, matching your Prisma schema
 };
 
 export default function ClientsDirectoryPage() {
@@ -17,11 +18,14 @@ export default function ClientsDirectoryPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
-  // --- EDIT MODAL STATES ---
+  // --- MODAL STATES ---
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingClientId, setEditingClientId] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState({ name: '', email: '', phone: '', address: '' });
+  
+  // The restored form state including password and remarques
+  const defaultForm = { name: '', email: '', phone: '', address: '', password: '', remarques: '' };
+  const [formState, setFormState] = useState(defaultForm);
 
-  // --- FETCH CLIENTS ---
   const fetchClients = async () => {
     setIsLoading(true);
     try {
@@ -30,7 +34,6 @@ export default function ClientsDirectoryPage() {
       if (Array.isArray(data)) setClients(data);
       else setClients([]);
     } catch (error) {
-      console.error("Failed to fetch clients", error);
       setClients([]);
     } finally {
       setIsLoading(false);
@@ -39,37 +42,51 @@ export default function ClientsDirectoryPage() {
 
   useEffect(() => { fetchClients(); }, []);
 
-  // --- DELETE CLIENT ---
-  const handleDeleteClient = async (id: string, name: string) => {
-    if (window.confirm(`Are you absolutely sure you want to delete ${name}? This will erase all their contracts, documents, and payments permanently!`)) {
-      await fetch(`/api/clients/${id}`, { method: 'DELETE' });
-      fetchClients();
-    }
+  // --- CREATE NEW CLIENT ---
+  const handleCreateClient = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await fetch('/api/clients', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formState)
+    });
+    setIsCreateModalOpen(false);
+    setFormState(defaultForm);
+    fetchClients();
   };
 
   // --- EDIT CLIENT ---
   const openEditModal = (client: Client) => {
     setEditingClientId(client.id);
-    setEditForm({
+    setFormState({
       name: client.name,
       email: client.email || '',
       phone: client.phone || '',
-      address: client.address || ''
+      address: client.address || '',
+      password: client.password || '',
+      remarques: client.notes || '' 
     });
   };
 
   const handleUpdateClient = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingClientId) return;
-
     await fetch(`/api/clients/${editingClientId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(editForm)
+      body: JSON.stringify(formState)
     });
-    
     setEditingClientId(null);
+    setFormState(defaultForm);
     fetchClients();
+  };
+
+  // --- DELETE CLIENT ---
+  const handleDeleteClient = async (id: string, name: string) => {
+    if (window.confirm(`Delete ${name} and all their data permanently?`)) {
+      await fetch(`/api/clients/${id}`, { method: 'DELETE' });
+      fetchClients();
+    }
   };
 
   // --- SEARCH FILTER ---
@@ -80,43 +97,29 @@ export default function ClientsDirectoryPage() {
   return (
     <div className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto min-h-screen relative">
       
-      {/* HEADER SECTION */}
+      {/* HEADER & ADD BUTTON */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900">Client Directory</h1>
           <p className="text-sm text-gray-500 mt-1">Manage your clients, contracts, and billing.</p>
         </div>
-        <Link href="/clients/new" className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 transition shadow-sm">
+        
+        {/* RESTORED: This now opens a modal instead of going to a dead link */}
+        <button 
+          onClick={() => { setFormState(defaultForm); setIsCreateModalOpen(true); }}
+          className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 transition shadow-sm"
+        >
           <Plus size={18} /> New Client
-        </Link>
+        </button>
       </div>
 
-      {/* SEARCH BAR SECTION */}
+      {/* SEARCH BAR */}
       <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 mb-8">
         <div className="relative max-w-xl">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
           <input type="text" placeholder="Search clients by name..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition" />
-          {searchQuery && (
-            <button onClick={() => setSearchQuery('')} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-sm font-bold">Clear</button>
-          )}
         </div>
       </div>
-
-      {/* CLIENTS LIST (Loading State) */}
-      {isLoading && (
-        <div className="flex justify-center items-center py-20 text-gray-400 font-bold">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mr-3"></div> Loading clients...
-        </div>
-      )}
-
-      {/* CLIENTS LIST (Empty State) */}
-      {!isLoading && filteredClients.length === 0 && (
-        <div className="bg-white p-12 text-center rounded-2xl border border-dashed border-gray-300">
-          <div className="bg-gray-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-400"><Search size={24} /></div>
-          <h3 className="text-lg font-bold text-gray-900 mb-1">No clients found</h3>
-          <p className="text-gray-500">{searchQuery ? `We couldn't find anyone named "${searchQuery}".` : "You haven't added any clients yet."}</p>
-        </div>
-      )}
 
       {/* CLIENTS LIST (Card Grid) */}
       {!isLoading && filteredClients.length > 0 && (
@@ -132,9 +135,7 @@ export default function ClientsDirectoryPage() {
                     <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mt-0.5">ID: {client.id.substring(client.id.length - 6)}</p>
                   </div>
                 </div>
-
-                {/* EDIT AND DELETE BUTTONS */}
-                <div className="absolute top-5 right-5 flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                <div className="absolute top-5 right-5 flex gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                   <button onClick={() => openEditModal(client)} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"><Pencil size={16}/></button>
                   <button onClick={() => handleDeleteClient(client.id, client.name)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"><Trash2 size={16}/></button>
                 </div>
@@ -143,10 +144,9 @@ export default function ClientsDirectoryPage() {
               <div className="space-y-2 mt-auto pt-4 border-t border-gray-100 mb-5">
                 {client.email && <p className="text-sm text-gray-600 flex items-center gap-2 truncate"><Mail size={14} className="text-gray-400 shrink-0" /> {client.email}</p>}
                 {client.phone && <p className="text-sm text-gray-600 flex items-center gap-2 truncate"><Phone size={14} className="text-gray-400 shrink-0" /> {client.phone}</p>}
-                {!client.email && !client.phone && <p className="text-sm text-gray-400 italic">No contact info provided</p>}
+                {client.password && <p className="text-sm text-gray-600 flex items-center gap-2 truncate"><Key size={14} className="text-gray-400 shrink-0" /> {client.password}</p>}
               </div>
 
-              {/* View Profile Link */}
               <Link href={`/clients/${client.id}`} className="mt-auto bg-gray-50 text-gray-600 text-sm font-bold py-2.5 rounded-xl flex items-center justify-center gap-1 hover:bg-blue-50 hover:text-blue-700 transition">
                 View Full Profile <ChevronRight size={16} />
               </Link>
@@ -156,38 +156,50 @@ export default function ClientsDirectoryPage() {
       )}
 
       {/* ====================================================
-          EDIT CLIENT MODAL (Pops up when clicking the Pencil)
+          CREATE / EDIT CLIENT MODAL (Restored all fields)
           ==================================================== */}
-      {editingClientId && (
+      {(isCreateModalOpen || editingClientId) && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl relative overflow-hidden">
+          <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl relative overflow-hidden max-h-[90vh] flex flex-col">
             
-            <div className="bg-slate-900 p-6 flex justify-between items-center text-white">
-              <h3 className="text-xl font-bold">Edit Client Details</h3>
-              <button onClick={() => setEditingClientId(null)} className="text-slate-400 hover:text-white transition"><X size={24}/></button>
+            <div className="bg-slate-900 p-6 flex justify-between items-center text-white shrink-0">
+              <h3 className="text-xl font-bold">{editingClientId ? 'Edit Client' : 'Create New Client'}</h3>
+              <button onClick={() => { setIsCreateModalOpen(false); setEditingClientId(null); }} className="text-slate-400 hover:text-white transition"><X size={24}/></button>
             </div>
 
-            <form onSubmit={handleUpdateClient} className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1">Company / Client Name *</label>
-                <input type="text" required value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})} className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1">Email Address</label>
-                <input type="email" value={editForm.email} onChange={e => setEditForm({...editForm, email: e.target.value})} className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1">Phone Number</label>
-                <input type="text" value={editForm.phone} onChange={e => setEditForm({...editForm, phone: e.target.value})} className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1">Address</label>
-                <input type="text" value={editForm.address} onChange={e => setEditForm({...editForm, address: e.target.value})} className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+            <form onSubmit={editingClientId ? handleUpdateClient : handleCreateClient} className="p-6 space-y-4 overflow-y-auto">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="sm:col-span-2">
+                  <label className="block text-sm font-bold text-gray-700 mb-1">Company / Client Name *</label>
+                  <input type="text" required value={formState.name} onChange={e => setFormState({...formState, name: e.target.value})} className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">Email</label>
+                  <input type="email" value={formState.email} onChange={e => setFormState({...formState, email: e.target.value})} className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">Phone</label>
+                  <input type="text" value={formState.phone} onChange={e => setFormState({...formState, phone: e.target.value})} className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">Address</label>
+                  <input type="text" value={formState.address} onChange={e => setFormState({...formState, address: e.target.value})} className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                </div>
+                <div>
+                  {/* RESTORED PASSWORD FIELD */}
+                  <label className="block text-sm font-bold text-gray-700 mb-1">Password</label>
+                  <input type="text" value={formState.password} onChange={e => setFormState({...formState, password: e.target.value})} className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                </div>
+                <div className="sm:col-span-2">
+                  {/* RESTORED REMARQUES FIELD */}
+                  <label className="block text-sm font-bold text-gray-700 mb-1">Remarques / Notes</label>
+                  <textarea value={formState.remarques} onChange={e => setFormState({...formState, remarques: e.target.value})} className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none h-24" />
+                </div>
               </div>
               
-              <div className="pt-4 border-t border-gray-100 flex gap-3 justify-end">
-                <button type="button" onClick={() => setEditingClientId(null)} className="px-5 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-100 rounded-lg transition">Cancel</button>
-                <button type="submit" className="px-5 py-2.5 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition">Save Changes</button>
+              <div className="pt-4 border-t border-gray-100 flex gap-3 justify-end shrink-0">
+                <button type="button" onClick={() => { setIsCreateModalOpen(false); setEditingClientId(null); }} className="px-5 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-100 rounded-lg transition">Cancel</button>
+                <button type="submit" className="px-5 py-2.5 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition">{editingClientId ? 'Save Changes' : 'Create Client'}</button>
               </div>
             </form>
           </div>

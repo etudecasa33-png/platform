@@ -3,17 +3,17 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-// FETCH Client + Contracts + Documents + Invoices
-export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
+// 1. GET: Fetches the client data for the profile page
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const params = await context.params;
+    const unwrappedParams = await params;
     const client = await prisma.client.findUnique({
-      where: { id: params.id },
-      include: { 
-        contracts: { orderBy: { expirationDate: 'asc' } },
+      where: { id: unwrappedParams.id },
+      include: {
+        contracts: { orderBy: { createdAt: 'desc' } },
         documents: { orderBy: { createdAt: 'desc' } },
-        invoices: { orderBy: { createdAt: 'desc' } } // <-- ADDED INVOICES HERE!
-      } 
+        invoices: { orderBy: { createdAt: 'desc' } }
+      }
     });
     if (!client) return NextResponse.json({ error: "Client not found" }, { status: 404 });
     return NextResponse.json(client);
@@ -22,34 +22,35 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
   }
 }
 
-// UPDATE Client
-export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
+// 2. PUT: Updates the client's core details
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const params = await context.params;
+    const unwrappedParams = await params;
     const body = await request.json();
+    
     const updatedClient = await prisma.client.update({
-      where: { id: params.id },
-      data: { 
-        name: body.name, 
-        phone: body.phone, 
-        email: body.email, 
-        address: body.address, 
-        notes: body.notes,
-        password: body.password
+      where: { id: unwrappedParams.id },
+      data: {
+        name: body.name,
+        email: body.email,
+        phone: body.phone,
+        address: body.address
       }
     });
-    return NextResponse.json(updatedClient);
+    return NextResponse.json(updatedClient, { status: 200 });
   } catch (error) {
     return NextResponse.json({ error: "Failed to update client" }, { status: 500 });
   }
 }
 
-// DELETE Client (This will automatically delete all their contracts, files, and invoices too!)
-export async function DELETE(request: Request, context: { params: Promise<{ id: string }> }) {
+// 3. DELETE: Removes the client and ALL their connected data
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const params = await context.params;
-    await prisma.client.delete({ where: { id: params.id } });
-    return NextResponse.json({ message: "Client deleted" });
+    const unwrappedParams = await params;
+    await prisma.client.delete({
+      where: { id: unwrappedParams.id }
+    });
+    return NextResponse.json({ message: "Client deleted completely" }, { status: 200 });
   } catch (error) {
     return NextResponse.json({ error: "Failed to delete client" }, { status: 500 });
   }

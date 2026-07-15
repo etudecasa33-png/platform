@@ -111,36 +111,29 @@ export default function ClientsDirectoryPage() {
       </div>
 
       {!isLoading && filteredClients.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {filteredClients.map((client) => (
-            <div 
-              key={client.id} 
-              onClick={() => router.push(`/clients/${client.id}`)}
-              className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md hover:border-blue-300 transition group flex flex-col h-full relative cursor-pointer"
-            >
-              <div className="flex justify-between items-start mb-4">
-                <div className="flex items-start gap-4 min-w-0 pr-12">
-                  <div className="bg-blue-50 p-3 rounded-xl text-blue-600 shrink-0"><Building2 size={24} /></div>
-                  <div className="min-w-0">
-                    <h2 className="text-lg font-bold text-gray-900 truncate">{client.name}</h2>
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mt-0.5">ID: {client.id.substring(client.id.length - 6)}</p>
-                  </div>
-                </div>
-                
-                <div className="absolute top-5 right-5 flex gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); openEditModal(client); }} 
-                    className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition z-10"
-                  >
-                    <Pencil size={16}/>
-                  </button>
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); handleDeleteClient(client.id, client.name); }} 
-                    className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition z-10"
-                  >
-                    <Trash2 size={16}/>
-                  </button>
-                </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">{filteredClients.map((client) => (
+  <Link 
+    href={`/clients/${client.id}`}
+    key={client.id}
+    className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md hover:border-blue-300 transition group flex flex-col h-full relative cursor-pointer"
+  >
+    {/* Inside here, your content remains exactly the same as before */}
+    {/* Just ensure your Pencil/Trash buttons have e.preventDefault() and e.stopPropagation() */}
+    
+    <div className="absolute top-5 right-5 flex gap-1 z-20">
+      <button 
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); openEditModal(client); }} 
+        className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
+      >
+        <Pencil size={16}/>
+      </button>
+      <button 
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDeleteClient(client.id, client.name); }} 
+        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+      >
+        <Trash2 size={16}/>
+      </button>
+    </div>
               </div>
 
               <div className="space-y-2 mt-auto pt-4 border-t border-gray-100 mb-5">

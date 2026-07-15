@@ -27,7 +27,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html lang="en">
-      <body className={`${inter.className} bg-slate-50 flex flex-col md:flex-row h-screen overflow-hidden`}>
+      // Change this line:
+<body className={`${inter.className} bg-slate-50 flex flex-col md:flex-row min-h-screen`}>
         
         {isAdmin && (
           <aside className="w-full md:w-72 md:h-screen bg-gradient-to-b from-slate-950 to-slate-900 text-slate-300 flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.05)] border-b md:border-b-0 md:border-r border-slate-800 z-20 shrink-0">

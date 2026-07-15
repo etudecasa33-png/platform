@@ -10,7 +10,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     const client = await prisma.client.findUnique({
       where: { id: unwrappedParams.id },
       include: {
-        contracts: { orderBy: { createdAt: 'desc' } },
+        // FIXED: Changed 'createdAt' to 'startDate' because Contracts don't have a createdAt column!
+        contracts: { orderBy: { startDate: 'desc' } },
         documents: { orderBy: { createdAt: 'desc' } },
         invoices: { orderBy: { createdAt: 'desc' } }
       }

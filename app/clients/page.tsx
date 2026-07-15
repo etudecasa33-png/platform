@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation'; // <-- Added Router
+import { useRouter } from 'next/navigation';
 import { Search, Plus, Building2, ChevronRight, Mail, Phone, Pencil, Trash2, X, Key } from 'lucide-react';
 
 type Client = {
@@ -15,7 +15,7 @@ type Client = {
 };
 
 export default function ClientsDirectoryPage() {
-  const router = useRouter(); // <-- Initialize Router
+  const router = useRouter();
   const [clients, setClients] = useState<Client[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -113,7 +113,6 @@ export default function ClientsDirectoryPage() {
       {!isLoading && filteredClients.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {filteredClients.map((client) => (
-            {/* ENTIRE CARD IS NOW CLICKABLE */}
             <div 
               key={client.id} 
               onClick={() => router.push(`/clients/${client.id}`)}
@@ -128,7 +127,6 @@ export default function ClientsDirectoryPage() {
                   </div>
                 </div>
                 
-                {/* PREVENT BUTTONS FROM TRIGGERING THE CARD CLICK */}
                 <div className="absolute top-5 right-5 flex gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                   <button 
                     onClick={(e) => { e.stopPropagation(); openEditModal(client); }} 

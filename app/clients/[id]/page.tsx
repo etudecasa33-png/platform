@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { ArrowLeft, FileText, Calendar, AlertCircle, Eye, Pencil, Trash2, X, Phone, Mail, MapPin, Building2, Plus, CreditCard } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
-// Import the Secure Viewer for the Admin side too!
 const SecurePdfViewer = dynamic(() => import('../../components/SecurePdfViewer'), {
   ssr: false,
   loading: () => <div className="flex h-full items-center justify-center font-bold text-gray-400">Loading secure viewer...</div>
@@ -21,7 +20,6 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
   const clientId = unwrappedParams.id;
   const [client, setClient] = useState<ClientProfile | null>(null);
 
-  // --- UI STATE ---
   const [activeTab, setActiveTab] = useState<'contracts' | 'documents'>('contracts');
   const [isContractFormOpen, setIsContractFormOpen] = useState(false);
   const [isDocFormOpen, setIsDocFormOpen] = useState(false);
@@ -50,7 +48,6 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
   const [docFiles, setDocFiles] = useState<FileList | null>(null);
   const [retainedDocFiles, setRetainedDocFiles] = useState<string[]>([]);
 
-  // --- HELPER FUNCTIONS ---
   const removeRetainedDocFile = (url: string) => setRetainedDocFiles(prev => prev.filter(u => u !== url));
   const removeRetainedContractFile = (url: string) => setRetainedContractFiles(prev => prev.filter(u => u !== url));
   const getFileName = (url: string) => url.split('-').slice(1).join('-') || url.split('/').pop() || "Document";
@@ -63,7 +60,6 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
 
   useEffect(() => { fetchClientData(); }, [clientId]);
 
-  // Lock scrolling on mobile when the file viewer is open
   useEffect(() => {
     if (secureFileUrl) document.body.style.overflow = 'hidden';
     else document.body.style.overflow = 'unset';
@@ -146,15 +142,14 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
   if (!client) return <div className="p-8 text-center text-gray-500">Loading profile...</div>;
 
   return (
-    // MOBILE PADDING: Reduced from p-8 to p-4 on small screens
-    <div className="p-4 sm:p-6 md:p-8 max-w-6xl mx-auto bg-gray-50 min-h-screen">
+    <div className="p-4 sm:p-6 md:p-8 w-full max-w-6xl mx-auto bg-gray-50 min-h-screen">
       
       {/* TOP NAVIGATION */}
       <Link href="/clients" className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-900 mb-4 sm:mb-6 font-medium transition-colors text-sm sm:text-base">
         <ArrowLeft size={18} /> Back to Directory
       </Link>
 
-      {/* PROFILE HEADER (Responsive flex layout) */}
+      {/* PROFILE HEADER */}
       <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-gray-200 mb-6 sm:mb-8 flex flex-col sm:flex-row gap-4 sm:gap-6 items-center sm:items-start text-center sm:text-left">
         <div className="bg-purple-100 p-4 rounded-2xl text-purple-600 flex-shrink-0">
           <Building2 size={40} className="w-10 h-10 sm:w-12 sm:h-12" />
@@ -171,8 +166,6 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
 
       {/* PAYMENT CALCULATOR & HISTORY */}
       <div className="mb-6 sm:mb-8 rounded-2xl border border-gray-200 bg-white p-5 sm:p-6 shadow-sm">
-        
-        {/* THE CALCULATOR (Stacks vertically on mobile, row on large screens) */}
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 mb-6 pb-6 border-b border-gray-100">
           <div className="flex-1 space-y-4">
             <div className="flex items-center gap-2 mb-2 sm:mb-4">
@@ -221,7 +214,6 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
           </div>
         </div>
 
-        {/* PAYMENT HISTORY LIST */}
         <div>
           <h4 className="text-xs sm:text-sm font-bold text-gray-400 uppercase tracking-wider mb-3 sm:mb-4">Payment History ({client.invoices.length})</h4>
           {client.invoices.length === 0 ? (
@@ -255,7 +247,7 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
         </div>
       </div>
 
-      {/* SWIPEABLE TABS FOR MOBILE */}
+      {/* SWIPEABLE TABS */}
       <div className="flex gap-2 sm:gap-4 mb-6 sm:mb-8 overflow-x-auto pb-2 scrollbar-hide snap-x border-b border-gray-200">
         <button onClick={() => setActiveTab('contracts')} className={`shrink-0 snap-start pb-3 sm:pb-4 px-2 text-base sm:text-lg font-bold transition-colors relative ${activeTab === 'contracts' ? 'text-purple-600' : 'text-gray-400 hover:text-gray-600'}`}>
           Contracts ({client.contracts.length})

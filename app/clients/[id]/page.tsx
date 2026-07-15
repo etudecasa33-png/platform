@@ -13,19 +13,22 @@ const SecurePdfViewer = dynamic(() => import('../../components/SecurePdfViewer')
 type ClientDocument = { id: string; title: string; details: string | null; date: string | null; fileUrls: string; createdAt: string; };
 type Contract = { id: string; startDate: string; expirationDate: string; status: string; fileUrls: string; };
 type Invoice = { id: string; title: string; currency: string; totalAmount: number; paidAmount: number; createdAt: string; };
-type ClientProfile = { id: string; name: string; email: string | null; phone: string | null; address: string | null; notes: string | null; contracts: Contract[]; documents: ClientDocument[]; invoices: Invoice[]; };
+type ClientProfile = { id: string; name: string; email: string | null; phone: string | null; address: string | null; notes: string | null; contracts?: Contract[]; documents?: ClientDocument[]; invoices?: Invoice[]; };
 
 export default function ClientProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const unwrappedParams = use(params);
   const clientId = unwrappedParams.id;
   const [client, setClient] = useState<ClientProfile | null>(null);
+  
+  // Added strict status tracking so it doesn't get stuck loading forever
+  const [pageStatus, setPageStatus] = useState<'loading' | 'success' | 'error'>('loading');
 
   const [activeTab, setActiveTab] = useState<'contracts' | 'documents'>('contracts');
   const [isContractFormOpen, setIsContractFormOpen] = useState(false);
   const [isDocFormOpen, setIsDocFormOpen] = useState(false);
   const [secureFileUrl, setSecureFileUrl] = useState<string | null>(null);
 
-  // --- INVOICE & PAYMENT STATES ---
+  // --- INVOICE STATES ---
   const [invoiceTitle, setInvoiceTitle] = useState<string>('');
   const [currency, setCurrency] = useState<string>('DZD');
   const [invoiceTotal, setInvoiceTotal] = useState<string>('');
@@ -52,10 +55,24 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
   const removeRetainedContractFile = (url: string) => setRetainedContractFiles(prev => prev.filter(u => u !== url));
   const getFileName = (url: string) => url.split('-').slice(1).join('-') || url.split('/').pop() || "Document";
 
+  // --- BULLETPROOF FETCH ---
   const fetchClientData = async () => {
-    const res = await fetch(`/api/clients/${clientId}`, { cache: 'no-store' });
-    const data = await res.json();
-    setClient(data);
+    setPageStatus('loading');
+    try {
+      const res = await fetch(`/api/clients/${clientId}`, { cache: 'no-store' });
+      const data = await res.json();
+      
+      // If the API returns an error message instead of a client, catch it!
+      if (data.error || !data.name) {
+        setPageStatus('error');
+        return;
+      }
+      
+      setClient(data);
+      setPageStatus('success');
+    } catch (error) {
+      setPageStatus('error');
+    }
   };
 
   useEffect(() => { fetchClientData(); }, [clientId]);
@@ -72,10 +89,8 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
   const handleSaveInvoice = async () => {
     if (totalNum <= 0) return alert("Please enter a total amount!");
     const payload = { clientId, title: invoiceTitle || "Standard Invoice", currency, totalAmount: totalNum, paidAmount: receivedNum };
-    
     if (editingInvoiceId) await fetch(`/api/invoices/${editingInvoiceId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
     else await fetch('/api/invoices', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-
     setInvoiceTitle(''); setInvoiceTotal(''); setAmountReceived(''); setEditingInvoiceId(null); fetchClientData();
   };
 
@@ -139,17 +154,40 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
     if (window.confirm("Delete this document box and ALL its files forever?")) { await fetch(`/api/documents/${id}`, { method: 'DELETE' }); fetchClientData(); }
   };
 
-  if (!client) return <div className="p-8 text-center text-gray-500">Loading profile...</div>;
+  // --- UI STATUS RENDERERS ---
+  if (pageStatus === 'loading') {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen text-gray-500">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mb-4"></div>
+        <p className="font-bold tracking-wider uppercase text-sm">Accessing Secure Profile...</p>
+      </div>
+    );
+  }
+
+  if (pageStatus === 'error' || !client) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen text-gray-500 p-6">
+        <AlertCircle size={48} className="text-red-500 mb-4" />
+        <h2 className="text-xl font-bold text-gray-900 mb-2">Profile Not Found</h2>
+        <p className="text-center mb-6 max-w-md">We couldn't load this client's profile. It may have been deleted, or the database connection failed.</p>
+        <Link href="/clients" className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-bold transition">Return to Directory</Link>
+      </div>
+    );
+  }
+
+  // --- CRASH PREVENTION ARRAYS ---
+  // If the database sends null for these, we force them to be empty arrays so React never crashes!
+  const safeContracts = client.contracts || [];
+  const safeInvoices = client.invoices || [];
+  const safeDocuments = client.documents || [];
 
   return (
     <div className="p-4 sm:p-6 md:p-8 w-full max-w-6xl mx-auto bg-gray-50 min-h-screen">
       
-      {/* TOP NAVIGATION */}
       <Link href="/clients" className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-900 mb-4 sm:mb-6 font-medium transition-colors text-sm sm:text-base">
         <ArrowLeft size={18} /> Back to Directory
       </Link>
 
-      {/* PROFILE HEADER */}
       <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-gray-200 mb-6 sm:mb-8 flex flex-col sm:flex-row gap-4 sm:gap-6 items-center sm:items-start text-center sm:text-left">
         <div className="bg-purple-100 p-4 rounded-2xl text-purple-600 flex-shrink-0">
           <Building2 size={40} className="w-10 h-10 sm:w-12 sm:h-12" />
@@ -164,7 +202,6 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
         </div>
       </div>
 
-      {/* PAYMENT CALCULATOR & HISTORY */}
       <div className="mb-6 sm:mb-8 rounded-2xl border border-gray-200 bg-white p-5 sm:p-6 shadow-sm">
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 mb-6 pb-6 border-b border-gray-100">
           <div className="flex-1 space-y-4">
@@ -215,12 +252,14 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
         </div>
 
         <div>
-          <h4 className="text-xs sm:text-sm font-bold text-gray-400 uppercase tracking-wider mb-3 sm:mb-4">Payment History ({client.invoices.length})</h4>
-          {client.invoices.length === 0 ? (
+          {/* SAFE LENGTH */}
+          <h4 className="text-xs sm:text-sm font-bold text-gray-400 uppercase tracking-wider mb-3 sm:mb-4">Payment History ({safeInvoices.length})</h4>
+          {safeInvoices.length === 0 ? (
             <p className="text-sm text-gray-500 italic">No payments recorded yet.</p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-              {client.invoices.map((inv) => {
+              {/* SAFE MAP */}
+              {safeInvoices.map((inv) => {
                 const isPaidOff = (inv.totalAmount - inv.paidAmount) <= 0;
                 return (
                   <div key={inv.id} className="p-4 border border-gray-200 rounded-xl hover:shadow-md transition bg-white relative group">
@@ -247,19 +286,19 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
         </div>
       </div>
 
-      {/* SWIPEABLE TABS */}
       <div className="flex gap-2 sm:gap-4 mb-6 sm:mb-8 overflow-x-auto pb-2 scrollbar-hide snap-x border-b border-gray-200">
         <button onClick={() => setActiveTab('contracts')} className={`shrink-0 snap-start pb-3 sm:pb-4 px-2 text-base sm:text-lg font-bold transition-colors relative ${activeTab === 'contracts' ? 'text-purple-600' : 'text-gray-400 hover:text-gray-600'}`}>
-          Contracts ({client.contracts.length})
+          {/* SAFE LENGTH */}
+          Contracts ({safeContracts.length})
           {activeTab === 'contracts' && <div className="absolute bottom-0 left-0 w-full h-1 bg-purple-600 rounded-t-full" />}
         </button>
         <button onClick={() => setActiveTab('documents')} className={`shrink-0 snap-start pb-3 sm:pb-4 px-2 text-base sm:text-lg font-bold transition-colors relative ${activeTab === 'documents' ? 'text-blue-600' : 'text-gray-400 hover:text-gray-600'}`}>
-          Documents ({client.documents.length})
+          {/* SAFE LENGTH */}
+          Documents ({safeDocuments.length})
           {activeTab === 'documents' && <div className="absolute bottom-0 left-0 w-full h-1 bg-blue-600 rounded-t-full" />}
         </button>
       </div>
 
-      {/* TAB 1: CONTRACTS */}
       {activeTab === 'contracts' && (
         <div className="space-y-4 sm:space-y-6">
           <div className="flex justify-between items-center">
@@ -301,7 +340,8 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
           )}
 
           <div className="space-y-3">
-            {client.contracts.map((contract) => {
+            {/* SAFE MAP */}
+            {safeContracts.map((contract) => {
               const isExpired = new Date(contract.expirationDate) < new Date();
               let files: string[] = []; try { files = JSON.parse(contract.fileUrls); } catch (e) {}
               return (
@@ -334,7 +374,6 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
         </div>
       )}
 
-      {/* TAB 2: DOCUMENTS */}
       {activeTab === 'documents' && (
         <div className="space-y-4 sm:space-y-6">
           <div className="flex justify-between items-center">
@@ -376,7 +415,8 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
           )}
 
           <div className="grid grid-cols-1 gap-4">
-            {client.documents.map((doc) => {
+            {/* SAFE MAP */}
+            {safeDocuments.map((doc) => {
               let files: string[] = []; try { files = JSON.parse(doc.fileUrls); } catch (e) {}
               return (
                 <div key={doc.id} className="bg-white border border-gray-200 p-4 sm:p-5 rounded-xl flex flex-col md:flex-row gap-4 sm:gap-6 transition-shadow hover:shadow-md">
@@ -403,22 +443,13 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
         </div>
       )}
 
-      {/* MOBILE-OPTIMIZED SECURE IN-APP FILE VIEWER */}
       {secureFileUrl && (
         <div className="fixed inset-0 z-50 bg-slate-900/95 flex flex-col items-center justify-center p-2 sm:p-4 backdrop-blur-sm h-[100dvh]">
-          
-          <button 
-            onClick={() => setSecureFileUrl(null)} 
-            className="absolute top-4 right-4 sm:top-6 sm:right-6 bg-red-600 hover:bg-red-700 text-white p-2.5 sm:p-3 rounded-full flex items-center gap-2 font-bold shadow-lg transition-transform hover:scale-105 z-50 text-sm sm:text-base"
-          >
+          <button onClick={() => setSecureFileUrl(null)} className="absolute top-4 right-4 sm:top-6 sm:right-6 bg-red-600 hover:bg-red-700 text-white p-2.5 sm:p-3 rounded-full flex items-center gap-2 font-bold shadow-lg transition-transform hover:scale-105 z-50 text-sm sm:text-base">
             <X size={18} className="sm:w-5 sm:h-5" /> <span className="hidden sm:inline">Close File</span>
           </button>
-
           <div className="relative w-full max-w-5xl h-[80dvh] sm:h-[85vh] bg-white rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl flex items-center justify-center mt-12 sm:mt-0">
-            <div 
-              className="absolute inset-0 z-20 pointer-events-none opacity-20 mix-blend-multiply"
-              style={{ backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' transform='rotate(-45 100 100)' font-size='20' fill='black' font-family='sans-serif' font-weight='900' letter-spacing='2'%3EAUTOMONDO%3C/text%3E%3C/svg%3E")`, backgroundRepeat: 'repeat' }}
-            />
+            <div className="absolute inset-0 z-20 pointer-events-none opacity-20 mix-blend-multiply" style={{ backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' transform='rotate(-45 100 100)' font-size='20' fill='black' font-family='sans-serif' font-weight='900' letter-spacing='2'%3EAUTOMONDO%3C/text%3E%3C/svg%3E")`, backgroundRepeat: 'repeat' }} />
             {secureFileUrl.match(/\.(jpeg|jpg|gif|png|webp)$/i) ? (
               <div className="relative w-full h-full flex items-center justify-center">
                 <div className="absolute inset-0 z-30 cursor-default" onContextMenu={(e) => e.preventDefault()} style={{ touchAction: 'none' }} />

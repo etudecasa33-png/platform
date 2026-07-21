@@ -22,7 +22,7 @@ type ClientProfile = { id: string; name: string; contracts: Contract[]; document
 const translations = {
   en: {
     loadingPortal: "Loading your secure portal...",
-    secureConnection: "Secure Portal Connection",
+    secureConnection: "Client Workspace",
     welcome: "Welcome,",
     billing: "Billing & Invoices",
     fullyPaid: "Fully Paid",
@@ -32,14 +32,14 @@ const translations = {
     remainingBalance: "Remaining Balance",
     myContracts: "My Contracts",
     otherDocs: "Other Documents",
-    viewSecurely: "View Securely",
+    viewSecurely: "View",
     viewDoc: "View Document",
     closeFile: "Close File",
     langToggle: "عربي"
   },
   ar: {
     loadingPortal: "جاري تحميل بوابتك الآمنة...",
-    secureConnection: "اتصال بوابة آمن",
+    secureConnection: "مساحة عمل العميل",
     welcome: "مرحباً،",
     billing: "الفواتير والمدفوعات",
     fullyPaid: "مدفوع بالكامل",
@@ -49,7 +49,7 @@ const translations = {
     remainingBalance: "الرصيد المتبقي",
     myContracts: "عقودي",
     otherDocs: "مستندات أخرى",
-    viewSecurely: "عرض آمن",
+    viewSecurely: "عرض",
     viewDoc: "عرض المستند",
     closeFile: "إغلاق الملف",
     langToggle: "English"

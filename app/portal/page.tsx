@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from 'react';
-import { FileText, Calendar, Building2, Eye, FolderOpen, ShieldCheck, X } from 'lucide-react';
+import { FileText, Calendar, Building2, Eye, FolderOpen, ShieldCheck, X, Globe } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
 const SecurePdfViewer = dynamic(() => import('../components/SecurePdfViewer'), {
@@ -8,27 +8,81 @@ const SecurePdfViewer = dynamic(() => import('../components/SecurePdfViewer'), {
   loading: () => <div className="flex h-full items-center justify-center font-bold text-gray-400">Initializing secure viewer...</div>
 });
 
-// --- TYPES (Fixed Vercel TypeScript Errors) ---
+// --- TYPES ---
 type ClientDocument = { id: string; title: string; details: string | null; date: string | null; fileUrls: string; createdAt: string; };
 type Contract = { id: string; startDate: string; expirationDate: string; status: string; fileUrls: string; };
 type Invoice = { id: string; title: string; currency: string; totalAmount: number; paidAmount: number; createdAt: string; };
 type ClientProfile = { id: string; name: string; contracts: Contract[]; documents: ClientDocument[]; invoices: Invoice[]; };
+
+// --- TRANSLATION DICTIONARY ---
+const translations = {
+  en: {
+    loadingPortal: "Loading your secure portal...",
+    secureConnection: "Secure Portal Connection",
+    welcome: "Welcome,",
+    billing: "Billing & Invoices",
+    fullyPaid: "Fully Paid",
+    pendingPayment: "Pending Payment",
+    total: "Total",
+    amountPaid: "Amount Paid",
+    remainingBalance: "Remaining Balance",
+    myContracts: "My Contracts",
+    otherDocs: "Other Documents",
+    viewSecurely: "View Securely",
+    viewDoc: "View Document",
+    closeFile: "Close File",
+    langToggle: "عربي"
+  },
+  ar: {
+    loadingPortal: "جاري تحميل بوابتك الآمنة...",
+    secureConnection: "اتصال بوابة آمن",
+    welcome: "مرحباً،",
+    billing: "الفواتير والمدفوعات",
+    fullyPaid: "مدفوع بالكامل",
+    pendingPayment: "في انتظار الدفع",
+    total: "الإجمالي",
+    amountPaid: "المبلغ المدفوع",
+    remainingBalance: "الرصيد المتبقي",
+    myContracts: "عقودي",
+    otherDocs: "مستندات أخرى",
+    viewSecurely: "عرض آمن",
+    viewDoc: "عرض المستند",
+    closeFile: "إغلاق الملف",
+    langToggle: "English"
+  }
+};
 
 export default function ClientPortal() {
   const [client, setClient] = useState<ClientProfile | null>(null);
   const [activeTab, setActiveTab] = useState<'contracts' | 'documents'>('contracts');
   const [secureFileUrl, setSecureFileUrl] = useState<string | null>(null);
 
+  // --- LANGUAGE STATE ---
+  const [lang, setLang] = useState<'en' | 'ar'>('en');
+  const t = translations[lang];
+
   useEffect(() => {
     fetch('/api/portal').then(res => res.json()).then(setClient);
   }, []);
 
-  if (!client) return <div className="min-h-screen flex items-center justify-center text-gray-500 font-bold">Loading your secure portal...</div>;
+  if (!client) return <div className="min-h-screen flex items-center justify-center text-gray-500 font-bold" dir={lang === 'ar' ? 'rtl' : 'ltr'}>{t.loadingPortal}</div>;
 
   return (
-    <div className="min-h-screen bg-slate-50 p-6 md:p-12 select-none" onContextMenu={(e) => e.preventDefault()}>
-      <div className="max-w-5xl mx-auto">
+    // DYNAMIC RTL WRAPPER
+    <div dir={lang === 'ar' ? 'rtl' : 'ltr'} className="min-h-screen bg-slate-50 p-6 md:p-12 select-none font-sans" onContextMenu={(e) => e.preventDefault()}>
+      <div className="max-w-5xl mx-auto relative">
         
+        {/* LANGUAGE TOGGLE BUTTON */}
+        <div className="flex justify-end mb-4">
+          <button 
+            onClick={() => setLang(lang === 'en' ? 'ar' : 'en')}
+            className="flex items-center gap-2 bg-white px-4 py-2 rounded-xl border border-gray-200 shadow-sm hover:bg-gray-50 transition text-sm font-bold text-gray-700"
+          >
+            <Globe size={18} className="text-blue-600" />
+            {t.langToggle}
+          </button>
+        </div>
+
         {/* Portal Header */}
         <div className="bg-slate-900 p-8 rounded-3xl shadow-xl flex flex-col md:flex-row items-center gap-6 mb-8 border border-slate-800 text-white">
           <div className="bg-blue-500/20 p-5 rounded-2xl text-blue-400">
@@ -37,16 +91,16 @@ export default function ClientPortal() {
           <div>
             <div className="flex items-center gap-2 mb-2">
               <ShieldCheck size={18} className="text-emerald-400" />
-              <span className="text-emerald-400 font-bold text-sm tracking-widest uppercase">Secure Portal Connection</span>
+              <span className="text-emerald-400 font-bold text-sm tracking-widest uppercase">{t.secureConnection}</span>
             </div>
-            <h1 className="text-3xl font-black mb-1">Welcome, {client.name}</h1>
+            <h1 className="text-3xl font-black mb-1">{t.welcome} {client.name}</h1>
           </div>
         </div>
 
         {/* CLIENT INVOICE DASHBOARD */}
         {client.invoices && client.invoices.length > 0 && (
           <div className="mb-10">
-            <h3 className="text-xl font-bold text-gray-800 mb-5 px-1">Billing & Invoices</h3>
+            <h3 className="text-xl font-bold text-gray-800 mb-5 px-1">{t.billing}</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {client.invoices.map((inv) => {
@@ -55,19 +109,19 @@ export default function ClientPortal() {
 
                 return (
                   <div key={inv.id} className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm relative overflow-hidden transition hover:shadow-md">
-                    <div className={`absolute top-0 left-0 w-full h-1.5 ${isPaidOff ? 'bg-green-500' : 'bg-amber-400'}`} />
+                    <div className={`absolute top-0 start-0 w-full h-1.5 ${isPaidOff ? 'bg-green-500' : 'bg-amber-400'}`} />
                     
                     <div className="flex justify-between items-start mb-4 mt-1">
-                      <div className="pr-4">
+                      <div className="pe-4">
                         <span className={`inline-block px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider mb-2 ${isPaidOff ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'}`}>
-                          {isPaidOff ? 'Fully Paid' : 'Pending Payment'}
+                          {isPaidOff ? t.fullyPaid : t.pendingPayment}
                         </span>
                         <h4 className="font-extrabold text-gray-900 text-lg truncate" title={inv.title}>
                           {inv.title}
                         </h4>
                       </div>
-                      <div className="text-right shrink-0">
-                        <p className="text-[11px] text-gray-400 uppercase font-bold tracking-wider mb-0.5">Total</p>
+                      <div className="text-end shrink-0">
+                        <p className="text-[11px] text-gray-400 uppercase font-bold tracking-wider mb-0.5">{t.total}</p>
                         <p className="text-xl font-black text-gray-900">
                           {inv.totalAmount.toLocaleString()} <span className="text-sm font-semibold text-gray-500">{inv.currency}</span>
                         </p>
@@ -76,13 +130,13 @@ export default function ClientPortal() {
 
                     <div className="flex justify-between items-center bg-gray-50 p-3.5 rounded-xl border border-gray-100">
                       <div>
-                        <p className="text-xs text-gray-500 font-medium mb-0.5">Amount Paid</p>
+                        <p className="text-xs text-gray-500 font-medium mb-0.5">{t.amountPaid}</p>
                         <p className="text-sm font-bold text-green-600">
                           {inv.paidAmount.toLocaleString()} <span className="text-xs">{inv.currency}</span>
                         </p>
                       </div>
-                      <div className="text-right">
-                        <p className="text-xs text-gray-500 font-medium mb-0.5">Remaining Balance</p>
+                      <div className="text-end">
+                        <p className="text-xs text-gray-500 font-medium mb-0.5">{t.remainingBalance}</p>
                         <p className={`text-base font-black ${isPaidOff ? 'text-gray-400' : 'text-red-500'}`}>
                           {remaining.toLocaleString()} <span className="text-xs">{inv.currency}</span>
                         </p>
@@ -98,10 +152,10 @@ export default function ClientPortal() {
         {/* Tabs */}
         <div className="flex gap-4 mb-8">
           <button onClick={() => setActiveTab('contracts')} className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${activeTab === 'contracts' ? 'bg-purple-600 text-white shadow-lg shadow-purple-200' : 'bg-white text-gray-500 hover:bg-gray-100 border border-gray-200'}`}>
-            <FileText size={18} /> My Contracts
+            <FileText size={18} /> {t.myContracts}
           </button>
           <button onClick={() => setActiveTab('documents')} className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${activeTab === 'documents' ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'bg-white text-gray-500 hover:bg-gray-100 border border-gray-200'}`}>
-            <FolderOpen size={18} /> Other Documents
+            <FolderOpen size={18} /> {t.otherDocs}
           </button>
         </div>
 
@@ -118,13 +172,13 @@ export default function ClientPortal() {
                     <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest">{contract.status}</span>
                     <div className="flex items-center gap-2 text-gray-800 font-bold mt-3">
                       <Calendar size={18} className="text-gray-400" />
-                      {new Date(contract.startDate).toLocaleDateString()} &nbsp;➔&nbsp; {new Date(contract.expirationDate).toLocaleDateString()}
+                      {new Date(contract.startDate).toLocaleDateString()} {lang === 'ar' ? ' ⬅ ' : ' ➔ '} {new Date(contract.expirationDate).toLocaleDateString()}
                     </div>
                   </div>
                   <div className="flex flex-col gap-2">
                     {files.map((url, i) => (
-                      <button key={i} onClick={() => setSecureFileUrl(url)} className="flex items-center gap-2 bg-purple-50 text-purple-700 px-4 py-2 rounded-lg text-sm font-bold hover:bg-purple-100 transition border border-purple-200">
-                        <Eye size={16}/> View Securely
+                      <button key={i} onClick={() => setSecureFileUrl(url)} className="flex items-center justify-center gap-2 bg-purple-50 text-purple-700 px-4 py-2 rounded-lg text-sm font-bold hover:bg-purple-100 transition border border-purple-200">
+                        <Eye size={16}/> {t.viewSecurely}
                       </button>
                     ))}
                   </div>
@@ -148,7 +202,7 @@ export default function ClientPortal() {
                   <div className="mt-auto pt-4 border-t border-gray-100 flex flex-wrap gap-2">
                     {files.map((url, i) => (
                       <button key={i} onClick={() => setSecureFileUrl(url)} className="flex items-center gap-1.5 bg-blue-50 text-blue-700 px-3 py-2 rounded-lg text-sm font-bold hover:bg-blue-100 transition border border-blue-200 w-full justify-center">
-                        <Eye size={16}/> View Document {i + 1}
+                        <Eye size={16}/> {t.viewDoc} {i + 1}
                       </button>
                     ))}
                   </div>
@@ -165,12 +219,12 @@ export default function ClientPortal() {
           
           <button 
             onClick={() => setSecureFileUrl(null)} 
-            className="absolute top-6 right-6 bg-red-600 hover:bg-red-700 text-white p-3 rounded-full flex items-center gap-2 font-bold shadow-lg transition-transform hover:scale-105 z-50"
+            className="absolute top-6 end-6 bg-red-600 hover:bg-red-700 text-white p-3 rounded-full flex items-center gap-2 font-bold shadow-lg transition-transform hover:scale-105 z-50"
           >
-            <X size={20} /> Close File
+            <X size={20} /> {t.closeFile}
           </button>
 
-          <div className="relative w-full max-w-5xl h-[85vh] bg-white rounded-2xl overflow-hidden shadow-2xl flex items-center justify-center">
+          <div className="relative w-full max-w-5xl h-[85vh] bg-white rounded-2xl overflow-hidden shadow-2xl flex items-center justify-center" dir="ltr">
             
             <div 
               className="absolute inset-0 z-20 pointer-events-none opacity-20 mix-blend-multiply"

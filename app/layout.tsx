@@ -30,7 +30,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className={`${inter.className} bg-slate-50 flex flex-col md:flex-row min-h-screen`}>
         
         {isAdmin && (
-          {/* ADDED md:sticky and md:top-0 to lock the sidebar in place */}
           <aside className="w-full md:w-72 md:sticky md:top-0 md:h-screen bg-gradient-to-b from-slate-950 to-slate-900 text-slate-300 flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.05)] border-b md:border-b-0 md:border-r border-slate-800 z-20 shrink-0">
             
             <div className="p-4 md:p-8 border-b border-slate-800/60 relative overflow-hidden flex justify-between items-center">

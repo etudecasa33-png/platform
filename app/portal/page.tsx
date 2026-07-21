@@ -2,6 +2,10 @@
 import { useEffect, useState } from 'react';
 import { FileText, Calendar, Building2, Eye, FolderOpen, ShieldCheck, X, Globe } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import { Cairo } from 'next/font/google';
+
+// --- INITIALIZE BEAUTIFUL ARABIC FONT ---
+const cairo = Cairo({ subsets: ['arabic'], weight: ['400', '600', '700', '900'] });
 
 const SecurePdfViewer = dynamic(() => import('../components/SecurePdfViewer'), {
   ssr: false,
@@ -65,18 +69,22 @@ export default function ClientPortal() {
     fetch('/api/portal').then(res => res.json()).then(setClient);
   }, []);
 
-  if (!client) return <div className="min-h-screen flex items-center justify-center text-gray-500 font-bold" dir={lang === 'ar' ? 'rtl' : 'ltr'}>{t.loadingPortal}</div>;
+  if (!client) return <div className={`min-h-screen flex items-center justify-center text-gray-500 font-bold ${lang === 'ar' ? cairo.className : 'font-sans'}`} dir={lang === 'ar' ? 'rtl' : 'ltr'}>{t.loadingPortal}</div>;
 
   return (
-    // DYNAMIC RTL WRAPPER
-    <div dir={lang === 'ar' ? 'rtl' : 'ltr'} className="min-h-screen bg-slate-50 p-6 md:p-12 select-none font-sans" onContextMenu={(e) => e.preventDefault()}>
+    // DYNAMIC RTL & FONT WRAPPER
+    <div 
+      dir={lang === 'ar' ? 'rtl' : 'ltr'} 
+      className={`min-h-screen bg-slate-50 p-6 md:p-12 select-none ${lang === 'ar' ? cairo.className : 'font-sans'}`} 
+      onContextMenu={(e) => e.preventDefault()}
+    >
       <div className="max-w-5xl mx-auto relative">
         
         {/* LANGUAGE TOGGLE BUTTON */}
         <div className="flex justify-end mb-4">
           <button 
             onClick={() => setLang(lang === 'en' ? 'ar' : 'en')}
-            className="flex items-center gap-2 bg-white px-4 py-2 rounded-xl border border-gray-200 shadow-sm hover:bg-gray-50 transition text-sm font-bold text-gray-700"
+            className={`flex items-center gap-2 bg-white px-4 py-2 rounded-xl border border-gray-200 shadow-sm hover:bg-gray-50 transition text-sm font-bold text-gray-700 ${lang === 'en' ? cairo.className : 'font-sans'}`}
           >
             <Globe size={18} className="text-blue-600" />
             {t.langToggle}
@@ -122,7 +130,7 @@ export default function ClientPortal() {
                       </div>
                       <div className="text-end shrink-0">
                         <p className="text-[11px] text-gray-400 uppercase font-bold tracking-wider mb-0.5">{t.total}</p>
-                        <p className="text-xl font-black text-gray-900">
+                        <p className="text-xl font-black text-gray-900 font-sans">
                           {inv.totalAmount.toLocaleString()} <span className="text-sm font-semibold text-gray-500">{inv.currency}</span>
                         </p>
                       </div>
@@ -131,13 +139,13 @@ export default function ClientPortal() {
                     <div className="flex justify-between items-center bg-gray-50 p-3.5 rounded-xl border border-gray-100">
                       <div>
                         <p className="text-xs text-gray-500 font-medium mb-0.5">{t.amountPaid}</p>
-                        <p className="text-sm font-bold text-green-600">
+                        <p className="text-sm font-bold text-green-600 font-sans">
                           {inv.paidAmount.toLocaleString()} <span className="text-xs">{inv.currency}</span>
                         </p>
                       </div>
                       <div className="text-end">
                         <p className="text-xs text-gray-500 font-medium mb-0.5">{t.remainingBalance}</p>
-                        <p className={`text-base font-black ${isPaidOff ? 'text-gray-400' : 'text-red-500'}`}>
+                        <p className={`text-base font-black font-sans ${isPaidOff ? 'text-gray-400' : 'text-red-500'}`}>
                           {remaining.toLocaleString()} <span className="text-xs">{inv.currency}</span>
                         </p>
                       </div>
@@ -169,8 +177,8 @@ export default function ClientPortal() {
               return (
                 <div key={contract.id} className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
                   <div>
-                    <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest">{contract.status}</span>
-                    <div className="flex items-center gap-2 text-gray-800 font-bold mt-3">
+                    <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest font-sans">{contract.status}</span>
+                    <div className="flex items-center gap-2 text-gray-800 font-bold mt-3 font-sans">
                       <Calendar size={18} className="text-gray-400" />
                       {new Date(contract.startDate).toLocaleDateString()} {lang === 'ar' ? ' ⬅ ' : ' ➔ '} {new Date(contract.expirationDate).toLocaleDateString()}
                     </div>
@@ -198,7 +206,7 @@ export default function ClientPortal() {
               return (
                 <div key={doc.id} className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex flex-col h-full">
                   <h3 className="font-bold text-xl text-gray-900 mb-2">{doc.title}</h3>
-                  {doc.date && <p className="text-sm text-gray-500 mb-4 flex items-center gap-1"><Calendar size={14}/> {new Date(doc.date).toLocaleDateString()}</p>}
+                  {doc.date && <p className="text-sm text-gray-500 mb-4 flex items-center gap-1 font-sans"><Calendar size={14}/> {new Date(doc.date).toLocaleDateString()}</p>}
                   <div className="mt-auto pt-4 border-t border-gray-100 flex flex-wrap gap-2">
                     {files.map((url, i) => (
                       <button key={i} onClick={() => setSecureFileUrl(url)} className="flex items-center gap-1.5 bg-blue-50 text-blue-700 px-3 py-2 rounded-lg text-sm font-bold hover:bg-blue-100 transition border border-blue-200 w-full justify-center">

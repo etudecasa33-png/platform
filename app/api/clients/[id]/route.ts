@@ -3,36 +3,64 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-// GET all clients
-export async function GET() {
+// 1. GET: Fetches the client data for the profile page
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const clients = await prisma.client.findMany({
-      orderBy: { createdAt: 'desc' }
+    const resolvedParams = await params;
+    const client = await prisma.client.findUnique({
+      where: { id: resolvedParams.id },
+      // CRASH FIX: Removed the "orderBy" sorting. This is the safest way to include relations 
+      // without Prisma panicking over missing date columns!
+      include: {
+        contracts: true,
+        documents: true,
+        invoices: true
+      }
     });
-    return NextResponse.json(clients);
+    
+    if (!client) {
+      return NextResponse.json({ error: "Client not found" }, { status: 404 });
+    }
+    
+    return NextResponse.json(client);
   } catch (error) {
-    return NextResponse.json({ error: "Failed to fetch clients" }, { status: 500 });
+    console.error("Failed to fetch client:", error);
+    return NextResponse.json({ error: "Database error" }, { status: 500 });
   }
 }
 
-// POST: Create a NEW client
-export async function POST(request: Request) {
+// 2. PUT: Updates the client's core details
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const resolvedParams = await params;
     const body = await request.json();
     
-    const newClient = await prisma.client.create({
+    const updatedClient = await prisma.client.update({
+      where: { id: resolvedParams.id },
       data: {
         name: body.name,
         email: body.email || null,
         phone: body.phone || null,
         address: body.address || null,
-        password: body.password || null, // Restored!
-        notes: body.remarques || null    // Restored! (If your schema uses 'remarques' instead of 'notes', change it here)
+        password: body.password || null,
+        notes: body.remarques || null // Maps your remarques field to the database
       }
     });
-    
-    return NextResponse.json(newClient, { status: 201 });
+    return NextResponse.json(updatedClient, { status: 200 });
   } catch (error) {
-    return NextResponse.json({ error: "Failed to create client" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to update client" }, { status: 500 });
+  }
+}
+
+// 3. DELETE: Removes the client and ALL their connected data
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const resolvedParams = await params;
+    await prisma.client.delete({
+      where: { id: resolvedParams.id }
+    });
+    return NextResponse.json({ message: "Client deleted completely" }, { status: 200 });
+  } catch (error) {
+    return NextResponse.json({ error: "Failed to delete client" }, { status: 500 });
   }
 }

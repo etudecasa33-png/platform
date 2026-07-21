@@ -22,7 +22,6 @@ export default function DirhamPage() {
     description: '' 
   });
 
-  // Notice we are asking the API specifically for DIRHAM here
   const fetchTransactions = async () => {
     const res = await fetch('/api/transactions?currency=DIRHAM', { cache: 'no-store' });
     const data = await res.json();
@@ -47,7 +46,6 @@ export default function DirhamPage() {
       await fetch('/api/transactions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        // We strictly tag new transactions as DIRHAM
         body: JSON.stringify({ ...form, currency: 'DIRHAM' }) 
       });
     }
@@ -86,8 +84,7 @@ export default function DirhamPage() {
   };
 
   return (
-    <div className="p-8 max-w-6xl mx-auto">
-      {/* Changed title and color to blue for Dirham */}
+    <div className="p-4 md:p-8 max-w-6xl mx-auto">
       <h1 className="text-3xl font-bold mb-6 text-blue-800">Dirham Ledger (DH)</h1>
 
       {/* Form Area */}
@@ -121,12 +118,12 @@ export default function DirhamPage() {
           </div>
           
           <div className="w-full md:w-auto flex gap-2">
-            <button type="submit" className={`px-6 py-2 rounded font-medium text-white transition ${editingId ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-blue-600 hover:bg-blue-700'}`}>
+            <button type="submit" className={`w-full md:w-auto px-6 py-2 rounded font-medium text-white transition ${editingId ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-blue-600 hover:bg-blue-700'}`}>
               {editingId ? 'Update' : 'Save'}
             </button>
             
             {editingId && (
-              <button type="button" onClick={() => { setEditingId(null); setForm({ type: 'ENTREE', amount: '', category: '', description: '' }); }} className="px-4 py-2 rounded font-medium bg-gray-200 text-gray-700 hover:bg-gray-300 transition">
+              <button type="button" onClick={() => { setEditingId(null); setForm({ type: 'ENTREE', amount: '', category: '', description: '' }); }} className="w-full md:w-auto px-4 py-2 rounded font-medium bg-gray-200 text-gray-700 hover:bg-gray-300 transition">
                 Cancel
               </button>
             )}
@@ -134,31 +131,30 @@ export default function DirhamPage() {
         </form>
       </div>
 
-      {/* Table Area */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <table className="w-full text-left">
-          <thead className="bg-gray-50 text-gray-600">
+      {/* Table Area with Mobile Scroll Wrapper */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 w-full overflow-x-auto">
+        <table className="w-full text-left min-w-[800px]">
+          <thead className="bg-gray-50 text-gray-600 border-b border-gray-200">
             <tr>
-              <th className="p-4 font-medium">Date & Time</th>
-              <th className="p-4 font-medium">Description</th>
-              <th className="p-4 font-medium">Category</th>
-              <th className="p-4 font-medium text-right">Amount (DH)</th>
-              <th className="p-4 font-medium text-center">Actions</th>
+              <th className="p-4 font-medium whitespace-nowrap">Date & Time</th>
+              <th className="p-4 font-medium whitespace-nowrap">Description</th>
+              <th className="p-4 font-medium whitespace-nowrap">Category</th>
+              <th className="p-4 font-medium text-right whitespace-nowrap">Amount (DH)</th>
+              <th className="p-4 font-medium text-center whitespace-nowrap">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
             {transactions.map((t) => (
               <tr key={t.id} className="text-gray-800 hover:bg-blue-50 transition-colors">
-                <td className="p-4 text-sm">{formatDateTime(t.date)}</td>
-                <td className="p-4">{t.description || '-'}</td>
-                <td className="p-4">
+                <td className="p-4 text-sm whitespace-nowrap">{formatDateTime(t.date)}</td>
+                <td className="p-4 whitespace-nowrap">{t.description || '-'}</td>
+                <td className="p-4 whitespace-nowrap">
                   <span className="bg-gray-100 px-2 py-1 rounded text-sm text-gray-600">{t.category}</span>
                 </td>
-                {/* Notice the color changes for Dirham: Blue for Entree, Red for Sortie */}
-                <td className={`p-4 text-right font-bold ${t.type === 'ENTREE' ? 'text-blue-600' : 'text-red-600'}`}>
+                <td className={`p-4 text-right font-bold whitespace-nowrap ${t.type === 'ENTREE' ? 'text-blue-600' : 'text-red-600'}`}>
                   {t.type === 'ENTREE' ? '+' : '-'}{t.amount.toLocaleString()} DH
                 </td>
-                <td className="p-4 flex justify-center gap-3">
+                <td className="p-4 flex justify-center gap-3 whitespace-nowrap">
                   <button onClick={() => handleEdit(t)} className="text-blue-500 hover:text-blue-700 transition" title="Edit">
                     <Pencil size={18} />
                   </button>

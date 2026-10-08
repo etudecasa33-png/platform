@@ -53,7 +53,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
 export async function DELETE(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const params = await context.params;
-    await prisma.clientDocument.delete({ where: { id: params.id } });
+    await prisma.document.delete({ where: { id: params.id } });
     return NextResponse.json({ message: "Document deleted" });
   } catch (error) {
     return NextResponse.json({ error: "Failed to delete document" }, { status: 500 });

@@ -57,11 +57,10 @@ export default function DinarPage() {
     fetchData(); 
   };
 
-  // --- NEW: PERMANENTLY DELETE FROM HISTORY ---
   const handleDeleteLog = async (logId: string) => {
     if (window.confirm("Are you sure you want to PERMANENTLY erase this record from the history? This action cannot be undone.")) {
       await fetch(`/api/audit/${logId}`, { method: 'DELETE' });
-      fetchData(); // Refresh the table
+      fetchData(); 
     }
   };
 
@@ -75,12 +74,12 @@ export default function DinarPage() {
     doc.text("Audit History Report - Dinar (DZD)", 14, 22);
     doc.setFontSize(11);
     doc.setTextColor(100);
-    doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 30);
+    doc.text(`Generated on: ${new Date().toLocaleString('en-GB')}`, 14, 30);
 
     const tableData = auditLogs.map((log) => {
       const amount = log.newData?.amount ?? log.previousData?.amount;
-      // Fixed: Removed the +/- signs to ensure clean numbers in the PDF
-      const amountStr = amount ? `${amount.toLocaleString()} DA` : '-';
+      // FIX: Forced 'en-US' so it generates a comma (1,000) instead of a space/slash
+      const amountStr = amount ? `${amount.toLocaleString('en-US')} DA` : '-';
       const reason = log.action === 'DELETE' ? `Reason: ${log.newData?.reason}` : (log.newData?.description || log.newData?.category || 'Logged transaction');
       
       return [
@@ -147,7 +146,7 @@ export default function DinarPage() {
                 <td className="p-5 text-sm font-medium">{formatDateTime(t.date)}</td>
                 <td className="p-5">{t.description || '-'}</td>
                 <td className="p-5"><span className="bg-gray-100 border border-gray-200 px-3 py-1.5 rounded-lg text-xs font-bold text-gray-600">{t.category}</span></td>
-                <td className={`p-5 text-right text-lg font-black ${t.type === 'ENTREE' ? 'text-green-600' : 'text-red-600'}`}>{t.type === 'ENTREE' ? '+' : '-'}{t.amount.toLocaleString()} DA</td>
+                <td className={`p-5 text-right text-lg font-black ${t.type === 'ENTREE' ? 'text-green-600' : 'text-red-600'}`}>{t.type === 'ENTREE' ? '+' : '-'}{t.amount.toLocaleString('en-US')} DA</td>
                 <td className="p-5 flex justify-center gap-2">
                   <button onClick={() => handleEdit(t)} className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition" title="Edit"><Pencil size={18} /></button>
                   <button onClick={() => handleDeleteTransaction(t.id)} className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition" title="Delete"><Trash2 size={18} /></button>
@@ -207,7 +206,7 @@ export default function DinarPage() {
                         <td className="p-5 text-right font-black text-gray-900">
                           {amount ? (
                             <span className={log.action === 'DELETE' ? 'text-gray-400 line-through decoration-rose-500 decoration-2' : ''}>
-                              {type === 'ENTREE' ? '+' : '-'}{amount.toLocaleString()} DA
+                              {type === 'ENTREE' ? '+' : '-'}{amount.toLocaleString('en-US')} DA
                             </span>
                           ) : '-'}
                         </td>
@@ -224,11 +223,7 @@ export default function DinarPage() {
                           )}
                         </td>
                         <td className="p-5 text-center">
-                           <button 
-                             onClick={() => handleDeleteLog(log.id)} 
-                             className="p-2 bg-gray-100 text-gray-400 rounded-lg hover:bg-rose-100 hover:text-rose-600 transition" 
-                             title="Permanently erase this record"
-                           >
+                           <button onClick={() => handleDeleteLog(log.id)} className="p-2 bg-gray-100 text-gray-400 rounded-lg hover:bg-rose-100 hover:text-rose-600 transition" title="Permanently erase this record">
                              <Trash2 size={18} />
                            </button>
                         </td>

@@ -48,7 +48,7 @@ export default function DirhamPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDeleteTransaction = async (id: string) => {
     const reason = window.prompt("Why are you deleting this transaction? (Reason required)");
     if (reason === null) return; 
     if (reason.trim() === "") return alert("You must provide a reason to delete a transaction.");
@@ -57,26 +57,30 @@ export default function DirhamPage() {
     fetchData(); 
   };
 
+  // --- NEW: PERMANENTLY DELETE FROM HISTORY ---
+  const handleDeleteLog = async (logId: string) => {
+    if (window.confirm("Are you sure you want to PERMANENTLY erase this record from the history? This action cannot be undone.")) {
+      await fetch(`/api/audit/${logId}`, { method: 'DELETE' });
+      fetchData(); 
+    }
+  };
+
   const formatDateTime = (dateString: string) => {
     return new Date(dateString).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   };
 
-  // --- NEW PDF GENERATOR FUNCTION ---
   const downloadPDF = () => {
     const doc = new jsPDF();
-    
-    // Add a title
     doc.setFontSize(18);
     doc.text("Audit History Report - Dirham (DH)", 14, 22);
     doc.setFontSize(11);
     doc.setTextColor(100);
-    doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 30);
+    doc.text(`Generated on: ${new Date().toLocaleString('en-GB')}`, 14, 30);
 
-    // Prepare table data
     const tableData = auditLogs.map((log) => {
       const amount = log.newData?.amount ?? log.previousData?.amount;
-      const type = log.newData?.type ?? log.previousData?.type;
-      const amountStr = amount ? `${type === 'ENTREE' ? '+' : '-'}${amount.toLocaleString()} DH` : '-';
+      // FIX: Forced 'en-US' so it generates a comma (1,000) instead of a space/slash
+      const amountStr = amount ? `${amount.toLocaleString('en-US')} DH` : '-';
       const reason = log.action === 'DELETE' ? `Reason: ${log.newData?.reason}` : (log.newData?.description || log.newData?.category || 'Logged transaction');
       
       return [
@@ -88,17 +92,15 @@ export default function DirhamPage() {
       ];
     });
 
-    // Generate the table
     autoTable(doc, {
       startY: 38,
       head: [['Timestamp', 'Action', 'Admin User', 'Amount Affected', 'Reason / Details']],
       body: tableData,
       theme: 'striped',
-      headStyles: { fillColor: [30, 58, 138] }, // Dark blue header for Dirham
+      headStyles: { fillColor: [30, 58, 138] }, // Blue theme for Dirham
       styles: { fontSize: 9 },
     });
 
-    // Save the PDF
     doc.save("Dirham_Audit_History.pdf");
   };
 
@@ -145,10 +147,10 @@ export default function DirhamPage() {
                 <td className="p-5 text-sm font-medium">{formatDateTime(t.date)}</td>
                 <td className="p-5">{t.description || '-'}</td>
                 <td className="p-5"><span className="bg-gray-100 border border-gray-200 px-3 py-1.5 rounded-lg text-xs font-bold text-gray-600">{t.category}</span></td>
-                <td className={`p-5 text-right text-lg font-black ${t.type === 'ENTREE' ? 'text-blue-600' : 'text-red-600'}`}>{t.type === 'ENTREE' ? '+' : '-'}{t.amount.toLocaleString()} DH</td>
+                <td className={`p-5 text-right text-lg font-black ${t.type === 'ENTREE' ? 'text-blue-600' : 'text-red-600'}`}>{t.type === 'ENTREE' ? '+' : '-'}{t.amount.toLocaleString('en-US')} DH</td>
                 <td className="p-5 flex justify-center gap-2">
                   <button onClick={() => handleEdit(t)} className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition" title="Edit"><Pencil size={18} /></button>
-                  <button onClick={() => handleDelete(t.id)} className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition" title="Delete"><Trash2 size={18} /></button>
+                  <button onClick={() => handleDeleteTransaction(t.id)} className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition" title="Delete"><Trash2 size={18} /></button>
                 </td>
               </tr>
             ))}
@@ -159,26 +161,21 @@ export default function DirhamPage() {
 
       {showAuditModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-7xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             
             <div className="bg-slate-50 border-b border-gray-200 p-5 flex justify-between items-center">
               <div className="flex items-center gap-4">
                 <div className="bg-slate-200 p-2.5 rounded-xl text-slate-700"><History size={20} /></div>
                 <div>
-                  <h2 className="text-lg font-black text-gray-900">Permanent Audit Log (DIRHAM)</h2>
-                  <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mt-0.5">Secure System History</p>
+                  <h2 className="text-lg font-black text-gray-900">System History Log (DIRHAM)</h2>
+                  <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mt-0.5">Edit and Delete Capabilities Unlocked</p>
                 </div>
               </div>
               
-              {/* --- NEW PDF DOWNLOAD BUTTON ADDED HERE --- */}
               <div className="flex items-center gap-3">
-                <button 
-                  onClick={downloadPDF}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition shadow-sm"
-                >
+                <button onClick={downloadPDF} className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition shadow-sm">
                   <Download size={16} /> Export PDF
                 </button>
-
                 <button onClick={() => setShowAuditModal(false)} className="p-2 bg-white border border-gray-200 text-gray-500 rounded-full hover:bg-gray-100 hover:text-gray-800 transition">
                   <X size={20} />
                 </button>
@@ -186,9 +183,9 @@ export default function DirhamPage() {
             </div>
 
             <div className="overflow-y-auto overflow-x-auto w-full flex-1 p-0">
-              <table className="w-full text-left min-w-[1000px]">
+              <table className="w-full text-left min-w-[1100px]">
                 <thead className="bg-white text-gray-400 border-b border-gray-200 text-xs uppercase tracking-widest sticky top-0 z-10">
-                  <tr><th className="p-5 font-bold">Timestamp</th><th className="p-5 font-bold">Action Taken</th><th className="p-5 font-bold">Admin User</th><th className="p-5 font-bold text-right">Amount Affected</th><th className="p-5 font-bold">Reason / Details</th></tr>
+                  <tr><th className="p-5 font-bold">Timestamp</th><th className="p-5 font-bold">Action Taken</th><th className="p-5 font-bold">Admin User</th><th className="p-5 font-bold text-right">Amount Affected</th><th className="p-5 font-bold">Reason / Details</th><th className="p-5 font-bold text-center">Erase Log</th></tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 text-sm">
                   {auditLogs.map((log) => {
@@ -210,7 +207,7 @@ export default function DirhamPage() {
                         <td className="p-5 text-right font-black text-gray-900">
                           {amount ? (
                             <span className={log.action === 'DELETE' ? 'text-gray-400 line-through decoration-rose-500 decoration-2' : ''}>
-                              {type === 'ENTREE' ? '+' : '-'}{amount.toLocaleString()} DH
+                              {type === 'ENTREE' ? '+' : '-'}{amount.toLocaleString('en-US')} DH
                             </span>
                           ) : '-'}
                         </td>
@@ -225,6 +222,11 @@ export default function DirhamPage() {
                                {log.newData?.description ? log.newData.description : `Logged ${log.newData?.category || 'transaction'}`}
                              </span>
                           )}
+                        </td>
+                        <td className="p-5 text-center">
+                           <button onClick={() => handleDeleteLog(log.id)} className="p-2 bg-gray-100 text-gray-400 rounded-lg hover:bg-rose-100 hover:text-rose-600 transition" title="Permanently erase this record">
+                             <Trash2 size={18} />
+                           </button>
                         </td>
                       </tr>
                     );

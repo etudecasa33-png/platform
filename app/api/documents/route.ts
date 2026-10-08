@@ -32,7 +32,7 @@ export async function POST(request: Request) {
       }
     }
 
-    const newDocument = await prisma.clientDocument.create({
+    const newDocument = await prisma.document.create({
       data: {
         clientId,
         title,

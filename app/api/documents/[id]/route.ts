@@ -33,7 +33,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
       }
     }
 
-    const updatedDocument = await prisma.clientDocument.update({
+    const updatedDocument = await prisma.document.update({
       where: { id: params.id },
       data: {
         title,

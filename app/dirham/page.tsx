@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from 'react';
-import { Pencil, Trash2, History, Plus, RefreshCw, AlertCircle } from 'lucide-react'; 
+import { Pencil, Trash2, History, Plus, RefreshCw, AlertCircle, X } from 'lucide-react'; 
 
 type Transaction = { id: string; type: string; amount: number; category: string; description: string; date: string; };
 type AuditLog = { id: string; action: string; createdAt: string; performedBy: string; newData: any; previousData: any; transaction: any; };
@@ -9,6 +9,9 @@ export default function DirhamPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
+  
+  // NEW STATE: Controls whether the Audit History popup is visible
+  const [showAuditModal, setShowAuditModal] = useState(false);
   
   const [form, setForm] = useState({ type: 'ENTREE', amount: '', category: '', description: '' });
 
@@ -80,7 +83,18 @@ export default function DirhamPage() {
 
   return (
     <div className="p-4 md:p-8 max-w-7xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6 text-blue-800">Dirham Ledger (DH)</h1>
+      
+      {/* HEADER WITH HISTORY BUTTON */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <h1 className="text-3xl font-bold text-blue-800">Dirham Ledger (DH)</h1>
+        
+        <button 
+          onClick={() => setShowAuditModal(true)} 
+          className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-5 py-2.5 rounded-xl font-bold transition shadow-sm border border-slate-200"
+        >
+          <History size={18} /> View Audit History
+        </button>
+      </div>
 
       {/* --- FORM AREA --- */}
       <div className={`p-6 rounded-2xl shadow-sm border mb-10 transition-colors ${editingId ? 'bg-yellow-50 border-yellow-200' : 'bg-white border-gray-200'}`}>
@@ -143,82 +157,95 @@ export default function DirhamPage() {
         {transactions.length === 0 && <div className="p-10 text-center text-gray-500 font-medium">No transactions recorded yet.</div>}
       </div>
 
-      {/* --- HIGHLY OPTIMIZED AUDIT HISTORY TABLE --- */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-        
-        {/* Audit Header */}
-        <div className="bg-slate-50 border-b border-gray-200 p-6 flex items-center gap-4">
-          <div className="bg-slate-200 p-3 rounded-xl text-slate-700">
-             <History size={24} />
-          </div>
-          <div>
-            <h2 className="text-lg font-black text-gray-900">Permanent Audit Log</h2>
-            <p className="text-sm text-gray-500 font-medium">Secure, unalterable history of all modifications and deletions.</p>
-          </div>
-        </div>
+      {/* --- AUDIT HISTORY MODAL (POPUP) --- */}
+      {showAuditModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            
+            {/* Modal Header */}
+            <div className="bg-slate-50 border-b border-gray-200 p-5 flex justify-between items-center">
+              <div className="flex items-center gap-4">
+                <div className="bg-slate-200 p-2.5 rounded-xl text-slate-700">
+                  <History size={20} />
+                </div>
+                <div>
+                  <h2 className="text-lg font-black text-gray-900">Permanent Audit Log (DIRHAM)</h2>
+                  <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mt-0.5">Secure System History</p>
+                </div>
+              </div>
+              
+              {/* Close Button */}
+              <button 
+                onClick={() => setShowAuditModal(false)}
+                className="p-2 bg-white border border-gray-200 text-gray-500 rounded-full hover:bg-gray-100 hover:text-gray-800 transition"
+              >
+                <X size={20} />
+              </button>
+            </div>
 
-        {/* Audit Table */}
-        <div className="overflow-x-auto w-full">
-          <table className="w-full text-left min-w-[1000px]">
-            <thead className="bg-white text-gray-400 border-b border-gray-200 text-xs uppercase tracking-widest">
-              <tr>
-                <th className="p-5 font-bold">Timestamp</th>
-                <th className="p-5 font-bold">Action Taken</th>
-                <th className="p-5 font-bold">Admin User</th>
-                <th className="p-5 font-bold text-right">Amount Affected</th>
-                <th className="p-5 font-bold">Reason / Details</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 text-sm">
-              {auditLogs.map((log) => {
-                
-                // SMART LOGIC: If the amount isn't in newData (because it was deleted), pull it from previousData!
-                const amount = log.newData?.amount ?? log.previousData?.amount;
-                const type = log.newData?.type ?? log.previousData?.type;
-
-                return (
-                  <tr key={log.id} className="hover:bg-slate-50 transition group">
-                    <td className="p-5 text-gray-500 font-medium">{formatDateTime(log.createdAt)}</td>
-                    
-                    <td className="p-5">
-                      <div className="flex items-center gap-3">
-                        {log.action === 'CREATE' && <div className="bg-emerald-100 text-emerald-600 p-2 rounded-lg"><Plus size={16} strokeWidth={3}/></div>}
-                        {log.action === 'UPDATE' && <div className="bg-blue-100 text-blue-600 p-2 rounded-lg"><RefreshCw size={16} strokeWidth={3}/></div>}
-                        {log.action === 'DELETE' && <div className="bg-rose-100 text-rose-600 p-2 rounded-lg"><Trash2 size={16} strokeWidth={3}/></div>}
-                        <span className="font-bold text-gray-800">{log.action}</span>
-                      </div>
-                    </td>
-
-                    <td className="p-5 font-medium text-gray-700">{log.performedBy}</td>
-                    
-                    <td className="p-5 text-right font-black text-gray-900">
-                      {amount ? (
-                        <span className={log.action === 'DELETE' ? 'text-gray-400 line-through decoration-rose-500 decoration-2' : ''}>
-                          {type === 'ENTREE' ? '+' : '-'}{amount.toLocaleString()} DH
-                        </span>
-                      ) : '-'}
-                    </td>
-
-                    <td className="p-5">
-                      {log.action === 'DELETE' ? (
-                         <div className="flex items-center gap-2 text-rose-600 bg-rose-50 px-3 py-2 rounded-lg border border-rose-100 w-fit">
-                           <AlertCircle size={16} />
-                           <span className="font-bold">Reason:</span> <span className="font-medium">{log.newData?.reason || 'No reason provided'}</span>
-                         </div>
-                      ) : (
-                         <span className="text-gray-500 font-medium">
-                           {log.newData?.description ? log.newData.description : `Logged ${log.newData?.category || 'transaction'}`}
-                         </span>
-                      )}
-                    </td>
+            {/* Modal Scrollable Table Body */}
+            <div className="overflow-y-auto overflow-x-auto w-full flex-1 p-0">
+              <table className="w-full text-left min-w-[1000px]">
+                <thead className="bg-white text-gray-400 border-b border-gray-200 text-xs uppercase tracking-widest sticky top-0 z-10">
+                  <tr>
+                    <th className="p-5 font-bold">Timestamp</th>
+                    <th className="p-5 font-bold">Action Taken</th>
+                    <th className="p-5 font-bold">Admin User</th>
+                    <th className="p-5 font-bold text-right">Amount Affected</th>
+                    <th className="p-5 font-bold">Reason / Details</th>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
-          {auditLogs.length === 0 && <div className="p-10 text-center text-gray-400 font-medium">No system activity logged yet.</div>}
+                </thead>
+                <tbody className="divide-y divide-gray-100 text-sm">
+                  {auditLogs.map((log) => {
+                    const amount = log.newData?.amount ?? log.previousData?.amount;
+                    const type = log.newData?.type ?? log.previousData?.type;
+
+                    return (
+                      <tr key={log.id} className="hover:bg-slate-50 transition group">
+                        <td className="p-5 text-gray-500 font-medium">{formatDateTime(log.createdAt)}</td>
+                        
+                        <td className="p-5">
+                          <div className="flex items-center gap-3">
+                            {log.action === 'CREATE' && <div className="bg-emerald-100 text-emerald-600 p-2 rounded-lg"><Plus size={16} strokeWidth={3}/></div>}
+                            {log.action === 'UPDATE' && <div className="bg-blue-100 text-blue-600 p-2 rounded-lg"><RefreshCw size={16} strokeWidth={3}/></div>}
+                            {log.action === 'DELETE' && <div className="bg-rose-100 text-rose-600 p-2 rounded-lg"><Trash2 size={16} strokeWidth={3}/></div>}
+                            <span className="font-bold text-gray-800">{log.action}</span>
+                          </div>
+                        </td>
+
+                        <td className="p-5 font-medium text-gray-700">{log.performedBy}</td>
+                        
+                        <td className="p-5 text-right font-black text-gray-900">
+                          {amount ? (
+                            <span className={log.action === 'DELETE' ? 'text-gray-400 line-through decoration-rose-500 decoration-2' : ''}>
+                              {type === 'ENTREE' ? '+' : '-'}{amount.toLocaleString()} DH
+                            </span>
+                          ) : '-'}
+                        </td>
+
+                        <td className="p-5">
+                          {log.action === 'DELETE' ? (
+                             <div className="flex items-center gap-2 text-rose-600 bg-rose-50 px-3 py-2 rounded-lg border border-rose-100 w-fit">
+                               <AlertCircle size={16} />
+                               <span className="font-bold">Reason:</span> <span className="font-medium">{log.newData?.reason || 'No reason provided'}</span>
+                             </div>
+                          ) : (
+                             <span className="text-gray-500 font-medium">
+                               {log.newData?.description ? log.newData.description : `Logged ${log.newData?.category || 'transaction'}`}
+                             </span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+              {auditLogs.length === 0 && <div className="p-10 text-center text-gray-400 font-medium">No system activity logged yet.</div>}
+            </div>
+            
+          </div>
         </div>
-      </div>
+      )}
 
     </div>
   );

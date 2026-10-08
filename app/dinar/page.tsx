@@ -180,7 +180,38 @@ export default function DinarPage() {
             ))}
           </tbody>
         </table>
-        
+        {/* Composant UI pour l'historique des audits (A insérer en bas de votre page Ledger) */}
+<div className="mt-12 bg-slate-900 rounded-xl shadow-sm border border-slate-800 w-full overflow-hidden">
+  <div className="p-5 border-b border-slate-800 flex justify-between items-center bg-slate-950">
+    <h3 className="text-lg font-bold text-white">Registre d'Audit Permanent (Historique)</h3>
+    <span className="text-xs font-bold bg-slate-800 text-slate-300 px-3 py-1 rounded-full">Admin Only</span>
+  </div>
+  <div className="overflow-x-auto w-full">
+    <table className="w-full text-left min-w-[900px] text-sm">
+      <thead className="bg-slate-900 text-slate-400 border-b border-slate-800">
+        <tr>
+          <th className="p-4 font-medium whitespace-nowrap">Date de l'action</th>
+          <th className="p-4 font-medium whitespace-nowrap">Action</th>
+          <th className="p-4 font-medium whitespace-nowrap">Utilisateur</th>
+          <th className="p-4 font-medium whitespace-nowrap">Détails (Raison)</th>
+          <th className="p-4 font-medium whitespace-nowrap">Statut actuel</th>
+        </tr>
+      </thead>
+      <tbody className="divide-y divide-slate-800/50 text-slate-300 bg-slate-900">
+        {/* Exemple de rendu d'un log. Vous ferez un .map() sur vos auditLogs récupérés depuis l'API */}
+        <tr className="hover:bg-slate-800/50 transition-colors">
+          <td className="p-4 whitespace-nowrap">08/10/2026, 14:35</td>
+          <td className="p-4 whitespace-nowrap">
+            <span className="bg-red-500/20 text-red-400 px-2 py-1 rounded font-bold text-xs uppercase tracking-wider">Suppression</span>
+          </td>
+          <td className="p-4 whitespace-nowrap">Admin User</td>
+          <td className="p-4 whitespace-nowrap text-slate-400">Erreur de saisie du montant</td>
+          <td className="p-4 whitespace-nowrap text-red-500 font-bold">DELETED</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
         {transactions.length === 0 && (
           <div className="p-8 text-center text-gray-500">No transactions recorded yet.</div>
         )}

@@ -2,76 +2,129 @@ generator client {
   provider = "prisma-client-js"
 }
 
-
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
+// ==========================================
+// 1. CRM & CLIENT MODELS
+// ==========================================
 model Client {
-  id           String           @id @default(uuid())
-  name         String
-  phone        String?
-  email        String?
-  address      String?
-  notes        String?
-  password     String?          // NEW: Portal password for the client
-  contracts    Contract[]
-  documents    ClientDocument[] // NEW: Links to the new infinite files box
-  transactions Transaction[]
-  createdAt    DateTime         @default(now())
-  invoices    Invoice[]
+  id        String    @id @default(uuid())
+  name      String
+  email     String?
+  phone     String?
+  address   String?
+  password  String?
+  notes     String?
+  createdAt DateTime  @default(now())
+
+  contracts     Contract[]
+  documents     Document[]
+  invoices      Invoice[]
+  trackingLinks TrackingLink[] // Pour la nouvelle fonctionnalité de lien de suivi
 }
 
 model Contract {
   id             String   @id @default(uuid())
   clientId       String
   client         Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  
-  // WE CHANGED THIS LINE (From fileUrl to fileUrls)
-  fileUrls       String   @default("[]") 
-  
   startDate      DateTime
   expirationDate DateTime
-  status         String   @default("Active")
+  status         String
+  fileUrls       String   @default("[]")
+  createdAt      DateTime @default(now())
+}
+
+model Document {
+  id        String    @id @default(uuid())
+  clientId  String
+  client    Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  title     String
+  details   String?
+  date      DateTime?
+  fileUrls  String    @default("[]")
+  createdAt DateTime  @default(now())
 }
 
 // ==========================================
-// NEW MODEL: For Unlimited Custom Files
+// 2. FINANCIAL & LEDGER MODELS
 // ==========================================
-model ClientDocument {
-  id          String    @id @default(uuid())
-  clientId    String
-  client      Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  title       String    // e.g., "Passport", "ID Card", "Project Images"
-  details     String?   // Facultatif (Optional Remarque)
-  date        DateTime? // Facultatif (Optional Date)
-  fileUrls    String    // We will save multiple files here as a long string!
-  createdAt   DateTime  @default(now())
-}
-
 model Transaction {
-  id          String   @id @default(uuid())
-  currency    String
-  type        String
-  amount      Float
-  category    String
-  description String?
-  date        DateTime @default(now())
-  clientId    String?
-  client      Client?  @relation(fields: [clientId], references: [id], onDelete: SetNull)
-}
-model Invoice {
-  id          String   @id @default(cuid())
+  id           String     @id @default(uuid())
+  type         String     // ENTREE, SORTIE
+  amount       Float
+  currency     String     // DZD, DIRHAM
+  category     String
+  description  String?
+  date         DateTime   @default(now())
   
-  // This is the missing link! It tells Prisma exactly how to connect the data
+  // -- Champs pour le Soft Delete & l'Audit --
+  status       String     @default("ACTIVE") // ACTIVE ou DELETED
+  deletedAt    DateTime?
+  deletedBy    String?
+  deleteReason String?
+
+  auditLogs    AuditLog[]
+  invoice      Invoice?
+  voucher      Voucher?
+}
+
+// ==========================================
+// 3. AUDIT & DOCUMENTS AUTO-GÉNÉRÉS
+// ==========================================
+model AuditLog {
+  id            String      @id @default(uuid())
+  action        String      // CREATE, UPDATE, DELETE
+  transactionId String
+  transaction   Transaction @relation(fields: [transactionId], references: [id])
+  previousData  Json?
+  newData       Json?
+  performedBy   String      @default("Admin User")
+  createdAt     DateTime    @default(now())
+}
+
+model Invoice {
+  id            String   @id @default(uuid())
+  
+  // Champs existants pour la compatibilité avec le CRM
+  title         String?
+  currency      String?
+  totalAmount   Float?
+  paidAmount    Float?
+  
+  // Nouveaux champs pour la génération automatique & séquentielle
+  sequenceNum   Int      @unique @default(autoincrement()) // Génère 1, 2, 3...
+  invoiceNumber String?  @unique // Formatera en #00001
+  
+  clientId      String?
+  client        Client?  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  transactionId String?  @unique
+  transaction   Transaction? @relation(fields: [transactionId], references: [id])
+  
+  fileUrl       String?
+  metadata      Json?
+  createdAt     DateTime @default(now())
+}
+
+model Voucher {
+  id            String   @id @default(uuid())
+  voucherNumber String   @unique // Numéro auto-généré
+  
+  transactionId String   @unique
+  transaction   Transaction @relation(fields: [transactionId], references: [id])
+  
+  clientId      String?
+  createdAt     DateTime @default(now())
+}
+
+model TrackingLink {
+  id          String   @id @default(uuid())
   clientId    String
   client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  
-  title       String   @default("Standard Invoice")
-  currency    String   @default("DZD")
-  totalAmount Float
-  paidAmount  Float    @default(0)
+  url         String
+  status      String
   createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
 }

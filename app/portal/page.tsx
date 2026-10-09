@@ -1,8 +1,11 @@
 "use client";
 import { useEffect, useState } from 'react';
-import { FileText, Calendar, Building2, Eye, FolderOpen, ShieldCheck, X, Globe } from 'lucide-react';
+import { FileText, Calendar, Building2, Eye, FolderOpen, ShieldCheck, X, Globe, FileCheck } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { Cairo } from 'next/font/google';
+
+// --- IMPORTATION DU GÉNÉRATEUR AUTOMONDO ---
+import AutoMondoDocument from '../components/AutoMondoDocument';
 
 // --- INITIALIZE BEAUTIFUL ARABIC FONT ---
 const cairo = Cairo({ subsets: ['arabic'], weight: ['400', '600', '700', '900'] });
@@ -15,7 +18,8 @@ const SecurePdfViewer = dynamic(() => import('../components/SecurePdfViewer'), {
 // --- TYPES ---
 type ClientDocument = { id: string; title: string; details: string | null; date: string | null; fileUrls: string; createdAt: string; };
 type Contract = { id: string; startDate: string; expirationDate: string; status: string; fileUrls: string; };
-type Invoice = { id: string; title: string; currency: string; totalAmount: number; paidAmount: number; createdAt: string; };
+// Ajout de invoiceNumber et metadata pour que la facture puisse lire ces données
+type Invoice = { id: string; title: string; currency: string; totalAmount: number; paidAmount: number; createdAt: string; invoiceNumber?: string; metadata?: any; };
 type ClientProfile = { id: string; name: string; contracts: Contract[]; documents: ClientDocument[]; invoices: Invoice[]; };
 
 // --- TRANSLATION DICTIONARY ---
@@ -34,8 +38,10 @@ const translations = {
     otherDocs: "Other Documents",
     viewSecurely: "View",
     viewDoc: "View Document",
-    closeFile: "Close File",
-    langToggle: "عربي"
+    closeFile: "Close Document",
+    langToggle: "عربي",
+    viewInvoice: "View AutoMondo Invoice", 
+    viewReceipt: "View Receipt Voucher"
   },
   ar: {
     loadingPortal: "جاري تحميل بوابتك الآمنة...",
@@ -51,8 +57,10 @@ const translations = {
     otherDocs: "مستندات أخرى",
     viewSecurely: "عرض",
     viewDoc: "عرض المستند",
-    closeFile: "إغلاق الملف",
-    langToggle: "English"
+    closeFile: "إغلاق المستند",
+    langToggle: "English",
+    viewInvoice: "عرض فاتورة أوتوموندو", 
+    viewReceipt: "عرض إيصال الدفع"
   }
 };
 
@@ -60,6 +68,9 @@ export default function ClientPortal() {
   const [client, setClient] = useState<ClientProfile | null>(null);
   const [activeTab, setActiveTab] = useState<'contracts' | 'documents'>('contracts');
   const [secureFileUrl, setSecureFileUrl] = useState<string | null>(null);
+  
+  // NOUVEAU STATE : Gère l'affichage dynamique des factures et reçus générés
+  const [generatedDoc, setGeneratedDoc] = useState<{type: 'INVOICE' | 'RECEIPT', data: Invoice} | null>(null);
 
   // --- LANGUAGE STATE ---
   const [lang, setLang] = useState<'en' | 'ar'>('en');
@@ -136,7 +147,7 @@ export default function ClientPortal() {
                       </div>
                     </div>
 
-                    <div className="flex justify-between items-center bg-gray-50 p-3.5 rounded-xl border border-gray-100">
+                    <div className="flex justify-between items-center bg-gray-50 p-3.5 rounded-xl border border-gray-100 mb-4">
                       <div>
                         <p className="text-xs text-gray-500 font-medium mb-0.5">{t.amountPaid}</p>
                         <p className="text-sm font-bold text-green-600 font-sans">
@@ -150,6 +161,23 @@ export default function ClientPortal() {
                         </p>
                       </div>
                     </div>
+
+                    {/* --- NOUVEAUX BOUTONS DE GÉNÉRATION DE DOCUMENTS --- */}
+                    <div className="grid grid-cols-2 gap-2 border-t border-gray-100 pt-4">
+                      <button 
+                        onClick={() => setGeneratedDoc({ type: 'INVOICE', data: inv })} 
+                        className="flex items-center justify-center gap-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 py-2.5 rounded-xl text-xs font-bold transition"
+                      >
+                        <FileText size={16}/> {t.viewInvoice}
+                      </button>
+                      <button 
+                        onClick={() => setGeneratedDoc({ type: 'RECEIPT', data: inv })} 
+                        className="flex items-center justify-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 py-2.5 rounded-xl text-xs font-bold transition"
+                      >
+                        <FileCheck size={16}/> {t.viewReceipt}
+                      </button>
+                    </div>
+
                   </div>
                 );
               })}
@@ -221,47 +249,27 @@ export default function ClientPortal() {
         )}
       </div>
 
-      {/* THE SMART SECURE IN-APP FILE VIEWER */}
-      {secureFileUrl && (
+      {/* --- LE VISUALISEUR SÉCURISÉ INTELLIGENT (AFFICHE LES PDF OU LES FACTURES DYNAMIQUES) --- */}
+      {(secureFileUrl || generatedDoc) && (
         <div className="fixed inset-0 z-50 bg-slate-900/95 flex flex-col items-center justify-center p-4 backdrop-blur-sm">
           
           <button 
-            onClick={() => setSecureFileUrl(null)} 
+            onClick={() => { setSecureFileUrl(null); setGeneratedDoc(null); }} 
             className="absolute top-6 end-6 bg-red-600 hover:bg-red-700 text-white p-3 rounded-full flex items-center gap-2 font-bold shadow-lg transition-transform hover:scale-105 z-50"
           >
             <X size={20} /> {t.closeFile}
           </button>
 
-          <div className="relative w-full max-w-5xl h-[85vh] bg-white rounded-2xl overflow-hidden shadow-2xl flex items-center justify-center" dir="ltr">
+          <div className="relative w-full max-w-5xl h-[85vh] bg-white rounded-2xl overflow-y-auto shadow-2xl flex justify-center no-scrollbar" dir="ltr">
             
-            <div 
-              className="absolute inset-0 z-20 pointer-events-none opacity-20 mix-blend-multiply"
-              style={{
-                backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' transform='rotate(-45 150 150)' font-size='32' fill='black' font-family='sans-serif' font-weight='900' letter-spacing='2'%3EAUTOMONDO%3C/text%3E%3C/svg%3E")`,
-                backgroundRepeat: 'repeat'
-              }}
-            />
-
-            {secureFileUrl.match(/\.(jpeg|jpg|gif|png|webp)$/i) ? (
-              <div className="relative w-full h-full flex items-center justify-center">
-                <div 
-                  className="absolute inset-0 z-30 cursor-default" 
-                  onContextMenu={(e) => e.preventDefault()} 
-                />
-                <img 
-                  src={secureFileUrl} 
-                  alt="Secure Document" 
-                  className="max-w-full max-h-full object-contain z-10 select-none p-4" 
-                  draggable={false} 
-                />
-              </div>
-            ) : (
-              <SecurePdfViewer url={secureFileUrl} />
-            )}
-            
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
+            {generatedDoc ? (
+              // Rend la magnifique facture/reçu AutoMondo
+              <AutoMondoDocument 
+                type={generatedDoc.type}
+                clientName={client.name}
+                clientIdNumber={generatedDoc.data.metadata?.idNumber}
+                amount={generatedDoc.data.totalAmount}
+                currency={generatedDoc.data.currency}
+                itemDescription={generatedDoc.data.metadata?.itemDescription || generatedDoc.data.title}
+                documentNumber={generatedDoc.data.invoiceNumber || 'PENDING'}
+                date={generatedDoc.data.createdAt

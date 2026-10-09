@@ -3,11 +3,12 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-// 1. THIS BRINGS ALL YOUR PREVIOUS CLIENTS BACK TO THE CRM
+// 1. THIS BRINGS ALL YOUR PREVIOUS CLIENTS BACK TO THE CRM WITH THEIR INVOICES
 export async function GET() {
   try {
     const clients = await prisma.client.findMany({
       orderBy: { createdAt: 'desc' },
+      include: { invoices: true } // <-- THIS LINE IS NEW! It fetches the documents.
     });
     return NextResponse.json(clients);
   } catch (error) {

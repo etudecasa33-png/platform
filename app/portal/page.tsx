@@ -272,4 +272,30 @@ export default function ClientPortal() {
                 currency={generatedDoc.data.currency}
                 itemDescription={generatedDoc.data.metadata?.itemDescription || generatedDoc.data.title}
                 documentNumber={generatedDoc.data.invoiceNumber || 'PENDING'}
-                date={generatedDoc.data.createdAt
+                date={generatedDoc.data.createdAt}
+              />
+            ) : secureFileUrl && secureFileUrl.match(/\.(jpeg|jpg|gif|png|webp)$/i) ? (
+              // Affiche les images standards
+              <div className="relative w-full h-full flex items-center justify-center">
+                <div 
+                  className="absolute inset-0 z-30 cursor-default" 
+                  onContextMenu={(e) => e.preventDefault()} 
+                />
+                <img 
+                  src={secureFileUrl} 
+                  alt="Secure Document" 
+                  className="max-w-full max-h-full object-contain z-10 select-none p-4" 
+                  draggable={false} 
+                />
+              </div>
+            ) : secureFileUrl ? (
+              // Affiche les PDF standards
+              <SecurePdfViewer url={secureFileUrl} />
+            ) : null}
+            
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

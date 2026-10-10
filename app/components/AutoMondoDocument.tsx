@@ -141,7 +141,7 @@ export default function AutoMondoDocument({
             {/* Fixed Stamp: Removed the blue CSS border and adjusted size/position */}
             <div className="flex justify-end mb-4 pr-12 h-32 relative">
                <img 
-                 src="/stamp.png" 
+                 src="/stamp1.png" 
                  className="absolute right-10 top-[-10px] w-40 opacity-90 mix-blend-multiply" 
                  alt="AutoMondo Stamp" 
                />

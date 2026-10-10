@@ -3,10 +3,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, Plus, Building2, ChevronRight, Mail, Phone, Pencil, Trash2, X, Key, FileText, FileCheck } from 'lucide-react';
 
-// --- ADDED: AutoMondo Document Component ---
 import AutoMondoDocument from '../components/AutoMondoDocument';
 
-// --- UPDATED TYPES: Added Invoice support ---
 type Invoice = { id: string; title: string; currency: string; totalAmount: number; paidAmount: number; createdAt: string; invoiceNumber?: string; metadata?: any; };
 type Client = {
   id: string;
@@ -16,7 +14,7 @@ type Client = {
   address: string | null;
   password: string | null;
   notes: string | null; 
-  invoices?: Invoice[]; // Added invoices array
+  invoices?: Invoice[]; 
 };
 
 export default function ClientsDirectoryPage() {
@@ -27,10 +25,8 @@ export default function ClientsDirectoryPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingClientId, setEditingClientId] = useState<string | null>(null);
   
-  // --- ADDED STATE: For Document Viewer ---
   const [generatedDoc, setGeneratedDoc] = useState<{type: 'INVOICE' | 'RECEIPT', data: Invoice, clientName: string} | null>(null);
 
-  // --- UPDATED FORM: Added Invoice fields ---
   const defaultForm = { name: '', email: '', phone: '', address: '', password: '', notes: '', idNumber: '', amount: '', currency: 'DZD', itemDescription: '' };
   const [formState, setFormState] = useState(defaultForm);
 
@@ -66,7 +62,6 @@ export default function ClientsDirectoryPage() {
       address: client.address || '',
       password: client.password || '',
       notes: client.notes || '',
-      // Empty fields for edit mode since we don't regenerate invoices on edit
       idNumber: '', amount: '', currency: 'DZD', itemDescription: '' 
     });
   };
@@ -145,7 +140,6 @@ export default function ClientsDirectoryPage() {
                 {client.password && <p className="text-sm text-gray-600 flex items-center gap-2 truncate"><Key size={14} className="text-gray-400 shrink-0" /> {client.password}</p>}
               </div>
 
-              {/* --- ADDED: Generated Documents Section in the Card --- */}
               {client.invoices && client.invoices.length > 0 && (
                 <div className="mb-4 flex flex-col gap-2">
                   {client.invoices.map((inv) => (
@@ -196,7 +190,6 @@ export default function ClientsDirectoryPage() {
                 <div className="sm:col-span-2"><label className="block text-sm font-bold text-gray-700 mb-1">Remarques / Notes</label><textarea value={formState.notes} onChange={e => setFormState({...formState, notes: e.target.value})} className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none h-20" /></div>
               </div>
 
-              {/* --- ADDED: AutoMondo Invoice Automation Fields (Only shown when creating a new client) --- */}
               {!editingClientId && (
                 <div className="mt-6 border-t border-blue-100 pt-6">
                   <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
@@ -224,24 +217,27 @@ export default function ClientsDirectoryPage() {
         </div>
       )}
 
-      {/* --- ADDED: UNMODIFIED DOCUMENT VIEWER MODAL --- */}
+      {/* --- SCROLLING FIXED DOCUMENT VIEWER MODAL --- */}
       {generatedDoc && (
-        <div className="fixed inset-0 z-[100] bg-slate-900/95 flex flex-col items-center justify-center p-4 md:p-12 backdrop-blur-sm">
-          <button onClick={(e) => { e.stopPropagation(); setGeneratedDoc(null); }} className="absolute top-6 end-6 bg-red-600 hover:bg-red-700 text-white p-3 rounded-full flex items-center gap-2 font-bold shadow-lg transition-transform hover:scale-105 z-50">
+        <div className="fixed inset-0 z-[100] bg-slate-900/95 flex flex-col items-center justify-center p-2 sm:p-6 backdrop-blur-sm">
+          <button onClick={(e) => { e.stopPropagation(); setGeneratedDoc(null); }} className="absolute top-4 right-4 bg-red-600 hover:bg-red-700 text-white p-3 rounded-full flex items-center gap-2 font-bold shadow-lg transition-transform hover:scale-105 z-[110]">
             <X size={20} /> Close Document
           </button>
 
-          <div className="relative w-full max-w-5xl h-[85vh] bg-white rounded-2xl overflow-y-auto shadow-2xl flex justify-center no-scrollbar" dir="ltr">
-            <AutoMondoDocument 
-              type={generatedDoc.type}
-              clientName={generatedDoc.clientName}
-              clientIdNumber={generatedDoc.data.metadata?.idNumber}
-              amount={generatedDoc.data.totalAmount}
-              currency={generatedDoc.data.currency}
-              itemDescription={generatedDoc.data.metadata?.itemDescription || generatedDoc.data.title}
-              documentNumber={generatedDoc.data.invoiceNumber || 'PENDING'}
-              date={generatedDoc.data.createdAt}
-            />
+          {/* This wrapper allows pure scrolling down the document */}
+          <div className="w-full max-w-5xl h-[90vh] bg-gray-200 rounded-xl overflow-y-auto shadow-2xl" dir="ltr">
+            <div className="min-h-max w-full flex justify-center items-start p-4 sm:p-8">
+              <AutoMondoDocument 
+                type={generatedDoc.type}
+                clientName={generatedDoc.clientName}
+                clientIdNumber={generatedDoc.data.metadata?.idNumber}
+                amount={generatedDoc.data.totalAmount}
+                currency={generatedDoc.data.currency}
+                itemDescription={generatedDoc.data.metadata?.itemDescription || generatedDoc.data.title}
+                documentNumber={generatedDoc.data.invoiceNumber || 'PENDING'}
+                date={generatedDoc.data.createdAt}
+              />
+            </div>
           </div>
         </div>
       )}

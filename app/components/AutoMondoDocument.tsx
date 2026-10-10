@@ -273,7 +273,7 @@ export default function AutoMondoDocument({
               <div className="border-b border-gray-500 w-48 mx-auto relative h-10">
                 {/* MODIFICATION 2: One line, clean, professional script font */}
                 <p 
-                  className="absolute bottom-1 w-full text-center text-[24px] whitespace-nowrap" 
+                  className="absolute bottom-1 w-full text-center text-[20px] whitespace-nowrap" 
                   style={{ fontFamily: "'Segoe Script', 'Bradley Hand', 'Caveat', cursive" }}
                 >
                   Takieddine Semmache

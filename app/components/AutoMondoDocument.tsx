@@ -271,10 +271,10 @@ export default function AutoMondoDocument({
             <div className="text-center z-10 relative mt-4">
               <p className="text-sm font-light text-gray-300 mb-2">Received By:</p>
               <div className="border-b border-gray-500 w-64 mx-auto relative h-10">
-                {/* MODIFICATION 2: One line, beautiful cursive font, adapted size */}
+                {/* MODIFICATION 2: One line, clean, professional script font */}
                 <p 
                   className="absolute bottom-1 w-full text-center text-[24px] whitespace-nowrap" 
-                  style={{ fontFamily: "'Lucida Handwriting', 'Brush Script MT', cursive" }}
+                  style={{ fontFamily: "'Segoe Script', 'Bradley Hand', 'Caveat', cursive" }}
                 >
                   Takieddine Semmache
                 </p>

@@ -40,7 +40,7 @@ export default function AutoMondoDocument({
             <div className="absolute top-0 left-0 h-40 w-80 bg-[#1f2229]" style={{ clipPath: 'polygon(0 0, 100% 0, 80% 100%, 0 100%)' }}>
                {/* Place your car logo here in the future: <img src="/logo-car.png" className="w-48 mt-4 ml-4"/> */}
                <div className="text-white text-center mt-6 ml-6 border border-white/20 p-2 w-48 font-bold text-xs">
-                 AUTOMONDO LOGO
+                 <img src="/logo.png" className="w-48" />
                </div>
             </div>
             <h1 className="text-[#f7b718] text-2xl font-black tracking-widest uppercase">PROFORMA INVOICE</h1>
@@ -250,7 +250,7 @@ export default function AutoMondoDocument({
                 <p className="absolute bottom-1 w-full text-center text-lg font-normal">Takieddine Semmache</p>
                 {/* STAMP & SIGNATURE PLACEHOLDER */}
                 <div className="absolute -top-6 -right-6 w-24 h-24 border-2 border-blue-600 rounded-full flex items-center justify-center text-blue-600 text-[8px] font-bold rotate-[15deg] opacity-70">
-                   BLUE STAMP
+                   <img src="/stamp.png" className="w-48" />
                    {/* Replace with: <img src="/stamp.png" className="absolute -top-6 -right-6 w-32 opacity-90" /> */}
                 </div>
               </div>

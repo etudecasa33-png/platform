@@ -254,10 +254,10 @@ export default function AutoMondoDocument({
           {/* Dark Footer Section */}
           <div className="bg-[#2a2a2a] w-full px-12 py-8 mt-12 flex justify-between items-start text-white relative overflow-hidden">
             
-            <div className="flex items-center gap-4 z-10">
-               {/* Fixed Logo: Removed the white border */}
-               <img src="/logo.png" className="w-40" alt="AutoMondo Logo" />
-               <h2 className="text-2xl font-black leading-none">AutoMondo<br/>FZ-LLC</h2>
+            {/* FIXED: Reduced text size, reduced logo size, added right margin to prevent touching address */}
+            <div className="flex items-center gap-3 z-10 mr-8">
+               <img src="/logo.png" className="w-32" alt="AutoMondo Logo" />
+               <h2 className="text-xl font-black leading-tight">AutoMondo<br/>FZ-LLC</h2>
             </div>
 
             <div className="text-sm text-gray-300 font-light leading-snug z-10">
@@ -270,10 +270,10 @@ export default function AutoMondoDocument({
 
             <div className="text-center z-10 relative mt-4">
               <p className="text-sm font-light text-gray-300 mb-2">Received By:</p>
-              <div className="border-b border-gray-500 w-64 mx-auto relative h-10">
+              <div className="border-b border-gray-500 w-48 mx-auto relative h-10">
                 {/* MODIFICATION 2: One line, clean, professional script font */}
                 <p 
-                  className="absolute bottom-1 w-full text-center text-[22px] whitespace-nowrap" 
+                  className="absolute bottom-1 w-full text-center text-[24px] whitespace-nowrap" 
                   style={{ fontFamily: "'Segoe Script', 'Bradley Hand', 'Caveat', cursive" }}
                 >
                   Takieddine Semmache

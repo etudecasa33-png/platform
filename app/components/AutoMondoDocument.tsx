@@ -11,9 +11,10 @@ type DocumentProps = {
   documentNumber: string;
   date: string;
   amountInWords?: string;
-  isClientView?: boolean;
+  isClientView?: boolean; // ADDED: Tells the component if the client is looking at it
 };
 
+// --- Helper function to automatically convert numbers to words ---
 const numberToWords = (num: number): string => {
   if (num === 0) return 'Zero';
   
@@ -49,20 +50,18 @@ export default function AutoMondoDocument({
   return (
     <div className="flex flex-col items-center w-full relative">
       
-      {/* --- SMART PRINT CSS: Exact Millimeter dimensions to prevent missing footers or extra pages --- */}
+      {/* --- SMART PRINT CSS: Completely hides page if client tries to force print --- */}
       <style dangerouslySetInnerHTML={{__html: `
         @media print {
           ${isClientView ? `
             html, body { display: none !important; }
           ` : `
             @page { size: ${type === 'INVOICE' ? 'A4 portrait' : 'A4 landscape'}; margin: 0; }
-            html, body { background: white; margin: 0; padding: 0; }
+            html, body { width: 100%; height: 100vh; margin: 0; padding: 0; overflow: hidden !important; background: white; }
             body * { visibility: hidden; }
             #automondo-doc, #automondo-doc * { visibility: visible; }
             #automondo-doc { 
-              position: absolute; left: 0; top: 0; margin: 0 !important; padding: 0 !important;
-              width: ${type === 'INVOICE' ? '210mm' : '297mm'} !important;
-              height: ${type === 'INVOICE' ? '296mm' : '209mm'} !important;
+              position: fixed; left: 0; top: 0; width: 100vw; height: 100vh; margin: 0; padding: 0;
               box-shadow: none !important; overflow: hidden !important;
               page-break-after: avoid; page-break-before: avoid;
             }
@@ -86,7 +85,7 @@ export default function AutoMondoDocument({
 
       <div 
         id="automondo-doc"
-        className={`bg-white font-sans select-none relative shadow-2xl overflow-hidden print:shadow-none mx-auto w-full ${type === 'RECEIPT' ? 'max-w-[1123px] min-h-[794px] print:min-h-0 print:h-[209mm]' : 'max-w-[794px] min-h-[1123px] print:min-h-0 print:h-[296mm]'}`} 
+        className={`bg-white font-sans select-none relative shadow-2xl overflow-hidden print:shadow-none mx-auto w-full ${type === 'RECEIPT' ? 'max-w-[1123px] min-h-[794px] print:min-h-0 print:h-[100vh]' : 'max-w-[794px] min-h-[1123px] print:min-h-0 print:h-[100vh]'}`} 
         onContextMenu={(e) => e.preventDefault()}
       >
         
@@ -273,16 +272,17 @@ export default function AutoMondoDocument({
 
               <div className="flex items-end w-full gap-8">
                 <div className="w-full">
-                   {/* FIXED: Solid HTML Borders instead of gradient. This guarantees it will NEVER break during printing! */}
-                   <div className="relative w-[90%] min-h-[80px]">
-                     <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden flex flex-col">
-                       <div className="h-[40px] border-b border-gray-400 w-full"></div>
-                       <div className="h-[40px] border-b border-gray-400 w-full"></div>
-                       <div className="h-[40px] border-b border-gray-400 w-full"></div>
-                     </div>
-                     <div className="relative z-10 text-[19px] text-gray-800 capitalize leading-[40px]">
-                       {amountInWords || dynamicAmountInWords}
-                     </div>
+                   {/* DYNAMIC UNDERLINE */}
+                   <div 
+                     className="w-[90%] text-lg text-gray-800 capitalize"
+                     style={{ 
+                       lineHeight: '40px', 
+                       minHeight: '80px', 
+                       backgroundImage: 'repeating-linear-gradient(to bottom, transparent, transparent 39px, #9ca3af 39px, #9ca3af 40px)',
+                       backgroundPosition: '0 0'
+                     }}
+                   >
+                     {amountInWords || dynamicAmountInWords}
                    </div>
                 </div>
                 

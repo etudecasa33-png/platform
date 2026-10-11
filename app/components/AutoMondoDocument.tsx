@@ -45,12 +45,15 @@ export default function AutoMondoDocument({
   // Helper to format amount to 2 decimal places (e.g., 2,450,000.00)
   const formattedAmount = amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-  // --- MODIFICATION 1 (Continued): Setup dynamic words based on currency ---
+  // Setup dynamic words based on currency
   const currencySuffix = (currency === 'DA' || currency === 'DZD') ? 'Algerian dinars' : 'Dirhams';
   const dynamicAmountInWords = `${numberToWords(amount)} ${currencySuffix}.`;
 
   return (
-    <div className="w-full max-w-[900px] mx-auto bg-white font-sans select-none relative shadow-2xl overflow-hidden" onContextMenu={(e) => e.preventDefault()}>
+    <div 
+      className={`w-full mx-auto bg-white font-sans select-none relative shadow-2xl overflow-hidden ${type === 'RECEIPT' ? 'max-w-[794px]' : 'max-w-[900px]'}`} 
+      onContextMenu={(e) => e.preventDefault()}
+    >
       
       {/* ========================================== */}
       {/* ======== EXACT INVOICE TEMPLATE (1.PNG) == */}
@@ -85,7 +88,7 @@ export default function AutoMondoDocument({
               <div className="text-right pt-8">
                 <p>Email : contact@automondodxb.com</p>
                 <p>Mob: +971 54 423 2321</p>
-                <p>Website : www.automondodxb.com</p>
+                <p>Website : www.automondo.net</p>
               </div>
             </div>
 
@@ -195,7 +198,7 @@ export default function AutoMondoDocument({
       {/* ======== EXACT RECEIPT TEMPLATE (2.PNG) == */}
       {/* ========================================== */}
       {type === 'RECEIPT' && (
-        <div className="bg-[#f5f5f5] w-full flex flex-col pt-12 pb-0">
+        <div className="bg-[#f5f5f5] w-full flex flex-col pt-12 pb-0 min-h-[1123px]">
           
           {/* Top Section (White Background) */}
           <div className="bg-white px-12 py-8 flex justify-between items-center shadow-sm z-10">
@@ -236,11 +239,18 @@ export default function AutoMondoDocument({
 
             <div className="flex items-end w-full gap-8">
               <div className="w-full">
-                 <div className="border-b border-gray-400 text-lg text-gray-800 pb-1 w-[90%] capitalize">
-                   {/* MODIFICATION 1: Replaced hardcoded string with dynamic generated string */}
+                 {/* DYNAMIC UNDERLINE: Creates a new line automatically based on text wrapping */}
+                 <div 
+                   className="w-[90%] text-lg text-gray-800 capitalize"
+                   style={{ 
+                     lineHeight: '40px', 
+                     minHeight: '80px', // Ensures at least two lines appear
+                     backgroundImage: 'repeating-linear-gradient(to bottom, transparent, transparent 39px, #9ca3af 39px, #9ca3af 40px)',
+                     backgroundPosition: '0 0'
+                   }}
+                 >
                    {amountInWords || dynamicAmountInWords}
                  </div>
-                 <div className="border-b border-gray-400 w-[90%] h-8 mt-2"></div>
               </div>
               
               <div className="shrink-0 pt-4">

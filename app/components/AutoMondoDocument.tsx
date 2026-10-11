@@ -49,14 +49,24 @@ export default function AutoMondoDocument({
   return (
     <div className="flex flex-col items-center w-full">
       
-      {/* --- SMART PRINT CSS: Automatically configures A4 Portrait or A4 Landscape --- */}
+      {/* --- SMART PRINT CSS: Locks to exactly 1 page and prevents 3-page repeating bug --- */}
       <style dangerouslySetInnerHTML={{__html: `
         @media print {
-          @page { size: ${type === 'INVOICE' ? 'A4 portrait' : 'A4 landscape'}; margin: 0mm; }
+          @page { size: ${type === 'INVOICE' ? 'A4 portrait' : 'A4 landscape'}; margin: 0; }
+          html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; }
           body * { visibility: hidden; }
           #automondo-doc, #automondo-doc * { visibility: visible; }
-          #automondo-doc { position: absolute; left: 0; top: 0; margin: 0; box-shadow: none !important; width: 100%; }
-          /* Ensures background colors and stamps print perfectly */
+          #automondo-doc { 
+            position: fixed; 
+            left: 0; 
+            top: 0; 
+            margin: 0; 
+            padding: 0;
+            width: 100vw; 
+            height: 100vh;
+            box-shadow: none !important; 
+            overflow: hidden !important;
+          }
           * { -webkit-print-color-adjust: exact !important; color-adjust: exact !important; print-color-adjust: exact !important; }
         }
       `}} />
@@ -74,8 +84,7 @@ export default function AutoMondoDocument({
 
       <div 
         id="automondo-doc"
-        /* ADJUSTED DIMENSIONS: Invoice is 794x1123 (Portrait), Receipt is 1123x794 (Landscape) */
-        className={`bg-white font-sans select-none relative shadow-2xl overflow-hidden print:shadow-none mx-auto w-full ${type === 'RECEIPT' ? 'max-w-[1123px] min-h-[794px]' : 'max-w-[794px] min-h-[1123px]'}`} 
+        className={`bg-white font-sans select-none relative shadow-2xl overflow-hidden print:shadow-none mx-auto w-full ${type === 'RECEIPT' ? 'max-w-[1123px] h-[794px]' : 'max-w-[794px] h-[1123px]'}`} 
         onContextMenu={(e) => e.preventDefault()}
       >
         
@@ -83,7 +92,7 @@ export default function AutoMondoDocument({
         {/* ======== EXACT INVOICE TEMPLATE (1.PNG) == */}
         {/* ========================================== */}
         {type === 'INVOICE' && (
-          <div className="bg-white min-h-[1123px] relative pb-12 w-full">
+          <div className="bg-white h-[1123px] relative pb-12 w-full">
             
             {/* Top Black/Gold Header Bar */}
             <div className="bg-[#161616] h-24 w-full flex items-center justify-end pr-8 relative">
@@ -207,7 +216,7 @@ export default function AutoMondoDocument({
         {/* ======== EXACT RECEIPT TEMPLATE (2.PNG) == */}
         {/* ========================================== */}
         {type === 'RECEIPT' && (
-          <div className="bg-[#f5f5f5] w-full flex flex-col pt-12 pb-0 min-h-[794px] h-full justify-between">
+          <div className="bg-[#f5f5f5] w-full flex flex-col pt-12 pb-0 h-[794px] justify-between">
             
             {/* Top Section */}
             <div className="bg-white px-12 py-8 flex justify-between items-center shadow-sm z-10">

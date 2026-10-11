@@ -147,7 +147,7 @@ export default function ClientPortal() {
                       </div>
                     </div>
 
-                    <div className="flex justify-between items-center bg-gray-50 p-3.5 rounded-xl border border-gray-100 mb-4">
+                    <div className="flex justify-between items-center bg-gray-50 p-3.5 rounded-xl border border-gray-100">
                       <div>
                         <p className="text-xs text-gray-500 font-medium mb-0.5">{t.amountPaid}</p>
                         <p className="text-sm font-bold text-green-600 font-sans">
@@ -161,23 +161,7 @@ export default function ClientPortal() {
                         </p>
                       </div>
                     </div>
-
-                    {/* --- NOUVEAUX BOUTONS DE GÉNÉRATION DE DOCUMENTS --- */}
-                    <div className="grid grid-cols-2 gap-2 border-t border-gray-100 pt-4">
-                      <button 
-                        onClick={() => setGeneratedDoc({ type: 'INVOICE', data: inv })} 
-                        className="flex items-center justify-center gap-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 py-2.5 rounded-xl text-xs font-bold transition"
-                      >
-                        <FileText size={16}/> {t.viewInvoice}
-                      </button>
-                      <button 
-                        onClick={() => setGeneratedDoc({ type: 'RECEIPT', data: inv })} 
-                        className="flex items-center justify-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 py-2.5 rounded-xl text-xs font-bold transition"
-                      >
-                        <FileCheck size={16}/> {t.viewReceipt}
-                      </button>
-                    </div>
-
+                    {/* Buttons removed from here as requested */}
                   </div>
                 );
               })}
@@ -197,7 +181,40 @@ export default function ClientPortal() {
 
         {/* CONTRACTS VIEW */}
         {activeTab === 'contracts' && (
-          <div className="space-y-4">
+          <div className="space-y-6">
+
+            {/* --- ADDED AUTOMONDO DOCUMENTS SECTION INSIDE CONTRACTS --- */}
+            {client.invoices && client.invoices.length > 0 && (
+              <div className="mb-6">
+                <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">AutoMondo Documents</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {client.invoices.map((inv) => (
+                    <div key={inv.id} className="bg-white border border-blue-100 p-5 rounded-2xl shadow-sm flex flex-col justify-between">
+                      <div className="mb-4">
+                        <p className="font-bold text-gray-900 truncate">{inv.title}</p>
+                        <p className="text-sm text-gray-500 font-sans">{inv.totalAmount.toLocaleString()} {inv.currency}</p>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 mt-auto border-t border-gray-100 pt-4">
+                        <button 
+                          onClick={() => setGeneratedDoc({ type: 'INVOICE', data: inv })} 
+                          className="flex items-center justify-center gap-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 py-2.5 rounded-xl text-xs font-bold transition"
+                        >
+                          <FileText size={16}/> {t.viewInvoice}
+                        </button>
+                        <button 
+                          onClick={() => setGeneratedDoc({ type: 'RECEIPT', data: inv })} 
+                          className="flex items-center justify-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 py-2.5 rounded-xl text-xs font-bold transition"
+                        >
+                          <FileCheck size={16}/> {t.viewReceipt}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Uploaded Contract Files */}
             {client.contracts.map((contract) => {
               let files: string[] = [];
               try { files = JSON.parse(contract.fileUrls); } catch (e) {}
@@ -260,38 +277,41 @@ export default function ClientPortal() {
             <X size={20} /> {t.closeFile}
           </button>
 
-          <div className="relative w-full max-w-5xl h-[85vh] bg-white rounded-2xl overflow-y-auto shadow-2xl flex justify-center no-scrollbar" dir="ltr">
+          <div className="relative w-full max-w-5xl h-[85vh] bg-gray-200 rounded-2xl overflow-y-auto shadow-2xl flex justify-center no-scrollbar" dir="ltr">
             
-            {generatedDoc ? (
-              // Rend la magnifique facture/reçu AutoMondo
-              <AutoMondoDocument 
-                type={generatedDoc.type}
-                clientName={client.name}
-                clientIdNumber={generatedDoc.data.metadata?.idNumber}
-                amount={generatedDoc.data.totalAmount}
-                currency={generatedDoc.data.currency}
-                itemDescription={generatedDoc.data.metadata?.itemDescription || generatedDoc.data.title}
-                documentNumber={generatedDoc.data.invoiceNumber || 'PENDING'}
-                date={generatedDoc.data.createdAt}
-              />
-            ) : secureFileUrl && secureFileUrl.match(/\.(jpeg|jpg|gif|png|webp)$/i) ? (
-              // Affiche les images standards
-              <div className="relative w-full h-full flex items-center justify-center">
-                <div 
-                  className="absolute inset-0 z-30 cursor-default" 
-                  onContextMenu={(e) => e.preventDefault()} 
+            <div className="min-h-max w-full flex justify-center items-start p-4 md:p-8">
+              {generatedDoc ? (
+                // --- ACTIVATES isClientView={true} TO ADD WATERMARK AND BLOCK PRINTING ---
+                <AutoMondoDocument 
+                  type={generatedDoc.type}
+                  clientName={client.name}
+                  clientIdNumber={generatedDoc.data.metadata?.idNumber}
+                  amount={generatedDoc.data.totalAmount}
+                  currency={generatedDoc.data.currency}
+                  itemDescription={generatedDoc.data.metadata?.itemDescription || generatedDoc.data.title}
+                  documentNumber={generatedDoc.data.invoiceNumber || 'PENDING'}
+                  date={generatedDoc.data.createdAt}
+                  isClientView={true} // <-- Protects the document from being printed/downloaded
                 />
-                <img 
-                  src={secureFileUrl} 
-                  alt="Secure Document" 
-                  className="max-w-full max-h-full object-contain z-10 select-none p-4" 
-                  draggable={false} 
-                />
-              </div>
-            ) : secureFileUrl ? (
-              // Affiche les PDF standards
-              <SecurePdfViewer url={secureFileUrl} />
-            ) : null}
+              ) : secureFileUrl && secureFileUrl.match(/\.(jpeg|jpg|gif|png|webp)$/i) ? (
+                // Affiche les images standards
+                <div className="relative w-full h-full flex items-center justify-center">
+                  <div 
+                    className="absolute inset-0 z-30 cursor-default" 
+                    onContextMenu={(e) => e.preventDefault()} 
+                  />
+                  <img 
+                    src={secureFileUrl} 
+                    alt="Secure Document" 
+                    className="max-w-full max-h-full object-contain z-10 select-none p-4" 
+                    draggable={false} 
+                  />
+                </div>
+              ) : secureFileUrl ? (
+                // Affiche les PDF standards
+                <SecurePdfViewer url={secureFileUrl} />
+              ) : null}
+            </div>
             
           </div>
         </div>

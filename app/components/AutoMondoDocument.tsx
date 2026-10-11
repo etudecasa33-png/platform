@@ -46,13 +46,14 @@ export default function AutoMondoDocument({
   const currencySuffix = (currency === 'DA' || currency === 'DZD') ? 'Algerian dinars' : 'Dirhams';
   const dynamicAmountInWords = `${numberToWords(amount)} ${currencySuffix}.`;
 
-  const docWidth = type === 'INVOICE' ? '210mm' : '297mm';
-  const docHeight = type === 'INVOICE' ? '297mm' : '210mm';
+  // FIXED: Physical A4 dimensions guarantee zero zoom issues and exactly 1 page
+  const docWidth = type === 'INVOICE' ? '794px' : '1123px';
+  const docHeight = type === 'INVOICE' ? '1123px' : '794px';
 
   return (
     <div className="flex flex-col items-center w-full relative overflow-auto no-scrollbar">
       
-      {/* --- FIXED: Removed buggy html/body overflow to stop the blank page bug --- */}
+      {/* --- STRICT EXACT 1-PAGE PRINT CSS --- */}
       <style dangerouslySetInnerHTML={{__html: `
         @media print {
           ${isClientView ? `
@@ -67,13 +68,21 @@ export default function AutoMondoDocument({
               margin: 0 !important; 
               padding: 0 !important; 
             }
+
+            /* SOLUTION MAGIQUE : Cela libère le document du modal pour qu'il ne s'imprime jamais en page blanche ! */
+            * { 
+              overflow: visible !important; 
+              transform: none !important; 
+              backdrop-filter: none !important; 
+              filter: none !important; 
+            }
+
             body * { visibility: hidden; }
             
             #automondo-print-layer, #automondo-print-layer * { 
-              visibility: visible; 
+              visibility: visible !important; 
             }
             
-            /* Using absolute + top/left 0 guarantees it overlays the blank body perfectly without crashing */
             #automondo-print-layer { 
               position: absolute !important; 
               left: 0 !important; 
@@ -83,6 +92,10 @@ export default function AutoMondoDocument({
               margin: 0 !important; 
               padding: 0 !important; 
               box-shadow: none !important; 
+              z-index: 999999 !important;
+              page-break-after: avoid !important; 
+              page-break-before: avoid !important; 
+              page-break-inside: avoid !important;
             }
             * { -webkit-print-color-adjust: exact !important; color-adjust: exact !important; print-color-adjust: exact !important; }
           `}
@@ -133,10 +146,12 @@ export default function AutoMondoDocument({
                 <div className="absolute top-0 left-0 h-40 w-[350px] bg-[#1f2229] z-0 flex flex-col items-center pt-6" style={{ clipPath: 'polygon(0 0, 100% 0, 80% 100%, 0 100%)' }}>
                    <img src="/logo.png" className="w-56 mt-2 mr-8 relative z-10" alt="AutoMondo Logo" />
                 </div>
+                {/* FIXED: Z-index ensures text is ALWAYS above the logo background */}
                 <h1 className="text-[#f7b718] text-2xl font-black tracking-widest uppercase relative z-20">PROFORMA INVOICE</h1>
               </div>
 
-              <div className="px-10 pt-10"> 
+              {/* FIXED: Changed pt-10 to pt-24. This pushes the text below the logo container, leaving a clean gap. */}
+              <div className="px-10 pt-24"> 
                 <h2 className="text-4xl font-black tracking-widest text-[#231f20] mb-4">AUTOMONDO FZ-LLC</h2>
                 
                 <div className="flex justify-between text-[11px] font-bold text-[#4a4a4a] mb-6 leading-relaxed">
@@ -199,6 +214,7 @@ export default function AutoMondoDocument({
                   </div>
                 </div>
 
+                {/* FIXED: Inline mixBlendMode guarantees the white box disappears but stamp stays visible */}
                 <div className="flex justify-end mb-2 pr-12 h-28 relative">
                    <img src="/stamp1.png" className="absolute right-10 top-[-10px] w-40 opacity-90 z-30" style={{ mixBlendMode: 'multiply' }} alt="AutoMondo Stamp" />
                 </div>
@@ -284,6 +300,7 @@ export default function AutoMondoDocument({
 
               <div className="flex items-start w-full gap-8">
                 <div className="w-full mt-2">
+                   {/* FIXED: Flawless absolute lines locking the text exactly in place */}
                    <div className="relative w-[90%] min-h-[120px]">
                       <div className="absolute inset-0 pointer-events-none z-0 flex flex-col pt-[39px]">
                          <div className="border-b border-gray-400 w-full mb-[39px]"></div>

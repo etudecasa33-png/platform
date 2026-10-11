@@ -49,20 +49,25 @@ export default function AutoMondoDocument({
   return (
     <div className="flex flex-col items-center w-full">
       
-      {/* --- SMART PRINT CSS: A4 Portrait for Invoice, Landscape for Receipt --- */}
+      {/* --- SMART PRINT CSS: Locks strictly to 1 page, preventing the blank 2nd page --- */}
       <style dangerouslySetInnerHTML={{__html: `
         @media print {
           @page { size: ${type === 'INVOICE' ? 'A4 portrait' : 'A4 landscape'}; margin: 0; }
+          html, body { width: 100%; height: 100vh; margin: 0; padding: 0; overflow: hidden !important; background: white; }
           body * { visibility: hidden; }
           #automondo-doc, #automondo-doc * { visibility: visible; }
           #automondo-doc { 
-            position: absolute; 
+            position: fixed; 
             left: 0; 
             top: 0; 
             width: 100vw; 
+            height: 100vh; 
             margin: 0; 
             padding: 0;
             box-shadow: none !important; 
+            overflow: hidden !important;
+            page-break-after: avoid;
+            page-break-before: avoid;
           }
           * { -webkit-print-color-adjust: exact !important; color-adjust: exact !important; print-color-adjust: exact !important; }
         }
@@ -81,8 +86,8 @@ export default function AutoMondoDocument({
 
       <div 
         id="automondo-doc"
-        /* FIXED: Removed restrictive heights/overflows. Uses min-height so it perfectly fits screen AND print */
-        className={`bg-white font-sans select-none relative shadow-2xl print:shadow-none mx-auto w-full ${type === 'RECEIPT' ? 'max-w-[1123px] min-h-[794px]' : 'max-w-[794px] min-h-[1123px]'}`} 
+        /* Using print:h-[100vh] prevents any elements from spilling onto page 2 */
+        className={`bg-white font-sans select-none relative shadow-2xl overflow-hidden print:shadow-none mx-auto w-full ${type === 'RECEIPT' ? 'max-w-[1123px] min-h-[794px] print:min-h-0 print:h-[100vh]' : 'max-w-[794px] min-h-[1123px] print:min-h-0 print:h-[100vh]'}`} 
         onContextMenu={(e) => e.preventDefault()}
       >
         
@@ -90,7 +95,7 @@ export default function AutoMondoDocument({
         {/* ======== EXACT INVOICE TEMPLATE (1.PNG) == */}
         {/* ========================================== */}
         {type === 'INVOICE' && (
-          <div className="bg-white min-h-[1123px] relative pb-8 w-full flex flex-col justify-between">
+          <div className="bg-white min-h-[1123px] print:min-h-0 print:h-full relative pb-4 w-full flex flex-col justify-between">
             
             <div>
               {/* Top Black/Gold Header Bar */}
@@ -101,7 +106,6 @@ export default function AutoMondoDocument({
                 <h1 className="text-[#f7b718] text-2xl font-black tracking-widest uppercase z-0">PROFORMA INVOICE</h1>
               </div>
 
-              {/* Reduced pt-20 to pt-16 so the footer has more room to fit A4 perfectly */}
               <div className="px-10 pt-16"> 
                 
                 {/* Company Info Header */}
@@ -204,8 +208,8 @@ export default function AutoMondoDocument({
                 </div>
               </div>
 
-              {/* Bottom Warning */}
-              <div className="text-[9px] font-bold space-y-2 pt-2 border-t border-gray-200 border-b-8">
+              {/* Bottom Warning - FIXED: Removed grey footer block (border-b-8) */}
+              <div className="text-[9px] font-bold space-y-2 pt-2 border-t border-gray-200 pb-4">
                 <p>RECEIVING CONFIRMATION FROM THE BUYER THAT THERE IS NO ACTIVITY ASSOCIATED WITH MONEY LAUNDERING FROM THE ORIGIN OF THE MONEY RECEIVED OR ANYTHING SURROUNDING THE DEAL</p>
                 <p>NOT VALID FOR RE-EXPORT TO SANCTIONED COUNTRIES, GCC COUNTRIES & LOCAL REGISTRATION INSIDE UAE</p>
                 <p><span className="underline text-blue-600">WARRANTY :</span> NO WARRANTY FOR VEHICLE & PARTS FOR RE-EXPORT</p>
@@ -219,7 +223,7 @@ export default function AutoMondoDocument({
         {/* ======== EXACT RECEIPT TEMPLATE (2.PNG) == */}
         {/* ========================================== */}
         {type === 'RECEIPT' && (
-          <div className="bg-[#f5f5f5] w-full flex flex-col pt-12 pb-0 min-h-[794px] h-full justify-between">
+          <div className="bg-[#f5f5f5] w-full flex flex-col pt-12 pb-0 min-h-[794px] print:min-h-0 print:h-full justify-between">
             
             {/* Top Section */}
             <div className="bg-white px-12 py-8 flex justify-between items-center shadow-sm z-10">
@@ -283,7 +287,7 @@ export default function AutoMondoDocument({
             </div>
 
             {/* Dark Footer Section */}
-            <div className="bg-[#2a2a2a] w-full px-12 py-10 flex justify-between items-start text-white relative overflow-hidden">
+            <div className="bg-[#2a2a2a] w-full px-12 py-10 flex justify-between items-start text-white relative overflow-hidden mt-auto">
               
               <div className="flex items-center gap-3 z-10 mr-8">
                  <img src="/logo.png" className="w-32" alt="AutoMondo Logo" />

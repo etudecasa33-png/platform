@@ -209,7 +209,7 @@ export default function AutoMondoDocument({
 
                 {/* FIXED: Inline mixBlendMode guarantees the white box disappears but stamp stays visible */}
                 <div className="flex justify-end mb-2 pr-12 h-28 relative">
-                   <img src="/stamp.png" className="absolute right-10 top-[-10px] w-40 opacity-90 z-30" style={{ mixBlendMode: 'multiply' }} alt="AutoMondo Stamp" />
+                   <img src="/stamp1.png" className="absolute right-10 top-[-10px] w-40 opacity-90 z-30" style={{ mixBlendMode: 'multiply' }} alt="AutoMondo Stamp" />
                 </div>
               </div>
             </div>
@@ -333,7 +333,7 @@ export default function AutoMondoDocument({
                 <p className="text-sm font-light text-gray-300 mb-2">Received By:</p>
                 <div className="border-b border-gray-500 w-48 mx-auto relative h-10">
                   <p 
-                    className="absolute bottom-1 w-full text-center text-[22px] whitespace-nowrap" 
+                    className="absolute bottom-1 w-full text-center text-[19px] whitespace-nowrap" 
                     style={{ fontFamily: "'Segoe Script', 'Bradley Hand', 'Caveat', cursive" }}
                   >
                     Takieddine Semmache

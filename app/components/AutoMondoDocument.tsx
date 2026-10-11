@@ -46,15 +46,14 @@ export default function AutoMondoDocument({
   const currencySuffix = (currency === 'DA' || currency === 'DZD') ? 'Algerian dinars' : 'Dirhams';
   const dynamicAmountInWords = `${numberToWords(amount)} ${currencySuffix}.`;
 
-  // Exact screen pixel sizes to match A4
-  const exactWidth = type === 'INVOICE' ? '794px' : '1123px';
-  const exactHeight = type === 'INVOICE' ? '1123px' : '794px';
+  // FIXED: Physical A4 dimensions guarantee zero zoom issues and exactly 1 page
+  const docWidth = type === 'INVOICE' ? '210mm' : '297mm';
+  const docHeight = type === 'INVOICE' ? '297mm' : '210mm';
 
   return (
-    <div className="flex flex-col items-center w-full relative">
+    <div className="flex flex-col items-center w-full relative overflow-auto no-scrollbar">
       
-      {/* --- BULLETPROOF 1-PAGE PRINT CSS --- */}
-      {/* By making #automondo-doc "fixed", it overlays everything, avoiding React refresh crashes! */}
+      {/* --- STRICT EXACT 1-PAGE PRINT CSS --- */}
       <style dangerouslySetInnerHTML={{__html: `
         @media print {
           ${isClientView ? `
@@ -65,20 +64,29 @@ export default function AutoMondoDocument({
               margin: 0 !important; 
             }
             html, body { 
-              margin: 0 !important; padding: 0 !important; background: white !important; 
+              background: white !important; 
+              margin: 0 !important; 
+              padding: 0 !important; 
+              width: ${docWidth} !important;
+              height: ${docHeight} !important;
+              overflow: hidden !important;
             }
-            #automondo-doc { 
+            body * { visibility: hidden; }
+            
+            #automondo-print-layer, #automondo-print-layer * { 
+              visibility: visible; 
+            }
+            
+            #automondo-print-layer { 
               position: fixed !important; 
               left: 0 !important; 
               top: 0 !important; 
-              z-index: 999999 !important;
-              background: white !important;
-              width: ${type === 'INVOICE' ? '210mm' : '297mm'} !important; 
-              height: ${type === 'INVOICE' ? '296mm' : '209mm'} !important; 
+              width: ${docWidth} !important; 
+              height: ${docHeight} !important; 
               margin: 0 !important; 
               padding: 0 !important; 
               box-shadow: none !important; 
-              overflow: hidden !important; 
+              z-index: 999999 !important;
               page-break-after: avoid !important; 
               page-break-before: avoid !important; 
               page-break-inside: avoid !important;
@@ -90,22 +98,22 @@ export default function AutoMondoDocument({
 
       {/* --- PRINT BUTTON: Hidden for clients --- */}
       {!isClientView && (
-        <div className="print:hidden w-full max-w-[1123px] flex justify-end mb-4">
+        <div className="print:hidden w-full max-w-[1123px] flex justify-end mb-4 pr-4">
           <button 
             onClick={() => window.print()} 
             className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-6 rounded-xl shadow-lg transition flex items-center gap-2"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
-            Print / Download as PDF
+            Print / Download PDF
           </button>
         </div>
       )}
 
       {/* --- MAIN DOCUMENT CONTAINER --- */}
       <div 
-        id="automondo-doc"
-        className="bg-white font-sans select-none relative shadow-2xl shrink-0 mx-auto" 
-        style={{ width: exactWidth, height: exactHeight }}
+        id="automondo-print-layer"
+        className="bg-white font-sans select-none relative shadow-2xl print:shadow-none mx-auto overflow-hidden shrink-0" 
+        style={{ width: docWidth, height: docHeight }}
         onContextMenu={(e) => e.preventDefault()}
       >
         
@@ -121,24 +129,22 @@ export default function AutoMondoDocument({
         )}
 
         {/* ========================================== */}
-        {/* ======== EXACT INVOICE TEMPLATE (1.PNG) == */}
+        {/* ======== EXACT INVOICE TEMPLATE (PORTRAIT) = */}
         {/* ========================================== */}
         {type === 'INVOICE' && (
-          <div className="w-full h-full relative flex flex-col justify-between pb-6">
+          <div className="w-full h-full relative flex flex-col justify-between pb-8">
             
             <div>
               {/* Top Black/Gold Header Bar */}
               <div className="bg-[#161616] h-24 w-full flex items-center justify-end pr-8 relative">
-                <div className="absolute top-0 left-0 h-40 w-[350px] bg-[#1f2229] z-10 flex flex-col items-center pt-6" style={{ clipPath: 'polygon(0 0, 100% 0, 80% 100%, 0 100%)' }}>
-                   {/* FIXED: Removed mix-blend effects so logo is completely visible everywhere */}
-                   <img src="/logo.png" className="w-56 mt-2 mr-8 relative z-50 block" alt="AutoMondo Logo" />
+                <div className="absolute top-0 left-0 h-40 w-[350px] bg-[#1f2229] z-0 flex flex-col items-center pt-6" style={{ clipPath: 'polygon(0 0, 100% 0, 80% 100%, 0 100%)' }}>
+                   <img src="/logo.png" className="w-56 mt-2 mr-8 relative z-10" alt="AutoMondo Logo" />
                 </div>
-                <h1 className="text-[#f7b718] text-2xl font-black tracking-widest uppercase z-0">PROFORMA INVOICE</h1>
+                {/* FIXED: Z-index ensures text is ALWAYS above the logo background */}
+                <h1 className="text-[#f7b718] text-2xl font-black tracking-widest uppercase relative z-20">PROFORMA INVOICE</h1>
               </div>
 
               <div className="px-10 pt-10"> 
-                
-                {/* Company Info Header */}
                 <h2 className="text-4xl font-black tracking-widest text-[#231f20] mb-4">AUTOMONDO FZ-LLC</h2>
                 
                 <div className="flex justify-between text-[11px] font-bold text-[#4a4a4a] mb-6 leading-relaxed">
@@ -156,7 +162,6 @@ export default function AutoMondoDocument({
                   </div>
                 </div>
 
-                {/* Client Info & Invoice Number */}
                 <div className="flex justify-between text-xs font-black text-black mb-6">
                   <div>
                     <p>INVOICE TO: {clientName.toUpperCase()}</p>
@@ -169,7 +174,6 @@ export default function AutoMondoDocument({
                   </div>
                 </div>
 
-                {/* The Exact Table */}
                 <table className="w-full text-xs border-collapse mb-2">
                   <thead>
                     <tr className="bg-black text-white text-center">
@@ -191,28 +195,26 @@ export default function AutoMondoDocument({
                   </tbody>
                 </table>
 
-                {/* Sub Totals */}
                 <div className="flex justify-between text-xs font-black mb-4 px-1">
                   <p>Thank you for your business</p>
                   <p className="font-normal text-gray-600 mr-20">TAX: 0.00%</p>
                   <p>SUB TOTAL: {formattedAmount} {currency}</p>
                 </div>
 
-                {/* Black Total Box */}
                 <div className="flex justify-end mb-6">
                   <div className="bg-black text-white px-4 py-2 font-black text-sm flex items-center gap-2">
                     TOTAL: <span className="text-[#3b82f6] underline underline-offset-4 decoration-2">{formattedAmount} {currency}</span>
                   </div>
                 </div>
 
-                {/* Stamp Placeholder - FIXED: Removed blend modes so it is 100% visible for clients */}
+                {/* FIXED: Inline mixBlendMode guarantees the white box disappears but stamp stays visible */}
                 <div className="flex justify-end mb-2 pr-12 h-28 relative">
-                   <img src="/stamp.png" className="absolute right-10 top-[-10px] w-40 opacity-90 z-50 block" alt="AutoMondo Stamp" />
+                   <img src="/stamp.png" className="absolute right-10 top-[-10px] w-40 opacity-90 z-30" style={{ mixBlendMode: 'multiply' }} alt="AutoMondo Stamp" />
                 </div>
               </div>
             </div>
 
-            {/* Footer Text Sections */}
+            {/* Section Footer */}
             <div className="px-10 mt-auto">
               <div className="grid grid-cols-2 gap-8 text-[10px] mb-4">
                 <div>
@@ -249,10 +251,10 @@ export default function AutoMondoDocument({
         )}
 
         {/* ========================================== */}
-        {/* ======== EXACT RECEIPT TEMPLATE (2.PNG) == */}
+        {/* ======== EXACT RECEIPT TEMPLATE (PAYSAGE) == */}
         {/* ========================================== */}
         {type === 'RECEIPT' && (
-          <div className="bg-[#f5f5f5] w-full h-full flex flex-col pt-12 pb-0 justify-between">
+          <div className="w-full h-full bg-[#f5f5f5] flex flex-col pt-12 pb-0 justify-between">
             
             {/* Top Section */}
             <div className="bg-white px-12 py-8 flex justify-between items-center shadow-sm z-10 shrink-0">
@@ -271,7 +273,6 @@ export default function AutoMondoDocument({
                     <div className="border border-gray-300 py-1.5 px-3 text-gray-600 w-16 text-center">{year}</div>
                   </div>
                 </div>
-                
                 <div className="flex items-center gap-2">
                   <span className="text-lg">Payment Method:</span>
                   <div className="border border-gray-300 py-1.5 px-4 text-gray-600 bg-white shadow-sm">
@@ -282,8 +283,7 @@ export default function AutoMondoDocument({
             </div>
 
             {/* Middle Content Section */}
-            <div className="px-12 py-16 flex-1 flex flex-col justify-center">
-              
+            <div className="px-12 py-16 flex-1 flex flex-col justify-center relative">
               <div className="flex items-end mb-10 w-full">
                 <span className="text-lg font-light text-gray-800 w-48 shrink-0">Payment Received</span>
                 <div className="border-b border-gray-400 w-full text-xl text-gray-600 px-4 pb-1">
@@ -292,36 +292,32 @@ export default function AutoMondoDocument({
               </div>
 
               <div className="flex items-start w-full gap-8">
-                
                 <div className="w-full mt-2">
-                   {/* FIXED: 3 Perfect absolute HTML lines. Text is locked to 40px line height directly over them. */}
+                   {/* FIXED: Flawless absolute lines locking the text exactly in place */}
                    <div className="relative w-[90%] min-h-[120px]">
                       <div className="absolute inset-0 pointer-events-none z-0">
-                         <div className="border-b border-gray-400 w-full absolute left-0" style={{ top: '38px' }}></div>
-                         <div className="border-b border-gray-400 w-full absolute left-0" style={{ top: '78px' }}></div>
-                         <div className="border-b border-gray-400 w-full absolute left-0" style={{ top: '118px' }}></div>
+                         <div className="absolute top-[39px] left-0 w-full border-b border-gray-400"></div>
+                         <div className="absolute top-[79px] left-0 w-full border-b border-gray-400"></div>
+                         <div className="absolute top-[119px] left-0 w-full border-b border-gray-400"></div>
                       </div>
-                      <p className="relative z-10 text-[20px] text-gray-800 capitalize leading-[40px] m-0 pr-4">
+                      <p className="relative z-10 text-[20px] text-gray-800 capitalize leading-[40px] m-0">
                          {amountInWords || dynamicAmountInWords}
                       </p>
                    </div>
                 </div>
                 
-                <div className="shrink-0 relative z-10">
-                  <div className="border-2 border-[#ed1c24] bg-white text-[#555] font-black text-xl py-4 px-8 shadow-sm min-w-[280px] text-center">
+                <div className="shrink-0 relative z-10 pt-4">
+                  <div className="border border-[#ed1c24] bg-white text-[#555] font-black text-xl py-4 px-8 shadow-sm min-w-[280px] text-center">
                     {formattedAmount} {currency}
                   </div>
                 </div>
-
               </div>
             </div>
 
             {/* Dark Footer Section */}
-            <div className="bg-[#2a2a2a] w-full px-12 py-10 flex justify-between items-start text-white relative overflow-hidden mt-auto shrink-0">
-              
+            <div className="bg-[#2a2a2a] w-full px-12 py-8 flex justify-between items-start text-white relative overflow-hidden shrink-0">
               <div className="flex items-center gap-3 z-10 mr-8">
-                 {/* FIXED: Removed blend modes */}
-                 <img src="/logo.png" className="w-32 relative z-50 block" alt="AutoMondo Logo" />
+                 <img src="/logo.png" className="w-32 relative z-20" alt="AutoMondo Logo" />
                  <h2 className="text-xl font-black leading-tight">AutoMondo<br/>FZ-LLC</h2>
               </div>
 
@@ -342,11 +338,10 @@ export default function AutoMondoDocument({
                   >
                     Takieddine Semmache
                   </p>
-                  {/* FIXED: Removed blend modes so stamp is 100% visible in client portal */}
-                  <img src="/stamp.png" className="absolute -top-12 -right-8 w-40 opacity-90 z-50 block" alt="AutoMondo Stamp" />
+                  {/* FIXED: Inline mixBlendMode for client visibility */}
+                  <img src="/stamp.png" className="absolute -top-12 -right-8 w-40 opacity-90 z-30" style={{ mixBlendMode: 'multiply' }} alt="AutoMondo Stamp" />
                 </div>
               </div>
-
             </div>
           </div>
         )}

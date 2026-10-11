@@ -49,25 +49,26 @@ export default function AutoMondoDocument({
   return (
     <div className="flex flex-col items-center w-full relative">
       
-      {/* --- STRICT 1-PAGE PRINT CSS --- */}
+      {/* --- STRICT EXACT 1-PAGE PRINT CSS (A4 Portrait & Landscape in Millimeters) --- */}
       <style dangerouslySetInnerHTML={{__html: `
         @media print {
           ${isClientView ? `
             html, body { display: none !important; }
           ` : `
             @page { size: ${type === 'INVOICE' ? 'A4 portrait' : 'A4 landscape'}; margin: 0; }
-            body { background: white !important; margin: 0; padding: 0; }
-            body > * { display: none !important; }
-            .print-wrapper { 
-              display: flex !important; 
-              position: absolute; left: 0; top: 0; 
+            html, body { 
               width: ${type === 'INVOICE' ? '210mm' : '297mm'} !important; 
-              height: ${type === 'INVOICE' ? '296mm' : '209mm'} !important; 
-              margin: 0; padding: 0; 
-              box-shadow: none !important; 
-              overflow: hidden !important; 
-              page-break-after: avoid; 
-              page-break-inside: avoid;
+              height: ${type === 'INVOICE' ? '297mm' : '210mm'} !important; 
+              margin: 0 !important; padding: 0 !important; overflow: hidden !important; background: white !important; 
+            }
+            body * { visibility: hidden; }
+            #automondo-doc, #automondo-doc * { visibility: visible; }
+            #automondo-doc { 
+              position: absolute !important; left: 0 !important; top: 0 !important; 
+              width: ${type === 'INVOICE' ? '210mm' : '297mm'} !important; 
+              height: ${type === 'INVOICE' ? '297mm' : '210mm'} !important; 
+              margin: 0 !important; padding: 0 !important; box-shadow: none !important; overflow: hidden !important; 
+              page-break-after: avoid; page-break-before: avoid; page-break-inside: avoid;
             }
             * { -webkit-print-color-adjust: exact !important; color-adjust: exact !important; print-color-adjust: exact !important; }
           `}
@@ -87,257 +88,257 @@ export default function AutoMondoDocument({
         </div>
       )}
 
-      {/* Container wraps the document to force the print dimensions */}
-      <div className={`print-wrapper w-full flex justify-center bg-transparent`}>
-        <div 
-          id="automondo-doc"
-          className={`bg-white font-sans select-none relative shadow-2xl overflow-hidden print:shadow-none w-full ${type === 'RECEIPT' ? 'max-w-[1123px] h-[794px] print:w-[297mm] print:h-[209mm]' : 'max-w-[794px] h-[1123px] print:w-[210mm] print:h-[296mm]'}`} 
-          onContextMenu={(e) => e.preventDefault()}
-        >
-          
-          {/* --- CLIENT WATERMARK --- */}
-          {isClientView && (
-            <div 
-              className="absolute inset-0 z-50 pointer-events-none opacity-[0.05]" 
-              style={{ 
-                backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' transform='rotate(-45 150 150)' font-size='28' fill='black' font-family='sans-serif' font-weight='900' letter-spacing='4'%3EAUTOMONDO%3C/text%3E%3C/svg%3E")`, 
-                backgroundRepeat: 'repeat' 
-              }} 
-            />
-          )}
+      {/* --- MAIN DOCUMENT CONTAINER --- */}
+      <div 
+        id="automondo-doc"
+        className={`bg-white font-sans select-none relative shadow-2xl overflow-hidden print:shadow-none mx-auto w-full ${type === 'RECEIPT' ? 'max-w-[1123px] h-[794px] print:w-[297mm] print:h-[210mm]' : 'max-w-[794px] h-[1123px] print:w-[210mm] print:h-[297mm]'}`} 
+        onContextMenu={(e) => e.preventDefault()}
+      >
+        
+        {/* --- CLIENT WATERMARK --- */}
+        {isClientView && (
+          <div 
+            className="absolute inset-0 z-50 pointer-events-none opacity-[0.05]" 
+            style={{ 
+              backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' transform='rotate(-45 150 150)' font-size='28' fill='black' font-family='sans-serif' font-weight='900' letter-spacing='4'%3EAUTOMONDO%3C/text%3E%3C/svg%3E")`, 
+              backgroundRepeat: 'repeat' 
+            }} 
+          />
+        )}
 
-          {/* ========================================== */}
-          {/* ======== EXACT INVOICE TEMPLATE (1.PNG) == */}
-          {/* ========================================== */}
-          {type === 'INVOICE' && (
-            <div className="bg-white h-full relative pb-4 w-full flex flex-col justify-between">
-              
-              <div>
-                {/* Top Black/Gold Header Bar */}
-                <div className="bg-[#161616] h-24 w-full flex items-center justify-end pr-8 relative">
-                  <div className="absolute top-0 left-0 h-40 w-[350px] bg-[#1f2229] z-10 flex flex-col items-center pt-6" style={{ clipPath: 'polygon(0 0, 100% 0, 80% 100%, 0 100%)' }}>
-                     {/* Safe Image Tag */}
-                     <img src="/logo.png" className="w-56 mt-2 mr-8 relative z-20" alt="AutoMondo Logo" />
-                  </div>
-                  <h1 className="text-[#f7b718] text-2xl font-black tracking-widest uppercase z-0">PROFORMA INVOICE</h1>
+        {/* ========================================== */}
+        {/* ======== EXACT INVOICE TEMPLATE (1.PNG) == */}
+        {/* ========================================== */}
+        {type === 'INVOICE' && (
+          <div className="bg-white h-full relative pb-4 w-full flex flex-col justify-between">
+            
+            <div>
+              {/* Top Black/Gold Header Bar */}
+              <div className="bg-[#161616] h-24 w-full flex items-center justify-end pr-8 relative">
+                <div className="absolute top-0 left-0 h-40 w-[350px] bg-[#1f2229] z-10 flex flex-col items-center pt-6" style={{ clipPath: 'polygon(0 0, 100% 0, 80% 100%, 0 100%)' }}>
+                   {/* FIXED: Removed blend modes so logo is always visible */}
+                   <img src="/logo.png" className="w-56 mt-2 mr-8 relative z-20" alt="AutoMondo Logo" />
                 </div>
-
-                <div className="px-10 pt-16"> 
-                  
-                  {/* Company Info Header */}
-                  <h2 className="text-4xl font-black tracking-widest text-[#231f20] mb-4">AUTOMONDO FZ-LLC</h2>
-                  
-                  <div className="flex justify-between text-[11px] font-bold text-[#4a4a4a] mb-8 leading-relaxed">
-                    <div>
-                      <p className="text-right text-lg mb-1 font-black arabic-text">اوتوموندو ش.م.ح</p>
-                      <p>Compass Building,</p>
-                      <p>Al Shohada Road,</p>
-                      <p>AL Hamra Industrial Zone-FZ,</p>
-                      <p>Ras Al Khaimah, United Arab Emirates</p>
-                    </div>
-                    <div className="text-right pt-8">
-                      <p>Email : contact@automondodxb.com</p>
-                      <p>Mob: +971 54 423 2321</p>
-                      <p>Website : www.automondo.net</p>
-                    </div>
-                  </div>
-
-                  {/* Client Info & Invoice Number */}
-                  <div className="flex justify-between text-xs font-black text-black mb-6">
-                    <div>
-                      <p>INVOICE TO: {clientName.toUpperCase()}</p>
-                      <p className="ml-6 mt-0.5">DESTINATION : ALGERIA</p>
-                      <p className="ml-6 mt-0.5">ID NUMBER : {clientIdNumber || 'N/A'}</p>
-                    </div>
-                    <div className="text-right">
-                      <p>INVOICE#: <span className="font-medium">{documentNumber}</span></p>
-                      <p className="mt-0.5">DATE: <span className="font-medium">{day}.{month}.{year}</span></p>
-                    </div>
-                  </div>
-
-                  {/* The Exact Table */}
-                  <table className="w-full text-xs border-collapse mb-2">
-                    <thead>
-                      <tr className="bg-black text-white text-center">
-                        <th className="border-r border-white/30 w-8 py-2"></th>
-                        <th className="border-r border-white/30 py-2">ITEM DESCRIPTION</th>
-                        <th className="border-r border-white/30 py-2 w-32">PRICE</th>
-                        <th className="border-r border-white/30 py-2 w-16">QTY.</th>
-                        <th className="py-2 w-32">TOTAL</th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-[#dcdcdc] text-black font-medium">
-                      <tr>
-                        <td className="border border-black py-4 px-2 text-center text-[10px]">1</td>
-                        <td className="border border-black py-4 px-3">{itemDescription.toUpperCase()}</td>
-                        <td className="border border-black py-4 px-2 text-right">{formattedAmount}{currency}</td>
-                        <td className="border border-black py-4 px-2 text-center">1</td>
-                        <td className="border border-black py-4 px-2 text-right">{formattedAmount}{currency}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-
-                  {/* Sub Totals */}
-                  <div className="flex justify-between text-xs font-black mb-4 px-1">
-                    <p>Thank you for your business</p>
-                    <p className="font-normal text-gray-600 mr-20">TAX: 0.00%</p>
-                    <p>SUB TOTAL: {formattedAmount} {currency}</p>
-                  </div>
-
-                  {/* Black Total Box */}
-                  <div className="flex justify-end mb-6">
-                    <div className="bg-black text-white px-4 py-2 font-black text-sm flex items-center gap-2">
-                      TOTAL: <span className="text-[#3b82f6] underline underline-offset-4 decoration-2">{formattedAmount} {currency}</span>
-                    </div>
-                  </div>
-
-                  {/* Safe Stamp Placeholder */}
-                  <div className="flex justify-end mb-2 pr-12 h-32 relative">
-                     <img src="/stamp.png" className="absolute right-10 top-[-10px] w-40 opacity-90 mix-blend-multiply z-20" alt="AutoMondo Stamp" />
-                  </div>
-                </div>
+                <h1 className="text-[#f7b718] text-2xl font-black tracking-widest uppercase z-0">PROFORMA INVOICE</h1>
               </div>
 
-              {/* Footer Text Sections */}
-              <div className="px-10 mt-auto">
-                <div className="grid grid-cols-2 gap-8 text-[10px] mb-4">
+              {/* Reduced paddings slightly to guarantee it never pushes the footer off the single page */}
+              <div className="px-10 pt-10"> 
+                
+                {/* Company Info Header */}
+                <h2 className="text-4xl font-black tracking-widest text-[#231f20] mb-4">AUTOMONDO FZ-LLC</h2>
+                
+                <div className="flex justify-between text-[11px] font-bold text-[#4a4a4a] mb-6 leading-relaxed">
                   <div>
-                    <p className="font-black text-sm mb-2">Payment Info:</p>
-                    <p className="font-bold mb-0.5">Account Iban:</p>
-                    <p className="text-gray-600 mb-2">AE190860000009937709383</p>
-                    <p className="font-bold mb-0.5">A/C Name:</p>
-                    <p className="text-gray-600 mb-2">AutoMondo FZ-LLC</p>
-                    <p className="font-bold mb-0.5">Bank Details:</p>
-                    <p className="text-gray-600 mb-2">WIOBAEADXXX</p>
-                    <p className="font-bold mb-0.5">Business Address:</p>
-                    <p className="text-gray-600 mb-4">Etihad Airways Centre 5th Floor, Abu Dhabi, UAE</p>
-                    <p className="font-black text-xs mb-1">TERMS AND CONDITIONS :</p>
-                    <p className="font-bold">DELIVERY TIME (EXW-JEBEL ALI) : <span className="font-normal text-gray-600">UNITS IN STOCK, SUBJECTED PRIOR SAELS</span></p>
-                    <p className="font-bold mt-2">VALIDITY : <span className="font-normal text-gray-600">1 WEEK</span></p>
+                    <p className="text-right text-lg mb-1 font-black arabic-text">اوتوموندو ش.م.ح</p>
+                    <p>Compass Building,</p>
+                    <p>Al Shohada Road,</p>
+                    <p>AL Hamra Industrial Zone-FZ,</p>
+                    <p>Ras Al Khaimah, United Arab Emirates</p>
                   </div>
-                  <div className="pt-2">
-                    <p className="font-black text-xs mb-2">PAYMENT TERMS</p>
-                    <p className="font-bold mb-4">100% PAYMENT BEFORE DELIVERY<br/>PAYMENT SHOULD BE COMPLETED WITHIN 10 DAYS FROM THE DATE OF DEPOSIT</p>
-                    <p className="font-black text-xs mb-2">PAYMENT DELAY</p>
-                    <p className="text-gray-600 mb-4">FINANCE CHARGES, VEHICLE MAINTANCE, STORAGE CHARGES WILL BE APPLICABLE IF PAYMENT DELAYED MORE THAN 20 DAYS AS AGREED.</p>
-                    <p className="text-gray-600">ALL RIGHTS TO DECIDE THE FINANCE CHARGES WILL REMAIN WITH AUTOMONDO MANAGEMENT</p>
+                  <div className="text-right pt-8">
+                    <p>Email : contact@automondodxb.com</p>
+                    <p>Mob: +971 54 423 2321</p>
+                    <p>Website : www.automondo.net</p>
                   </div>
                 </div>
 
-                <div className="text-[9px] font-bold space-y-2 pt-2 border-t border-gray-200 pb-4">
-                  <p>RECEIVING CONFIRMATION FROM THE BUYER THAT THERE IS NO ACTIVITY ASSOCIATED WITH MONEY LAUNDERING FROM THE ORIGIN OF THE MONEY RECEIVED OR ANYTHING SURROUNDING THE DEAL</p>
-                  <p>NOT VALID FOR RE-EXPORT TO SANCTIONED COUNTRIES, GCC COUNTRIES & LOCAL REGISTRATION INSIDE UAE</p>
-                  <p><span className="underline text-blue-600">WARRANTY :</span> NO WARRANTY FOR VEHICLE & PARTS FOR RE-EXPORT</p>
+                {/* Client Info & Invoice Number */}
+                <div className="flex justify-between text-xs font-black text-black mb-6">
+                  <div>
+                    <p>INVOICE TO: {clientName.toUpperCase()}</p>
+                    <p className="ml-6 mt-0.5">DESTINATION : ALGERIA</p>
+                    <p className="ml-6 mt-0.5">ID NUMBER : {clientIdNumber || 'N/A'}</p>
+                  </div>
+                  <div className="text-right">
+                    <p>INVOICE#: <span className="font-medium">{documentNumber}</span></p>
+                    <p className="mt-0.5">DATE: <span className="font-medium">{day}.{month}.{year}</span></p>
+                  </div>
+                </div>
+
+                {/* The Exact Table */}
+                <table className="w-full text-xs border-collapse mb-2">
+                  <thead>
+                    <tr className="bg-black text-white text-center">
+                      <th className="border-r border-white/30 w-8 py-2"></th>
+                      <th className="border-r border-white/30 py-2">ITEM DESCRIPTION</th>
+                      <th className="border-r border-white/30 py-2 w-32">PRICE</th>
+                      <th className="border-r border-white/30 py-2 w-16">QTY.</th>
+                      <th className="py-2 w-32">TOTAL</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-[#dcdcdc] text-black font-medium">
+                    <tr>
+                      <td className="border border-black py-4 px-2 text-center text-[10px]">1</td>
+                      <td className="border border-black py-4 px-3">{itemDescription.toUpperCase()}</td>
+                      <td className="border border-black py-4 px-2 text-right">{formattedAmount}{currency}</td>
+                      <td className="border border-black py-4 px-2 text-center">1</td>
+                      <td className="border border-black py-4 px-2 text-right">{formattedAmount}{currency}</td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                {/* Sub Totals */}
+                <div className="flex justify-between text-xs font-black mb-4 px-1">
+                  <p>Thank you for your business</p>
+                  <p className="font-normal text-gray-600 mr-20">TAX: 0.00%</p>
+                  <p>SUB TOTAL: {formattedAmount} {currency}</p>
+                </div>
+
+                {/* Black Total Box */}
+                <div className="flex justify-end mb-6">
+                  <div className="bg-black text-white px-4 py-2 font-black text-sm flex items-center gap-2">
+                    TOTAL: <span className="text-[#3b82f6] underline underline-offset-4 decoration-2">{formattedAmount} {currency}</span>
+                  </div>
+                </div>
+
+                {/* Stamp Placeholder - FIXED: Removed blend modes so it's always visible for clients */}
+                <div className="flex justify-end mb-2 pr-12 h-28 relative">
+                   <img src="/stamp.png" className="absolute right-10 top-[-10px] w-40 opacity-90 z-20" alt="AutoMondo Stamp" />
                 </div>
               </div>
-              
             </div>
-          )}
 
-          {/* ========================================== */}
-          {/* ======== EXACT RECEIPT TEMPLATE (2.PNG) == */}
-          {/* ========================================== */}
-          {type === 'RECEIPT' && (
-            <div className="bg-[#f5f5f5] w-full flex flex-col pt-12 pb-0 h-full justify-between">
-              
-              {/* Top Section */}
-              <div className="bg-white px-12 py-8 flex justify-between items-center shadow-sm z-10">
+            {/* Footer Text Sections */}
+            <div className="px-10 mt-auto">
+              <div className="grid grid-cols-2 gap-8 text-[10px] mb-4">
                 <div>
-                  <h1 className="text-3xl font-black tracking-tight leading-none text-black">RECEIPT</h1>
-                  <h1 className="text-3xl font-black tracking-tight leading-none text-[#ed1c24]">VOUCHER</h1>
-                  <div className="h-0.5 w-full bg-[#ed1c24] mt-2"></div>
+                  <p className="font-black text-sm mb-2">Payment Info:</p>
+                  <p className="font-bold mb-0.5">Account Iban:</p>
+                  <p className="text-gray-600 mb-2">AE190860000009937709383</p>
+                  <p className="font-bold mb-0.5">A/C Name:</p>
+                  <p className="text-gray-600 mb-2">AutoMondo FZ-LLC</p>
+                  <p className="font-bold mb-0.5">Bank Details:</p>
+                  <p className="text-gray-600 mb-2">WIOBAEADXXX</p>
+                  <p className="font-bold mb-0.5">Business Address:</p>
+                  <p className="text-gray-600 mb-4">Etihad Airways Centre 5th Floor, Abu Dhabi, UAE</p>
+                  <p className="font-black text-xs mb-1">TERMS AND CONDITIONS :</p>
+                  <p className="font-bold">DELIVERY TIME (EXW-JEBEL ALI) : <span className="font-normal text-gray-600">UNITS IN STOCK, SUBJECTED PRIOR SAELS</span></p>
+                  <p className="font-bold mt-2">VALIDITY : <span className="font-normal text-gray-600">1 WEEK</span></p>
                 </div>
-                
-                <div className="flex items-center gap-6 text-sm font-bold">
-                  <div className="flex items-center gap-2">
-                    <span>Date:</span>
-                    <div className="flex gap-2">
-                      <div className="border border-gray-300 py-1.5 px-3 text-gray-600 w-12 text-center">{day}</div>
-                      <div className="border border-gray-300 py-1.5 px-3 text-gray-600 w-12 text-center">{month}</div>
-                      <div className="border border-gray-300 py-1.5 px-3 text-gray-600 w-16 text-center">{year}</div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">Payment Method:</span>
-                    <div className="border border-gray-300 py-1.5 px-4 text-gray-600 bg-white shadow-sm">
-                      Normal Credit Transfer (CRED)
-                    </div>
-                  </div>
+                <div className="pt-2">
+                  <p className="font-black text-xs mb-2">PAYMENT TERMS</p>
+                  <p className="font-bold mb-4">100% PAYMENT BEFORE DELIVERY<br/>PAYMENT SHOULD BE COMPLETED WITHIN 10 DAYS FROM THE DATE OF DEPOSIT</p>
+                  <p className="font-black text-xs mb-2">PAYMENT DELAY</p>
+                  <p className="text-gray-600 mb-4">FINANCE CHARGES, VEHICLE MAINTANCE, STORAGE CHARGES WILL BE APPLICABLE IF PAYMENT DELAYED MORE THAN 20 DAYS AS AGREED.</p>
+                  <p className="text-gray-600">ALL RIGHTS TO DECIDE THE FINANCE CHARGES WILL REMAIN WITH AUTOMONDO MANAGEMENT</p>
                 </div>
               </div>
 
-              {/* Middle Content Section */}
-              <div className="px-12 py-16 flex-1 flex flex-col justify-center">
-                
-                <div className="flex items-end mb-10 w-full">
-                  <span className="text-lg font-light text-gray-800 w-48 shrink-0">Payment Received</span>
-                  <div className="border-b border-gray-400 w-full text-xl text-gray-600 px-4 pb-1">
-                    {clientName.toUpperCase()}
+              <div className="text-[9px] font-bold space-y-2 pt-2 border-t border-gray-200 pb-4">
+                <p>RECEIVING CONFIRMATION FROM THE BUYER THAT THERE IS NO ACTIVITY ASSOCIATED WITH MONEY LAUNDERING FROM THE ORIGIN OF THE MONEY RECEIVED OR ANYTHING SURROUNDING THE DEAL</p>
+                <p>NOT VALID FOR RE-EXPORT TO SANCTIONED COUNTRIES, GCC COUNTRIES & LOCAL REGISTRATION INSIDE UAE</p>
+                <p><span className="underline text-blue-600">WARRANTY :</span> NO WARRANTY FOR VEHICLE & PARTS FOR RE-EXPORT</p>
+              </div>
+            </div>
+            
+          </div>
+        )}
+
+        {/* ========================================== */}
+        {/* ======== EXACT RECEIPT TEMPLATE (2.PNG) == */}
+        {/* ========================================== */}
+        {type === 'RECEIPT' && (
+          <div className="bg-[#f5f5f5] w-full flex flex-col pt-12 pb-0 h-full justify-between">
+            
+            {/* Top Section */}
+            <div className="bg-white px-12 py-8 flex justify-between items-center shadow-sm z-10">
+              <div>
+                <h1 className="text-3xl font-black tracking-tight leading-none text-black">RECEIPT</h1>
+                <h1 className="text-3xl font-black tracking-tight leading-none text-[#ed1c24]">VOUCHER</h1>
+                <div className="h-0.5 w-full bg-[#ed1c24] mt-2"></div>
+              </div>
+              
+              <div className="flex items-center gap-6 text-sm font-bold">
+                <div className="flex items-center gap-2">
+                  <span>Date:</span>
+                  <div className="flex gap-2">
+                    <div className="border border-gray-300 py-1.5 px-3 text-gray-600 w-12 text-center">{day}</div>
+                    <div className="border border-gray-300 py-1.5 px-3 text-gray-600 w-12 text-center">{month}</div>
+                    <div className="border border-gray-300 py-1.5 px-3 text-gray-600 w-16 text-center">{year}</div>
                   </div>
                 </div>
-
-                <div className="flex items-start w-full gap-8">
-                  
-                  <div className="w-full">
-                     {/* FIXED: Exact 3 physical lines, perfectly spaced, text aligned automatically */}
-                     <div className="relative w-[90%] h-[120px]">
-                        <div className="absolute inset-0 flex flex-col pt-[35px] pointer-events-none z-0">
-                           <div className="h-[40px] border-t border-gray-400 w-full"></div>
-                           <div className="h-[40px] border-t border-gray-400 w-full"></div>
-                           <div className="border-t border-gray-400 w-full"></div>
-                        </div>
-                        <p className="relative z-10 text-[19px] text-gray-800 capitalize leading-[40px] pt-[2px] pr-2">
-                           {amountInWords || dynamicAmountInWords}
-                        </p>
-                     </div>
+                
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">Payment Method:</span>
+                  <div className="border border-gray-300 py-1.5 px-4 text-gray-600 bg-white shadow-sm">
+                    Normal Credit Transfer (CRED)
                   </div>
-                  
-                  <div className="shrink-0">
-                    <div className="border border-[#ed1c24] bg-white text-[#555] font-black text-lg py-4 px-8 shadow-sm min-w-[280px]">
-                      {formattedAmount} {currency}
-                    </div>
-                  </div>
+                </div>
+              </div>
+            </div>
 
+            {/* Middle Content Section */}
+            <div className="px-12 py-16 flex-1 flex flex-col justify-center">
+              
+              <div className="flex items-end mb-10 w-full">
+                <span className="text-lg font-light text-gray-800 w-48 shrink-0">Payment Received</span>
+                <div className="border-b border-gray-400 w-full text-xl text-gray-600 px-4 pb-1">
+                  {clientName.toUpperCase()}
                 </div>
               </div>
 
-              {/* Dark Footer Section */}
-              <div className="bg-[#2a2a2a] w-full px-12 py-10 flex justify-between items-start text-white relative overflow-hidden mt-auto">
+              <div className="flex items-start w-full gap-8">
                 
-                <div className="flex items-center gap-3 z-10 mr-8">
-                   {/* Safe Image Tag */}
-                   <img src="/logo.png" className="w-32 relative z-20" alt="AutoMondo Logo" />
-                   <h2 className="text-xl font-black leading-tight">AutoMondo<br/>FZ-LLC</h2>
+                <div className="w-full">
+                   {/* FIXED: Solid HTML Borders instead of gradient, ensuring print perfection */}
+                   {/* Text is perfectly aligned using leading-[40px] and pt-[2px] */}
+                   <div className="relative w-[90%] h-[120px]">
+                      <div className="absolute inset-0 flex flex-col pt-[35px] pointer-events-none z-0">
+                         <div className="h-[40px] border-t border-gray-400 w-full"></div>
+                         <div className="h-[40px] border-t border-gray-400 w-full"></div>
+                         <div className="border-t border-gray-400 w-full"></div>
+                      </div>
+                      <p className="relative z-10 text-[19px] text-gray-800 capitalize leading-[40px] pt-[2px] pr-2">
+                         {amountInWords || dynamicAmountInWords}
+                      </p>
+                   </div>
                 </div>
-
-                <div className="text-sm text-gray-300 font-light leading-snug z-10">
-                  <p>Compass Building,</p>
-                  <p>Al Shohada Road,</p>
-                  <p>AL Hamra Industrial Zone-FZ,</p>
-                  <p>Ras Al Khaimah, United Arab Emirates</p>
-                  <p className="font-bold text-white mt-2">www.automondo.net</p>
-                </div>
-
-                <div className="text-center z-10 relative mt-4">
-                  <p className="text-sm font-light text-gray-300 mb-2">Received By:</p>
-                  <div className="border-b border-gray-500 w-48 mx-auto relative h-10">
-                    <p 
-                      className="absolute bottom-1 w-full text-center text-[19px] whitespace-nowrap" 
-                      style={{ fontFamily: "'Segoe Script', 'Bradley Hand', 'Caveat', cursive" }}
-                    >
-                      Takieddine Semmache
-                    </p>
-                    {/* Fixed Stamp Visibility: Removed mix-blend-screen so it always shows up safely */}
-                    <img src="/stamp.png" className="absolute -top-12 -right-8 w-40 opacity-90 z-20" alt="AutoMondo Stamp" />
+                
+                <div className="shrink-0">
+                  <div className="border border-[#ed1c24] bg-white text-[#555] font-black text-lg py-4 px-8 shadow-sm min-w-[280px]">
+                    {formattedAmount} {currency}
                   </div>
                 </div>
 
               </div>
             </div>
-          )}
 
-        </div>
+            {/* Dark Footer Section */}
+            <div className="bg-[#2a2a2a] w-full px-12 py-10 flex justify-between items-start text-white relative overflow-hidden mt-auto">
+              
+              <div className="flex items-center gap-3 z-10 mr-8">
+                 {/* FIXED: Removed blend modes so logo is always visible */}
+                 <img src="/logo.png" className="w-32 relative z-20" alt="AutoMondo Logo" />
+                 <h2 className="text-xl font-black leading-tight">AutoMondo<br/>FZ-LLC</h2>
+              </div>
+
+              <div className="text-sm text-gray-300 font-light leading-snug z-10">
+                <p>Compass Building,</p>
+                <p>Al Shohada Road,</p>
+                <p>AL Hamra Industrial Zone-FZ,</p>
+                <p>Ras Al Khaimah, United Arab Emirates</p>
+                <p className="font-bold text-white mt-2">www.automondo.net</p>
+              </div>
+
+              <div className="text-center z-10 relative mt-4">
+                <p className="text-sm font-light text-gray-300 mb-2">Received By:</p>
+                <div className="border-b border-gray-500 w-48 mx-auto relative h-10">
+                  <p 
+                    className="absolute bottom-1 w-full text-center text-[19px] whitespace-nowrap" 
+                    style={{ fontFamily: "'Segoe Script', 'Bradley Hand', 'Caveat', cursive" }}
+                  >
+                    Takieddine Semmache
+                  </p>
+                  {/* FIXED: Removed blend modes so stamp is always visible */}
+                  <img src="/stamp.png" className="absolute -top-12 -right-8 w-40 opacity-90 z-20" alt="AutoMondo Stamp" />
+                </div>
+              </div>
+
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );

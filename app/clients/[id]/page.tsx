@@ -1,10 +1,10 @@
 "use client";
 import { useEffect, useState, use } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { ArrowLeft, FileText, Calendar, AlertCircle, Eye, Pencil, Trash2, X, Phone, Mail, MapPin, Building2, Plus, CreditCard, FileCheck } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
-// FIXED PATH: Points correctly to the components folder from [id]
 import AutoMondoDocument from '../../components/AutoMondoDocument';
 
 const SecurePdfViewer = dynamic(() => import('../../components/SecurePdfViewer'), {
@@ -12,10 +12,8 @@ const SecurePdfViewer = dynamic(() => import('../../components/SecurePdfViewer')
   loading: () => <div className="flex h-full items-center justify-center font-bold text-gray-400">Loading secure viewer...</div>
 });
 
-// --- TYPES ---
 type ClientDocument = { id: string; title: string; details: string | null; date: string | null; fileUrls: string; createdAt: string; };
 type Contract = { id: string; startDate: string; expirationDate: string; status: string; fileUrls: string; };
-// Added metadata and invoiceNumber to Invoice type
 type Invoice = { id: string; title: string; currency: string; totalAmount: number; paidAmount: number; createdAt: string; invoiceNumber?: string; metadata?: any; };
 type ClientProfile = { id: string; name: string; email: string | null; phone: string | null; address: string | null; notes: string | null; contracts?: Contract[]; documents?: ClientDocument[]; invoices?: Invoice[]; };
 
@@ -31,10 +29,8 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
   const [isDocFormOpen, setIsDocFormOpen] = useState(false);
   const [secureFileUrl, setSecureFileUrl] = useState<string | null>(null);
 
-  // --- ADDED STATE FOR AUTOMONDO DOCUMENTS ---
   const [generatedDoc, setGeneratedDoc] = useState<{type: 'INVOICE' | 'RECEIPT', data: Invoice, clientName: string} | null>(null);
 
-  // --- INVOICE STATES ---
   const [invoiceTitle, setInvoiceTitle] = useState<string>('');
   const [currency, setCurrency] = useState<string>('DZD');
   const [invoiceTotal, setInvoiceTotal] = useState<string>('');
@@ -46,7 +42,6 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
   const remainingNum = Math.max(0, totalNum - receivedNum);
   const isFullyPaid = totalNum > 0 && remainingNum <= 0;
 
-  // --- CONTRACT & DOC STATES ---
   const [editingContractId, setEditingContractId] = useState<string | null>(null);
   const [contractForm, setContractForm] = useState({ startDate: '', expirationDate: '', status: 'Active' });
   const [contractFiles, setContractFiles] = useState<FileList | null>(null);
@@ -273,23 +268,6 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
                       <span className="text-gray-500 font-medium">Paid: <span className="text-green-600 font-bold">{inv.paidAmount.toLocaleString()}</span></span>
                       <span className="text-gray-500 font-medium">Owes: <span className="text-red-500 font-bold">{Math.max(0, inv.totalAmount - inv.paidAmount).toLocaleString()}</span></span>
                     </div>
-
-                    {/* --- ADDED AUTOMONDO DOCUMENTS BUTTONS HERE --- */}
-                    <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-gray-100">
-                      <button 
-                        onClick={() => setGeneratedDoc({ type: 'INVOICE', data: inv, clientName: client.name })} 
-                        className="flex items-center justify-center gap-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 py-2 rounded-lg text-xs font-bold transition border border-blue-200"
-                      >
-                        <FileText size={14}/> Invoice
-                      </button>
-                      <button 
-                        onClick={() => setGeneratedDoc({ type: 'RECEIPT', data: inv, clientName: client.name })} 
-                        className="flex items-center justify-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 py-2 rounded-lg text-xs font-bold transition border border-emerald-200"
-                      >
-                        <FileCheck size={14}/> Receipt
-                      </button>
-                    </div>
-
                   </div>
                 );
               })}
@@ -365,13 +343,33 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
                       {new Date(contract.startDate).toLocaleDateString()} ➔ {new Date(contract.expirationDate).toLocaleDateString()}
                     </div>
                   </div>
+                  
                   <div className="flex-1 max-w-md flex flex-wrap gap-2 w-full md:w-auto">
                     {files.map((url, i) => (
                       <button key={i} onClick={() => setSecureFileUrl(url)} className="flex flex-1 sm:flex-none justify-center sm:justify-start items-center gap-1.5 bg-gray-50 border border-gray-200 text-gray-700 px-3 py-2 sm:py-1.5 rounded-lg text-xs sm:text-sm hover:bg-purple-50 hover:text-purple-700 hover:border-purple-200 transition">
                         <Eye size={14}/> View File {files.length > 1 ? i+1 : ''}
                       </button>
                     ))}
+                    
+                    {/* --- ADDED AUTOMONDO DOCUMENTS BUTTONS HERE IN THE CONTRACTS TAB --- */}
+                    {safeInvoices.map((inv) => (
+                      <React.Fragment key={inv.id}>
+                        <button 
+                          onClick={() => setGeneratedDoc({ type: 'INVOICE', data: inv, clientName: client.name })} 
+                          className="flex flex-1 sm:flex-none justify-center sm:justify-start items-center gap-1.5 bg-blue-50 border border-blue-200 text-blue-700 px-3 py-2 sm:py-1.5 rounded-lg text-xs sm:text-sm hover:bg-blue-100 transition"
+                        >
+                          <FileText size={14}/> Invoice
+                        </button>
+                        <button 
+                          onClick={() => setGeneratedDoc({ type: 'RECEIPT', data: inv, clientName: client.name })} 
+                          className="flex flex-1 sm:flex-none justify-center sm:justify-start items-center gap-1.5 bg-emerald-50 border border-emerald-200 text-emerald-700 px-3 py-2 sm:py-1.5 rounded-lg text-xs sm:text-sm hover:bg-emerald-100 transition"
+                        >
+                          <FileCheck size={14}/> Receipt
+                        </button>
+                      </React.Fragment>
+                    ))}
                   </div>
+
                   <div className="flex items-center justify-end gap-2 border-t border-gray-100 md:border-t-0 pt-3 md:pt-0 mt-2 md:mt-0 w-full md:w-auto">
                     <button onClick={() => handleEditContract(contract)} className="p-2 sm:p-2.5 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition"><Pencil size={16} className="sm:w-[18px] sm:h-[18px]"/></button>
                     <button onClick={() => handleDeleteContract(contract.id)} className="p-2 sm:p-2.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"><Trash2 size={16} className="sm:w-[18px] sm:h-[18px]"/></button>
@@ -451,7 +449,6 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
         </div>
       )}
 
-      {/* --- NORMAL FILE VIEWER MODAL --- */}
       {secureFileUrl && (
         <div className="fixed inset-0 z-50 bg-slate-900/95 flex flex-col items-center justify-center p-2 sm:p-4 backdrop-blur-sm h-[100dvh]">
           <button onClick={() => setSecureFileUrl(null)} className="absolute top-4 right-4 sm:top-6 sm:right-6 bg-red-600 hover:bg-red-700 text-white p-2.5 sm:p-3 rounded-full flex items-center gap-2 font-bold shadow-lg transition-transform hover:scale-105 z-50 text-sm sm:text-base">
@@ -471,7 +468,7 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
         </div>
       )}
 
-      {/* --- ADDED: AUTOMONDO DOCUMENT VIEWER MODAL --- */}
+      {/* --- ADDED AUTOMONDO DOCUMENT VIEWER MODAL --- */}
       {generatedDoc && (
         <div className="fixed inset-0 z-[100] bg-slate-900/95 flex flex-col items-center justify-center p-2 sm:p-6 backdrop-blur-sm">
           <button onClick={() => setGeneratedDoc(null)} className="absolute top-4 right-4 sm:top-6 sm:right-6 bg-red-600 hover:bg-red-700 text-white p-2.5 sm:p-3 rounded-full flex items-center gap-2 font-bold shadow-lg transition-transform hover:scale-105 z-[110] text-sm sm:text-base">

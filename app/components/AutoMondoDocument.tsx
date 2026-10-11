@@ -11,7 +11,6 @@ type DocumentProps = {
   documentNumber: string;
   date: string;
   amountInWords?: string;
-  isClientView?: boolean; // ADDED: Tells the component if the client is looking at it
 };
 
 // --- Helper function to automatically convert numbers to words ---
@@ -35,7 +34,7 @@ const numberToWords = (num: number): string => {
 };
 
 export default function AutoMondoDocument({
-  type, clientName, clientIdNumber, amount, currency, itemDescription, documentNumber, date, amountInWords, isClientView = false
+  type, clientName, clientIdNumber, amount, currency, itemDescription, documentNumber, date, amountInWords
 }: DocumentProps) {
   
   const parsedDate = new Date(date);
@@ -48,58 +47,50 @@ export default function AutoMondoDocument({
   const dynamicAmountInWords = `${numberToWords(amount)} ${currencySuffix}.`;
 
   return (
-    <div className="flex flex-col items-center w-full relative">
+    <div className="flex flex-col items-center w-full">
       
-      {/* --- SMART PRINT CSS: Completely hides page if client tries to force print --- */}
+      {/* --- SMART PRINT CSS: Locks strictly to 1 page, preventing the blank 2nd page --- */}
       <style dangerouslySetInnerHTML={{__html: `
         @media print {
-          ${isClientView ? `
-            html, body { display: none !important; }
-          ` : `
-            @page { size: ${type === 'INVOICE' ? 'A4 portrait' : 'A4 landscape'}; margin: 0; }
-            html, body { width: 100%; height: 100vh; margin: 0; padding: 0; overflow: hidden !important; background: white; }
-            body * { visibility: hidden; }
-            #automondo-doc, #automondo-doc * { visibility: visible; }
-            #automondo-doc { 
-              position: fixed; left: 0; top: 0; width: 100vw; height: 100vh; margin: 0; padding: 0;
-              box-shadow: none !important; overflow: hidden !important;
-              page-break-after: avoid; page-break-before: avoid;
-            }
-            * { -webkit-print-color-adjust: exact !important; color-adjust: exact !important; print-color-adjust: exact !important; }
-          `}
+          @page { size: ${type === 'INVOICE' ? 'A4 portrait' : 'A4 landscape'}; margin: 0; }
+          html, body { width: 100%; height: 100vh; margin: 0; padding: 0; overflow: hidden !important; background: white; }
+          body * { visibility: hidden; }
+          #automondo-doc, #automondo-doc * { visibility: visible; }
+          #automondo-doc { 
+            position: fixed; 
+            left: 0; 
+            top: 0; 
+            width: 100vw; 
+            height: 100vh; 
+            margin: 0; 
+            padding: 0;
+            box-shadow: none !important; 
+            overflow: hidden !important;
+            page-break-after: avoid;
+            page-break-before: avoid;
+          }
+          * { -webkit-print-color-adjust: exact !important; color-adjust: exact !important; print-color-adjust: exact !important; }
         }
       `}} />
 
-      {/* --- PRINT BUTTON: Hidden if isClientView is true --- */}
-      {!isClientView && (
-        <div className="print:hidden w-full max-w-[1123px] flex justify-end mb-4">
-          <button 
-            onClick={() => window.print()} 
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-6 rounded-xl shadow-lg transition flex items-center gap-2"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
-            Print / Download as PDF
-          </button>
-        </div>
-      )}
+      {/* --- PRINT / DOWNLOAD PDF BUTTON --- */}
+      <div className="print:hidden w-full max-w-[1123px] flex justify-end mb-4">
+        <button 
+          onClick={() => window.print()} 
+          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-6 rounded-xl shadow-lg transition flex items-center gap-2"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+          Print / Download as PDF
+        </button>
+      </div>
 
       <div 
         id="automondo-doc"
+        /* Using print:h-[100vh] prevents any elements from spilling onto page 2 */
         className={`bg-white font-sans select-none relative shadow-2xl overflow-hidden print:shadow-none mx-auto w-full ${type === 'RECEIPT' ? 'max-w-[1123px] min-h-[794px] print:min-h-0 print:h-[100vh]' : 'max-w-[794px] min-h-[1123px] print:min-h-0 print:h-[100vh]'}`} 
         onContextMenu={(e) => e.preventDefault()}
       >
         
-        {/* --- WATERMARK: Only shown if isClientView is true --- */}
-        {isClientView && (
-          <div 
-            className="absolute inset-0 z-50 pointer-events-none opacity-[0.06]" 
-            style={{ 
-              backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' transform='rotate(-45 150 150)' font-size='28' fill='black' font-family='sans-serif' font-weight='900' letter-spacing='4'%3EAUTOMONDO%3C/text%3E%3C/svg%3E")`, 
-              backgroundRepeat: 'repeat' 
-            }} 
-          />
-        )}
-
         {/* ========================================== */}
         {/* ======== EXACT INVOICE TEMPLATE (1.PNG) == */}
         {/* ========================================== */}
@@ -191,7 +182,7 @@ export default function AutoMondoDocument({
               </div>
             </div>
 
-            {/* Footer Text Sections */}
+            {/* Footer Text Sections - Grouped cleanly at the bottom */}
             <div className="px-10 mt-auto">
               <div className="grid grid-cols-2 gap-8 text-[10px] mb-4">
                 <div>
@@ -217,6 +208,7 @@ export default function AutoMondoDocument({
                 </div>
               </div>
 
+              {/* Bottom Warning - FIXED: Removed grey footer block (border-b-8) */}
               <div className="text-[9px] font-bold space-y-2 pt-2 border-t border-gray-200 pb-4">
                 <p>RECEIVING CONFIRMATION FROM THE BUYER THAT THERE IS NO ACTIVITY ASSOCIATED WITH MONEY LAUNDERING FROM THE ORIGIN OF THE MONEY RECEIVED OR ANYTHING SURROUNDING THE DEAL</p>
                 <p>NOT VALID FOR RE-EXPORT TO SANCTIONED COUNTRIES, GCC COUNTRIES & LOCAL REGISTRATION INSIDE UAE</p>

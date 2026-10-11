@@ -46,15 +46,13 @@ export default function AutoMondoDocument({
   const currencySuffix = (currency === 'DA' || currency === 'DZD') ? 'Algerian dinars' : 'Dirhams';
   const dynamicAmountInWords = `${numberToWords(amount)} ${currencySuffix}.`;
 
-  // FIXED: 794px and 1123px are the exact pixel dimensions of A4 at 96 DPI. 
-  // Using these pixels instead of "mm" stops the browser from zooming or shrinking.
-  const docWidth = type === 'INVOICE' ? '794px' : '1123px';
-  const docHeight = type === 'INVOICE' ? '1123px' : '794px';
+  const docWidth = type === 'INVOICE' ? '210mm' : '297mm';
+  const docHeight = type === 'INVOICE' ? '297mm' : '210mm';
 
   return (
     <div className="flex flex-col items-center w-full relative overflow-auto no-scrollbar">
       
-      {/* --- STRICT EXACT 1-PAGE PRINT CSS --- */}
+      {/* --- FIXED: Removed buggy html/body overflow to stop the blank page bug --- */}
       <style dangerouslySetInnerHTML={{__html: `
         @media print {
           ${isClientView ? `
@@ -68,9 +66,6 @@ export default function AutoMondoDocument({
               background: white !important; 
               margin: 0 !important; 
               padding: 0 !important; 
-              width: ${docWidth} !important;
-              height: ${docHeight} !important;
-              overflow: hidden !important;
             }
             body * { visibility: hidden; }
             
@@ -78,6 +73,7 @@ export default function AutoMondoDocument({
               visibility: visible; 
             }
             
+            /* Using absolute + top/left 0 guarantees it overlays the blank body perfectly without crashing */
             #automondo-print-layer { 
               position: absolute !important; 
               left: 0 !important; 
@@ -87,10 +83,6 @@ export default function AutoMondoDocument({
               margin: 0 !important; 
               padding: 0 !important; 
               box-shadow: none !important; 
-              z-index: 999999 !important;
-              page-break-after: avoid !important; 
-              page-break-before: avoid !important; 
-              page-break-inside: avoid !important;
             }
             * { -webkit-print-color-adjust: exact !important; color-adjust: exact !important; print-color-adjust: exact !important; }
           `}
@@ -144,8 +136,7 @@ export default function AutoMondoDocument({
                 <h1 className="text-[#f7b718] text-2xl font-black tracking-widest uppercase relative z-20">PROFORMA INVOICE</h1>
               </div>
 
-              {/* FIXED: Changed pt-10 to pt-24. This pushes the text below the logo container, leaving a clean gap. */}
-              <div className="px-10 pt-24"> 
+              <div className="px-10 pt-10"> 
                 <h2 className="text-4xl font-black tracking-widest text-[#231f20] mb-4">AUTOMONDO FZ-LLC</h2>
                 
                 <div className="flex justify-between text-[11px] font-bold text-[#4a4a4a] mb-6 leading-relaxed">
@@ -209,7 +200,7 @@ export default function AutoMondoDocument({
                 </div>
 
                 <div className="flex justify-end mb-2 pr-12 h-28 relative">
-                   <img src="/stamp.png" className="absolute right-10 top-[-10px] w-40 opacity-90 z-30" style={{ mixBlendMode: 'multiply' }} alt="AutoMondo Stamp" />
+                   <img src="/stamp1.png" className="absolute right-10 top-[-10px] w-40 opacity-90 z-30" style={{ mixBlendMode: 'multiply' }} alt="AutoMondo Stamp" />
                 </div>
               </div>
             </div>

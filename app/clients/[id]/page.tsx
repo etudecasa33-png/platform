@@ -23,12 +23,10 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
   const [client, setClient] = useState<ClientProfile | null>(null);
   
   const [pageStatus, setPageStatus] = useState<'loading' | 'success' | 'error'>('loading');
-
   const [activeTab, setActiveTab] = useState<'contracts' | 'documents'>('contracts');
   const [isContractFormOpen, setIsContractFormOpen] = useState(false);
   const [isDocFormOpen, setIsDocFormOpen] = useState(false);
   const [secureFileUrl, setSecureFileUrl] = useState<string | null>(null);
-
   const [generatedDoc, setGeneratedDoc] = useState<{type: 'INVOICE' | 'RECEIPT', data: Invoice, clientName: string} | null>(null);
 
   const [invoiceTitle, setInvoiceTitle] = useState<string>('');
@@ -61,15 +59,10 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
     try {
       const res = await fetch(`/api/clients/${clientId}`, { cache: 'no-store' });
       const data = await res.json();
-      if (data.error || !data.name) {
-        setPageStatus('error');
-        return;
-      }
+      if (data.error || !data.name) return setPageStatus('error');
       setClient(data);
       setPageStatus('success');
-    } catch (error) {
-      setPageStatus('error');
-    }
+    } catch (error) { setPageStatus('error'); }
   };
 
   useEffect(() => { fetchClientData(); }, [clientId]);
@@ -162,7 +155,7 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
       <div className="flex flex-col items-center justify-center min-h-screen text-gray-500 p-6">
         <AlertCircle size={48} className="text-red-500 mb-4" />
         <h2 className="text-xl font-bold text-gray-900 mb-2">Profile Not Found</h2>
-        <p className="text-center mb-6 max-w-md">We couldn't load this client's profile. It may have been deleted, or the database connection failed.</p>
+        <p className="text-center mb-6 max-w-md">We couldn't load this client's profile. It may have been deleted.</p>
         <Link href="/clients" className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-bold transition">Return to Directory</Link>
       </div>
     );
@@ -263,7 +256,6 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
                     </div>
                     <h5 className="font-bold text-gray-800 mb-1 text-sm sm:text-base truncate" title={inv.title}>{inv.title}</h5>
                     <p className="text-xl sm:text-2xl font-extrabold text-gray-900 mb-1">{inv.totalAmount.toLocaleString()} <span className="text-xs sm:text-sm text-gray-500">{inv.currency}</span></p>
-                    
                     <div className="flex justify-between text-xs sm:text-sm mt-3 border-t border-gray-100 pt-3">
                       <span className="text-gray-500 font-medium">Paid: <span className="text-green-600 font-bold">{inv.paidAmount.toLocaleString()}</span></span>
                       <span className="text-gray-500 font-medium">Owes: <span className="text-red-500 font-bold">{Math.max(0, inv.totalAmount - inv.paidAmount).toLocaleString()}</span></span>
@@ -374,7 +366,6 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
                       {new Date(contract.startDate).toLocaleDateString()} ➔ {new Date(contract.expirationDate).toLocaleDateString()}
                     </div>
                   </div>
-                  
                   <div className="flex-1 max-w-md flex flex-wrap gap-2 w-full md:w-auto">
                     {files.map((url, i) => (
                       <button key={i} onClick={() => setSecureFileUrl(url)} className="flex flex-1 sm:flex-none justify-center sm:justify-start items-center gap-1.5 bg-gray-50 border border-gray-200 text-gray-700 px-3 py-2 sm:py-1.5 rounded-lg text-xs sm:text-sm hover:bg-purple-50 hover:text-purple-700 hover:border-purple-200 transition">
@@ -382,7 +373,6 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
                       </button>
                     ))}
                   </div>
-
                   <div className="flex items-center justify-end gap-2 border-t border-gray-100 md:border-t-0 pt-3 md:pt-0 mt-2 md:mt-0 w-full md:w-auto">
                     <button onClick={() => handleEditContract(contract)} className="p-2 sm:p-2.5 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition"><Pencil size={16} className="sm:w-[18px] sm:h-[18px]"/></button>
                     <button onClick={() => handleDeleteContract(contract.id)} className="p-2 sm:p-2.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"><Trash2 size={16} className="sm:w-[18px] sm:h-[18px]"/></button>

@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, Plus, Building2, ChevronRight, Mail, Phone, Pencil, Trash2, X, Key, FileText, FileCheck } from 'lucide-react';
 
+import AutoMondoDocument from '../components/AutoMondoDocument';
+
 type Invoice = { id: string; title: string; currency: string; totalAmount: number; paidAmount: number; createdAt: string; invoiceNumber?: string; metadata?: any; };
 type Client = {
   id: string;
@@ -22,6 +24,8 @@ export default function ClientsDirectoryPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingClientId, setEditingClientId] = useState<string | null>(null);
+  
+  const [generatedDoc, setGeneratedDoc] = useState<{type: 'INVOICE' | 'RECEIPT', data: Invoice, clientName: string} | null>(null);
 
   const defaultForm = { name: '', email: '', phone: '', address: '', password: '', notes: '', idNumber: '', amount: '', currency: 'DZD', itemDescription: '' };
   const [formState, setFormState] = useState(defaultForm);
@@ -136,8 +140,29 @@ export default function ClientsDirectoryPage() {
                 {client.password && <p className="text-sm text-gray-600 flex items-center gap-2 truncate"><Key size={14} className="text-gray-400 shrink-0" /> {client.password}</p>}
               </div>
 
+              {client.invoices && client.invoices.length > 0 && (
+                <div className="mb-4 flex flex-col gap-2">
+                  {client.invoices.map((inv) => (
+                    <div key={inv.id} className="flex gap-2">
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); setGeneratedDoc({ type: 'INVOICE', data: inv, clientName: client.name }); }} 
+                        className="flex-1 flex items-center justify-center gap-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 py-1.5 rounded-lg text-xs font-bold transition border border-blue-200"
+                      >
+                        <FileText size={14}/> Invoice
+                      </button>
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); setGeneratedDoc({ type: 'RECEIPT', data: inv, clientName: client.name }); }} 
+                        className="flex-1 flex items-center justify-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 py-1.5 rounded-lg text-xs font-bold transition border border-emerald-200"
+                      >
+                        <FileCheck size={14}/> Receipt
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
               <div className="mt-auto bg-gray-50 text-gray-600 text-sm font-bold py-2.5 rounded-xl flex items-center justify-center gap-1 group-hover:bg-blue-50 group-hover:text-blue-700 transition">
-                View Full Profile & Contracts <ChevronRight size={16} />
+                View Full Profile <ChevronRight size={16} />
               </div>
             </div>
           ))}
@@ -191,6 +216,32 @@ export default function ClientsDirectoryPage() {
           </div>
         </div>
       )}
+
+      {/* --- SCROLLING FIXED DOCUMENT VIEWER MODAL --- */}
+      {generatedDoc && (
+        <div className="fixed inset-0 z-[100] bg-slate-900/95 flex flex-col items-center justify-center p-2 sm:p-6 backdrop-blur-sm">
+          <button onClick={(e) => { e.stopPropagation(); setGeneratedDoc(null); }} className="absolute top-4 right-4 bg-red-600 hover:bg-red-700 text-white p-3 rounded-full flex items-center gap-2 font-bold shadow-lg transition-transform hover:scale-105 z-[110]">
+            <X size={20} /> Close Document
+          </button>
+
+          {/* This wrapper allows pure scrolling down the document */}
+          <div className="w-full max-w-5xl h-[90vh] bg-gray-200 rounded-xl overflow-y-auto shadow-2xl" dir="ltr">
+            <div className="min-h-max w-full flex justify-center items-start p-4 sm:p-8">
+              <AutoMondoDocument 
+                type={generatedDoc.type}
+                clientName={generatedDoc.clientName}
+                clientIdNumber={generatedDoc.data.metadata?.idNumber}
+                amount={generatedDoc.data.totalAmount}
+                currency={generatedDoc.data.currency}
+                itemDescription={generatedDoc.data.metadata?.itemDescription || generatedDoc.data.title}
+                documentNumber={generatedDoc.data.invoiceNumber || 'PENDING'}
+                date={generatedDoc.data.createdAt}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+      
     </div>
   );
 }

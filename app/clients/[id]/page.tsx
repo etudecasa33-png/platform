@@ -327,6 +327,37 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
             </div>
           )}
 
+          {/* DEDICATED AUTOMONDO DOCUMENTS SECTION INSIDE CONTRACTS TAB */}
+          {safeInvoices.length > 0 && (
+            <div className="mb-6">
+              <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">AutoMondo Documents</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {safeInvoices.map((inv) => (
+                  <div key={inv.id} className="bg-white border border-blue-100 p-4 rounded-xl flex flex-col justify-between shadow-sm hover:shadow-md transition">
+                    <div className="mb-4">
+                      <p className="font-bold text-gray-800 text-sm truncate" title={inv.title}>{inv.title}</p>
+                      <p className="text-xs text-gray-500 font-medium">{inv.totalAmount.toLocaleString()} {inv.currency}</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button 
+                        onClick={() => setGeneratedDoc({ type: 'INVOICE', data: inv, clientName: client.name })} 
+                        className="flex justify-center items-center gap-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 px-2 py-2 rounded-lg text-xs font-bold transition border border-blue-200"
+                      >
+                        <FileText size={14}/> Invoice
+                      </button>
+                      <button 
+                        onClick={() => setGeneratedDoc({ type: 'RECEIPT', data: inv, clientName: client.name })} 
+                        className="flex justify-center items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-2 py-2 rounded-lg text-xs font-bold transition border border-emerald-200"
+                      >
+                        <FileCheck size={14}/> Receipt
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="space-y-3">
             {safeContracts.map((contract) => {
               const isExpired = new Date(contract.expirationDate) < new Date();
@@ -349,24 +380,6 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
                       <button key={i} onClick={() => setSecureFileUrl(url)} className="flex flex-1 sm:flex-none justify-center sm:justify-start items-center gap-1.5 bg-gray-50 border border-gray-200 text-gray-700 px-3 py-2 sm:py-1.5 rounded-lg text-xs sm:text-sm hover:bg-purple-50 hover:text-purple-700 hover:border-purple-200 transition">
                         <Eye size={14}/> View File {files.length > 1 ? i+1 : ''}
                       </button>
-                    ))}
-                    
-                    {/* --- ADDED AUTOMONDO DOCUMENTS BUTTONS HERE IN THE CONTRACTS TAB --- */}
-                    {safeInvoices.map((inv) => (
-                      <React.Fragment key={inv.id}>
-                        <button 
-                          onClick={() => setGeneratedDoc({ type: 'INVOICE', data: inv, clientName: client.name })} 
-                          className="flex flex-1 sm:flex-none justify-center sm:justify-start items-center gap-1.5 bg-blue-50 border border-blue-200 text-blue-700 px-3 py-2 sm:py-1.5 rounded-lg text-xs sm:text-sm hover:bg-blue-100 transition"
-                        >
-                          <FileText size={14}/> Invoice
-                        </button>
-                        <button 
-                          onClick={() => setGeneratedDoc({ type: 'RECEIPT', data: inv, clientName: client.name })} 
-                          className="flex flex-1 sm:flex-none justify-center sm:justify-start items-center gap-1.5 bg-emerald-50 border border-emerald-200 text-emerald-700 px-3 py-2 sm:py-1.5 rounded-lg text-xs sm:text-sm hover:bg-emerald-100 transition"
-                        >
-                          <FileCheck size={14}/> Receipt
-                        </button>
-                      </React.Fragment>
                     ))}
                   </div>
 

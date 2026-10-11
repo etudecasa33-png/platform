@@ -1,8 +1,11 @@
 "use client";
 import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, FileText, Calendar, AlertCircle, Eye, Pencil, Trash2, X, Phone, Mail, MapPin, Building2, Plus, CreditCard } from 'lucide-react';
+import { ArrowLeft, FileText, Calendar, AlertCircle, Eye, Pencil, Trash2, X, Phone, Mail, MapPin, Building2, Plus, CreditCard, FileCheck } from 'lucide-react';
 import dynamic from 'next/dynamic';
+
+// FIXED PATH: Points correctly to the components folder from [id]
+import AutoMondoDocument from '../../components/AutoMondoDocument';
 
 const SecurePdfViewer = dynamic(() => import('../../components/SecurePdfViewer'), {
   ssr: false,
@@ -12,7 +15,8 @@ const SecurePdfViewer = dynamic(() => import('../../components/SecurePdfViewer')
 // --- TYPES ---
 type ClientDocument = { id: string; title: string; details: string | null; date: string | null; fileUrls: string; createdAt: string; };
 type Contract = { id: string; startDate: string; expirationDate: string; status: string; fileUrls: string; };
-type Invoice = { id: string; title: string; currency: string; totalAmount: number; paidAmount: number; createdAt: string; };
+// Added metadata and invoiceNumber to Invoice type
+type Invoice = { id: string; title: string; currency: string; totalAmount: number; paidAmount: number; createdAt: string; invoiceNumber?: string; metadata?: any; };
 type ClientProfile = { id: string; name: string; email: string | null; phone: string | null; address: string | null; notes: string | null; contracts?: Contract[]; documents?: ClientDocument[]; invoices?: Invoice[]; };
 
 export default function ClientProfilePage({ params }: { params: Promise<{ id: string }> }) {
@@ -20,13 +24,15 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
   const clientId = unwrappedParams.id;
   const [client, setClient] = useState<ClientProfile | null>(null);
   
-  // Added strict status tracking so it doesn't get stuck loading forever
   const [pageStatus, setPageStatus] = useState<'loading' | 'success' | 'error'>('loading');
 
   const [activeTab, setActiveTab] = useState<'contracts' | 'documents'>('contracts');
   const [isContractFormOpen, setIsContractFormOpen] = useState(false);
   const [isDocFormOpen, setIsDocFormOpen] = useState(false);
   const [secureFileUrl, setSecureFileUrl] = useState<string | null>(null);
+
+  // --- ADDED STATE FOR AUTOMONDO DOCUMENTS ---
+  const [generatedDoc, setGeneratedDoc] = useState<{type: 'INVOICE' | 'RECEIPT', data: Invoice, clientName: string} | null>(null);
 
   // --- INVOICE STATES ---
   const [invoiceTitle, setInvoiceTitle] = useState<string>('');
@@ -55,19 +61,15 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
   const removeRetainedContractFile = (url: string) => setRetainedContractFiles(prev => prev.filter(u => u !== url));
   const getFileName = (url: string) => url.split('-').slice(1).join('-') || url.split('/').pop() || "Document";
 
-  // --- BULLETPROOF FETCH ---
   const fetchClientData = async () => {
     setPageStatus('loading');
     try {
       const res = await fetch(`/api/clients/${clientId}`, { cache: 'no-store' });
       const data = await res.json();
-      
-      // If the API returns an error message instead of a client, catch it!
       if (data.error || !data.name) {
         setPageStatus('error');
         return;
       }
-      
       setClient(data);
       setPageStatus('success');
     } catch (error) {
@@ -78,14 +80,11 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
   useEffect(() => { fetchClientData(); }, [clientId]);
 
   useEffect(() => {
-    if (secureFileUrl) document.body.style.overflow = 'hidden';
+    if (secureFileUrl || generatedDoc) document.body.style.overflow = 'hidden';
     else document.body.style.overflow = 'unset';
     return () => { document.body.style.overflow = 'unset'; };
-  }, [secureFileUrl]);
+  }, [secureFileUrl, generatedDoc]);
 
-  // ==========================================
-  // API HANDLERS (Invoices, Contracts, Docs)
-  // ==========================================
   const handleSaveInvoice = async () => {
     if (totalNum <= 0) return alert("Please enter a total amount!");
     const payload = { clientId, title: invoiceTitle || "Standard Invoice", currency, totalAmount: totalNum, paidAmount: receivedNum };
@@ -154,7 +153,6 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
     if (window.confirm("Delete this document box and ALL its files forever?")) { await fetch(`/api/documents/${id}`, { method: 'DELETE' }); fetchClientData(); }
   };
 
-  // --- UI STATUS RENDERERS ---
   if (pageStatus === 'loading') {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen text-gray-500">
@@ -175,8 +173,6 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
     );
   }
 
-  // --- CRASH PREVENTION ARRAYS ---
-  // If the database sends null for these, we force them to be empty arrays so React never crashes!
   const safeContracts = client.contracts || [];
   const safeInvoices = client.invoices || [];
   const safeDocuments = client.documents || [];
@@ -252,13 +248,11 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
         </div>
 
         <div>
-          {/* SAFE LENGTH */}
           <h4 className="text-xs sm:text-sm font-bold text-gray-400 uppercase tracking-wider mb-3 sm:mb-4">Payment History ({safeInvoices.length})</h4>
           {safeInvoices.length === 0 ? (
             <p className="text-sm text-gray-500 italic">No payments recorded yet.</p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-              {/* SAFE MAP */}
               {safeInvoices.map((inv) => {
                 const isPaidOff = (inv.totalAmount - inv.paidAmount) <= 0;
                 return (
@@ -274,10 +268,28 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
                     </div>
                     <h5 className="font-bold text-gray-800 mb-1 text-sm sm:text-base truncate" title={inv.title}>{inv.title}</h5>
                     <p className="text-xl sm:text-2xl font-extrabold text-gray-900 mb-1">{inv.totalAmount.toLocaleString()} <span className="text-xs sm:text-sm text-gray-500">{inv.currency}</span></p>
+                    
                     <div className="flex justify-between text-xs sm:text-sm mt-3 border-t border-gray-100 pt-3">
                       <span className="text-gray-500 font-medium">Paid: <span className="text-green-600 font-bold">{inv.paidAmount.toLocaleString()}</span></span>
                       <span className="text-gray-500 font-medium">Owes: <span className="text-red-500 font-bold">{Math.max(0, inv.totalAmount - inv.paidAmount).toLocaleString()}</span></span>
                     </div>
+
+                    {/* --- ADDED AUTOMONDO DOCUMENTS BUTTONS HERE --- */}
+                    <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-gray-100">
+                      <button 
+                        onClick={() => setGeneratedDoc({ type: 'INVOICE', data: inv, clientName: client.name })} 
+                        className="flex items-center justify-center gap-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 py-2 rounded-lg text-xs font-bold transition border border-blue-200"
+                      >
+                        <FileText size={14}/> Invoice
+                      </button>
+                      <button 
+                        onClick={() => setGeneratedDoc({ type: 'RECEIPT', data: inv, clientName: client.name })} 
+                        className="flex items-center justify-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 py-2 rounded-lg text-xs font-bold transition border border-emerald-200"
+                      >
+                        <FileCheck size={14}/> Receipt
+                      </button>
+                    </div>
+
                   </div>
                 );
               })}
@@ -288,12 +300,10 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
 
       <div className="flex gap-2 sm:gap-4 mb-6 sm:mb-8 overflow-x-auto pb-2 scrollbar-hide snap-x border-b border-gray-200">
         <button onClick={() => setActiveTab('contracts')} className={`shrink-0 snap-start pb-3 sm:pb-4 px-2 text-base sm:text-lg font-bold transition-colors relative ${activeTab === 'contracts' ? 'text-purple-600' : 'text-gray-400 hover:text-gray-600'}`}>
-          {/* SAFE LENGTH */}
           Contracts ({safeContracts.length})
           {activeTab === 'contracts' && <div className="absolute bottom-0 left-0 w-full h-1 bg-purple-600 rounded-t-full" />}
         </button>
         <button onClick={() => setActiveTab('documents')} className={`shrink-0 snap-start pb-3 sm:pb-4 px-2 text-base sm:text-lg font-bold transition-colors relative ${activeTab === 'documents' ? 'text-blue-600' : 'text-gray-400 hover:text-gray-600'}`}>
-          {/* SAFE LENGTH */}
           Documents ({safeDocuments.length})
           {activeTab === 'documents' && <div className="absolute bottom-0 left-0 w-full h-1 bg-blue-600 rounded-t-full" />}
         </button>
@@ -340,7 +350,6 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
           )}
 
           <div className="space-y-3">
-            {/* SAFE MAP */}
             {safeContracts.map((contract) => {
               const isExpired = new Date(contract.expirationDate) < new Date();
               let files: string[] = []; try { files = JSON.parse(contract.fileUrls); } catch (e) {}
@@ -415,7 +424,6 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
           )}
 
           <div className="grid grid-cols-1 gap-4">
-            {/* SAFE MAP */}
             {safeDocuments.map((doc) => {
               let files: string[] = []; try { files = JSON.parse(doc.fileUrls); } catch (e) {}
               return (
@@ -443,6 +451,7 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
         </div>
       )}
 
+      {/* --- NORMAL FILE VIEWER MODAL --- */}
       {secureFileUrl && (
         <div className="fixed inset-0 z-50 bg-slate-900/95 flex flex-col items-center justify-center p-2 sm:p-4 backdrop-blur-sm h-[100dvh]">
           <button onClick={() => setSecureFileUrl(null)} className="absolute top-4 right-4 sm:top-6 sm:right-6 bg-red-600 hover:bg-red-700 text-white p-2.5 sm:p-3 rounded-full flex items-center gap-2 font-bold shadow-lg transition-transform hover:scale-105 z-50 text-sm sm:text-base">
@@ -461,6 +470,31 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
           </div>
         </div>
       )}
+
+      {/* --- ADDED: AUTOMONDO DOCUMENT VIEWER MODAL --- */}
+      {generatedDoc && (
+        <div className="fixed inset-0 z-[100] bg-slate-900/95 flex flex-col items-center justify-center p-2 sm:p-6 backdrop-blur-sm">
+          <button onClick={() => setGeneratedDoc(null)} className="absolute top-4 right-4 sm:top-6 sm:right-6 bg-red-600 hover:bg-red-700 text-white p-2.5 sm:p-3 rounded-full flex items-center gap-2 font-bold shadow-lg transition-transform hover:scale-105 z-[110] text-sm sm:text-base">
+            <X size={18} className="sm:w-5 sm:h-5"/> <span className="hidden sm:inline">Close Document</span>
+          </button>
+
+          <div className="w-full max-w-5xl h-[90vh] bg-gray-200 rounded-xl overflow-y-auto shadow-2xl" dir="ltr">
+            <div className="min-h-max w-full flex justify-center items-start p-4 sm:p-8">
+              <AutoMondoDocument 
+                type={generatedDoc.type}
+                clientName={generatedDoc.clientName}
+                clientIdNumber={client.notes?.replace('ID: ', '') || ''} 
+                amount={generatedDoc.data.totalAmount}
+                currency={generatedDoc.data.currency}
+                itemDescription={generatedDoc.data.metadata?.itemDescription || generatedDoc.data.title}
+                documentNumber={generatedDoc.data.invoiceNumber || 'PENDING'}
+                date={generatedDoc.data.createdAt}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

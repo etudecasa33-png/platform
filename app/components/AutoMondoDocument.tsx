@@ -46,7 +46,6 @@ export default function AutoMondoDocument({
   const currencySuffix = (currency === 'DA' || currency === 'DZD') ? 'Algerian dinars' : 'Dirhams';
   const dynamicAmountInWords = `${numberToWords(amount)} ${currencySuffix}.`;
 
-  // FIXED: Physical A4 dimensions guarantee zero zoom issues and exactly 1 page
   const docWidth = type === 'INVOICE' ? '794px' : '1123px';
   const docHeight = type === 'INVOICE' ? '1123px' : '794px';
 
@@ -63,35 +62,30 @@ export default function AutoMondoDocument({
               size: ${type === 'INVOICE' ? 'A4 portrait' : 'A4 landscape'}; 
               margin: 0 !important; 
             }
-
-            /* SOLUTION PAGE BLANCHE : Annuler le blur du modal pendant l'impression */
-            * {
-              transform: none !important;
-              filter: none !important;
-              backdrop-filter: none !important;
-            }
-
             html, body { 
               background: white !important; 
               margin: 0 !important; 
               padding: 0 !important; 
-              width: ${docWidth} !important;
-              height: ${docHeight} !important;
-              /* SOLUTION PAGE BLANCHE : overflow: visible pour que Chrome ne bloque pas la page */
-              overflow: visible !important;
+              width: 100% !important;
+              height: 100% !important;
+              overflow: hidden !important;
             }
             body * { visibility: hidden; }
             
             #automondo-print-layer, #automondo-print-layer * { 
-              visibility: visible !important; 
+              visibility: visible; 
             }
             
             #automondo-print-layer { 
-              position: absolute !important; 
+              position: fixed !important; 
               left: 0 !important; 
               top: 0 !important; 
-              width: ${docWidth} !important; 
-              height: ${docHeight} !important; 
+              right: 0 !important;
+              bottom: 0 !important;
+              width: 100% !important; 
+              height: 100% !important; 
+              max-width: 100% !important;
+              max-height: 100% !important;
               margin: 0 !important; 
               padding: 0 !important; 
               box-shadow: none !important; 
@@ -99,6 +93,7 @@ export default function AutoMondoDocument({
               page-break-after: avoid !important; 
               page-break-before: avoid !important; 
               page-break-inside: avoid !important;
+              box-sizing: border-box !important;
             }
             * { -webkit-print-color-adjust: exact !important; color-adjust: exact !important; print-color-adjust: exact !important; }
           `}

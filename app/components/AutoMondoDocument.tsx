@@ -62,30 +62,37 @@ export default function AutoMondoDocument({
               size: ${type === 'INVOICE' ? 'A4 portrait' : 'A4 landscape'}; 
               margin: 0 !important; 
             }
+
+            /* SOLUTION : On annule les limites du Modal pour que la facture s'imprime jusqu'en bas */
+            * {
+              transform: none !important;
+              filter: none !important;
+              backdrop-filter: none !important;
+            }
+            .h-[90vh] { height: auto !important; max-height: none !important; }
+            .overflow-y-auto { overflow: visible !important; }
+            .fixed.inset-0 { position: absolute !important; }
+
             html, body { 
               background: white !important; 
               margin: 0 !important; 
               padding: 0 !important; 
-              width: 100% !important;
-              height: 100% !important;
-              overflow: hidden !important;
+              width: ${docWidth} !important;
+              height: ${docHeight} !important;
+              overflow: visible !important;
             }
             body * { visibility: hidden; }
             
             #automondo-print-layer, #automondo-print-layer * { 
-              visibility: visible; 
+              visibility: visible !important; 
             }
             
             #automondo-print-layer { 
-              position: fixed !important; 
+              position: absolute !important; 
               left: 0 !important; 
               top: 0 !important; 
-              right: 0 !important;
-              bottom: 0 !important;
-              width: 100% !important; 
-              height: 100% !important; 
-              max-width: 100% !important;
-              max-height: 100% !important;
+              width: ${docWidth} !important; 
+              height: ${docHeight} !important; 
               margin: 0 !important; 
               padding: 0 !important; 
               box-shadow: none !important; 
@@ -93,7 +100,6 @@ export default function AutoMondoDocument({
               page-break-after: avoid !important; 
               page-break-before: avoid !important; 
               page-break-inside: avoid !important;
-              box-sizing: border-box !important;
             }
             * { -webkit-print-color-adjust: exact !important; color-adjust: exact !important; print-color-adjust: exact !important; }
           `}

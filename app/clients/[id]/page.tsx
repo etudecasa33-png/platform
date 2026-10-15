@@ -2,7 +2,7 @@
 import { useEffect, useState, use } from 'react';
 import React from 'react';
 import Link from 'next/link';
-import { ArrowLeft, FileText, Calendar, AlertCircle, Eye, Pencil, Trash2, X, Phone, Mail, MapPin, Building2, Plus, CreditCard, FileCheck } from 'lucide-react';
+import { ArrowLeft, FileText, Calendar, AlertCircle, Eye, Pencil, Trash2, X, Phone, Mail, MapPin, Building2, Plus, CreditCard, FileCheck, Map, ExternalLink } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
 import AutoMondoDocument from '../../components/AutoMondoDocument';
@@ -15,7 +15,8 @@ const SecurePdfViewer = dynamic(() => import('../../components/SecurePdfViewer')
 type ClientDocument = { id: string; title: string; details: string | null; date: string | null; fileUrls: string; createdAt: string; };
 type Contract = { id: string; startDate: string; expirationDate: string; status: string; fileUrls: string; };
 type Invoice = { id: string; title: string; currency: string; totalAmount: number; paidAmount: number; createdAt: string; invoiceNumber?: string; metadata?: any; };
-type ClientProfile = { id: string; name: string; email: string | null; phone: string | null; address: string | null; notes: string | null; contracts?: Contract[]; documents?: ClientDocument[]; invoices?: Invoice[]; };
+// NOUVEAU: Ajout de trackingLink dans le type ClientProfile
+type ClientProfile = { id: string; name: string; email: string | null; phone: string | null; address: string | null; notes: string | null; trackingLink?: string | null; contracts?: Contract[]; documents?: ClientDocument[]; invoices?: Invoice[]; };
 
 export default function ClientProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const unwrappedParams = use(params);
@@ -34,6 +35,9 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
   const [invoiceTotal, setInvoiceTotal] = useState<string>('');
   const [amountReceived, setAmountReceived] = useState<string>('');
   const [editingInvoiceId, setEditingInvoiceId] = useState<string | null>(null);
+
+  // NOUVEAU STATE: Gère le lien de tracking
+  const [trackingLink, setTrackingLink] = useState<string>('');
 
   const totalNum = parseFloat(invoiceTotal) || 0;
   const receivedNum = parseFloat(amountReceived) || 0;
@@ -60,7 +64,10 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
       const res = await fetch(`/api/clients/${clientId}`, { cache: 'no-store' });
       const data = await res.json();
       if (data.error || !data.name) return setPageStatus('error');
+      
       setClient(data);
+      // NOUVEAU: Initialise le lien de tracking s'il existe
+      setTrackingLink(data.trackingLink || '');
       setPageStatus('success');
     } catch (error) { setPageStatus('error'); }
   };
@@ -72,6 +79,21 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
     else document.body.style.overflow = 'unset';
     return () => { document.body.style.overflow = 'unset'; };
   }, [secureFileUrl, generatedDoc]);
+
+  // NOUVEAU: Fonction pour sauvegarder le lien de tracking
+  const handleSaveTracking = async () => {
+    try {
+      await fetch(`/api/clients/${clientId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ trackingLink })
+      });
+      alert('Tracking link saved successfully!');
+      fetchClientData();
+    } catch (error) {
+      alert('Error saving tracking link');
+    }
+  };
 
   const handleSaveInvoice = async () => {
     if (totalNum <= 0) return alert("Please enter a total amount!");
@@ -268,6 +290,40 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
         </div>
       </div>
 
+      {/* --- ADDED: VEHICLE TRACKING LINK COMPONENT --- */}
+      <div className="bg-white p-5 sm:p-6 rounded-2xl border border-gray-200 shadow-sm mb-6 sm:mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <Map className="text-blue-600" size={24} />
+          <h3 className="text-lg sm:text-xl font-bold text-gray-800">Vehicle Live Tracking</h3>
+        </div>
+        <p className="text-sm text-gray-500 mb-4">Enter a tracking URL (e.g., ShipsGo) for this client's shipment. This will be displayed in their secure portal.</p>
+        
+        <div className="flex flex-col sm:flex-row gap-3">
+          <input 
+            type="url" 
+            value={trackingLink} 
+            onChange={(e) => setTrackingLink(e.target.value)} 
+            placeholder="https://map.shipsgo.com/..." 
+            className="flex-1 p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm" 
+          />
+          <button 
+            onClick={handleSaveTracking} 
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold transition shadow-sm text-sm whitespace-nowrap"
+          >
+            Save Link
+          </button>
+        </div>
+        
+        {client.trackingLink && (
+          <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
+            <span className="text-xs font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full uppercase tracking-widest">Active Link</span>
+            <a href={client.trackingLink} target="_blank" rel="noreferrer" className="text-sm text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1.5 font-medium transition">
+              Test Current Link <ExternalLink size={14} />
+            </a>
+          </div>
+        )}
+      </div>
+
       <div className="flex gap-2 sm:gap-4 mb-6 sm:mb-8 overflow-x-auto pb-2 scrollbar-hide snap-x border-b border-gray-200">
         <button onClick={() => setActiveTab('contracts')} className={`shrink-0 snap-start pb-3 sm:pb-4 px-2 text-base sm:text-lg font-bold transition-colors relative ${activeTab === 'contracts' ? 'text-purple-600' : 'text-gray-400 hover:text-gray-600'}`}>
           Contracts ({safeContracts.length})
@@ -319,7 +375,6 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
             </div>
           )}
 
-          {/* DEDICATED AUTOMONDO DOCUMENTS SECTION INSIDE CONTRACTS TAB */}
           {safeInvoices.length > 0 && (
             <div className="mb-6">
               <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">AutoMondo Documents</h3>
@@ -471,7 +526,6 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
         </div>
       )}
 
-      {/* --- ADDED AUTOMONDO DOCUMENT VIEWER MODAL --- */}
       {generatedDoc && (
         <div className="fixed inset-0 z-[100] bg-slate-900/95 flex flex-col items-center justify-center p-2 sm:p-6 backdrop-blur-sm">
           <button onClick={() => setGeneratedDoc(null)} className="absolute top-4 right-4 sm:top-6 sm:right-6 bg-red-600 hover:bg-red-700 text-white p-2.5 sm:p-3 rounded-full flex items-center gap-2 font-bold shadow-lg transition-transform hover:scale-105 z-[110] text-sm sm:text-base">

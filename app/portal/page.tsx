@@ -1,13 +1,11 @@
 "use client";
 import { useEffect, useState } from 'react';
-import { FileText, Calendar, Building2, Eye, FolderOpen, ShieldCheck, X, Globe, FileCheck } from 'lucide-react';
+import { FileText, Calendar, Building2, Eye, FolderOpen, ShieldCheck, X, Globe, FileCheck, Map, MapPin } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { Cairo } from 'next/font/google';
 
-// --- IMPORTATION DU GÉNÉRATEUR AUTOMONDO ---
 import AutoMondoDocument from '../components/AutoMondoDocument';
 
-// --- INITIALIZE BEAUTIFUL ARABIC FONT ---
 const cairo = Cairo({ subsets: ['arabic'], weight: ['400', '600', '700', '900'] });
 
 const SecurePdfViewer = dynamic(() => import('../components/SecurePdfViewer'), {
@@ -15,14 +13,12 @@ const SecurePdfViewer = dynamic(() => import('../components/SecurePdfViewer'), {
   loading: () => <div className="flex h-full items-center justify-center font-bold text-gray-400">Initializing secure viewer...</div>
 });
 
-// --- TYPES ---
 type ClientDocument = { id: string; title: string; details: string | null; date: string | null; fileUrls: string; createdAt: string; };
 type Contract = { id: string; startDate: string; expirationDate: string; status: string; fileUrls: string; };
-// Ajout de invoiceNumber et metadata pour que la facture puisse lire ces données
 type Invoice = { id: string; title: string; currency: string; totalAmount: number; paidAmount: number; createdAt: string; invoiceNumber?: string; metadata?: any; };
-type ClientProfile = { id: string; name: string; contracts: Contract[]; documents: ClientDocument[]; invoices: Invoice[]; };
+// NOUVEAU: Ajout de trackingLink
+type ClientProfile = { id: string; name: string; trackingLink?: string | null; contracts: Contract[]; documents: ClientDocument[]; invoices: Invoice[]; };
 
-// --- TRANSLATION DICTIONARY ---
 const translations = {
   en: {
     loadingPortal: "Loading your secure portal...",
@@ -41,7 +37,10 @@ const translations = {
     closeFile: "Close Document",
     langToggle: "عربي",
     viewInvoice: "View AutoMondo Invoice", 
-    viewReceipt: "View Receipt Voucher"
+    viewReceipt: "View Receipt Voucher",
+    trackVehicle: "Track Your Vehicle",
+    trackDesc: "Follow your shipment in real-time",
+    trackBtn: "Live Tracking"
   },
   ar: {
     loadingPortal: "جاري تحميل بوابتك الآمنة...",
@@ -60,7 +59,10 @@ const translations = {
     closeFile: "إغلاق المستند",
     langToggle: "English",
     viewInvoice: "عرض فاتورة أوتوموندو", 
-    viewReceipt: "عرض إيصال الدفع"
+    viewReceipt: "عرض إيصال الدفع",
+    trackVehicle: "تتبع سيارتك",
+    trackDesc: "تابع مسار شحنتك في الوقت الفعلي",
+    trackBtn: "تتبع مباشر"
   }
 };
 
@@ -68,11 +70,8 @@ export default function ClientPortal() {
   const [client, setClient] = useState<ClientProfile | null>(null);
   const [activeTab, setActiveTab] = useState<'contracts' | 'documents'>('contracts');
   const [secureFileUrl, setSecureFileUrl] = useState<string | null>(null);
-  
-  // NOUVEAU STATE : Gère l'affichage dynamique des factures et reçus générés
   const [generatedDoc, setGeneratedDoc] = useState<{type: 'INVOICE' | 'RECEIPT', data: Invoice} | null>(null);
 
-  // --- LANGUAGE STATE ---
   const [lang, setLang] = useState<'en' | 'ar'>('en');
   const t = translations[lang];
 
@@ -83,7 +82,6 @@ export default function ClientPortal() {
   if (!client) return <div className={`min-h-screen flex items-center justify-center text-gray-500 font-bold ${lang === 'ar' ? cairo.className : 'font-sans'}`} dir={lang === 'ar' ? 'rtl' : 'ltr'}>{t.loadingPortal}</div>;
 
   return (
-    // DYNAMIC RTL & FONT WRAPPER
     <div 
       dir={lang === 'ar' ? 'rtl' : 'ltr'} 
       className={`min-h-screen bg-slate-50 p-6 md:p-12 select-none ${lang === 'ar' ? cairo.className : 'font-sans'}`} 
@@ -91,7 +89,6 @@ export default function ClientPortal() {
     >
       <div className="max-w-5xl mx-auto relative">
         
-        {/* LANGUAGE TOGGLE BUTTON */}
         <div className="flex justify-end mb-4">
           <button 
             onClick={() => setLang(lang === 'en' ? 'ar' : 'en')}
@@ -102,7 +99,6 @@ export default function ClientPortal() {
           </button>
         </div>
 
-        {/* Portal Header */}
         <div className="bg-slate-900 p-8 rounded-3xl shadow-xl flex flex-col md:flex-row items-center gap-6 mb-8 border border-slate-800 text-white">
           <div className="bg-blue-500/20 p-5 rounded-2xl text-blue-400">
             <Building2 size={48} />
@@ -116,7 +112,31 @@ export default function ClientPortal() {
           </div>
         </div>
 
-        {/* CLIENT INVOICE DASHBOARD */}
+        {/* --- NOUVEAU : BANNIÈRE DE TRACKING --- */}
+        {client.trackingLink && (
+          <div className="mb-10 bg-gradient-to-r from-blue-600 to-indigo-700 rounded-3xl p-6 md:p-8 shadow-xl text-white flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="flex items-center gap-4">
+              <div className="bg-white/20 p-4 rounded-full shrink-0">
+                <MapPin size={32} className="text-white" />
+              </div>
+              <div>
+                <h3 className="text-xl md:text-2xl font-black mb-1">{t.trackVehicle}</h3>
+                <p className="text-blue-100 font-medium">{t.trackDesc}</p>
+              </div>
+            </div>
+            <a
+              href={client.trackingLink}
+              target="_blank"
+              rel="noreferrer"
+              className="bg-white text-blue-700 hover:bg-gray-50 px-8 py-3.5 rounded-xl font-black text-lg transition-transform hover:scale-105 shadow-lg whitespace-nowrap flex items-center justify-center gap-2"
+            >
+
+<Map size={20} />
+{t.trackBtn}
+            </a>
+          </div>
+        )}
+
         {client.invoices && client.invoices.length > 0 && (
           <div className="mb-10">
             <h3 className="text-xl font-bold text-gray-800 mb-5 px-1">{t.billing}</h3>
@@ -161,7 +181,6 @@ export default function ClientPortal() {
                         </p>
                       </div>
                     </div>
-                    {/* Buttons removed from here as requested */}
                   </div>
                 );
               })}
@@ -169,7 +188,6 @@ export default function ClientPortal() {
           </div>
         )}
 
-        {/* Tabs */}
         <div className="flex gap-4 mb-8">
           <button onClick={() => setActiveTab('contracts')} className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${activeTab === 'contracts' ? 'bg-purple-600 text-white shadow-lg shadow-purple-200' : 'bg-white text-gray-500 hover:bg-gray-100 border border-gray-200'}`}>
             <FileText size={18} /> {t.myContracts}
@@ -179,11 +197,9 @@ export default function ClientPortal() {
           </button>
         </div>
 
-        {/* CONTRACTS VIEW */}
         {activeTab === 'contracts' && (
           <div className="space-y-6">
 
-            {/* --- ADDED AUTOMONDO DOCUMENTS SECTION INSIDE CONTRACTS --- */}
             {client.invoices && client.invoices.length > 0 && (
               <div className="mb-6">
                 <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">AutoMondo Documents</h3>
@@ -214,7 +230,6 @@ export default function ClientPortal() {
               </div>
             )}
 
-            {/* Uploaded Contract Files */}
             {client.contracts.map((contract) => {
               let files: string[] = [];
               try { files = JSON.parse(contract.fileUrls); } catch (e) {}
@@ -241,7 +256,6 @@ export default function ClientPortal() {
           </div>
         )}
 
-        {/* DOCUMENTS VIEW */}
         {activeTab === 'documents' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {client.documents.map((doc) => {
@@ -266,7 +280,6 @@ export default function ClientPortal() {
         )}
       </div>
 
-      {/* --- LE VISUALISEUR SÉCURISÉ INTELLIGENT (AFFICHE LES PDF OU LES FACTURES DYNAMIQUES) --- */}
       {(secureFileUrl || generatedDoc) && (
         <div className="fixed inset-0 z-50 bg-slate-900/95 flex flex-col items-center justify-center p-4 backdrop-blur-sm">
           
@@ -281,7 +294,6 @@ export default function ClientPortal() {
             
             <div className="min-h-max w-full flex justify-center items-start p-4 md:p-8">
               {generatedDoc ? (
-                // --- ACTIVATES isClientView={true} TO ADD WATERMARK AND BLOCK PRINTING ---
                 <AutoMondoDocument 
                   type={generatedDoc.type}
                   clientName={client.name}
@@ -291,10 +303,9 @@ export default function ClientPortal() {
                   itemDescription={generatedDoc.data.metadata?.itemDescription || generatedDoc.data.title}
                   documentNumber={generatedDoc.data.invoiceNumber || 'PENDING'}
                   date={generatedDoc.data.createdAt}
-                  isClientView={true} // <-- Protects the document from being printed/downloaded
+                  isClientView={true}
                 />
               ) : secureFileUrl && secureFileUrl.match(/\.(jpeg|jpg|gif|png|webp)$/i) ? (
-                // Affiche les images standards
                 <div className="relative w-full h-full flex items-center justify-center">
                   <div 
                     className="absolute inset-0 z-30 cursor-default" 
@@ -308,7 +319,6 @@ export default function ClientPortal() {
                   />
                 </div>
               ) : secureFileUrl ? (
-                // Affiche les PDF standards
                 <SecurePdfViewer url={secureFileUrl} />
               ) : null}
             </div>

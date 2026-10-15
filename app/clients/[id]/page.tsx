@@ -15,7 +15,8 @@ const SecurePdfViewer = dynamic(() => import('../../components/SecurePdfViewer')
 type ClientDocument = { id: string; title: string; details: string | null; date: string | null; fileUrls: string; createdAt: string; };
 type Contract = { id: string; startDate: string; expirationDate: string; status: string; fileUrls: string; };
 type Invoice = { id: string; title: string; currency: string; totalAmount: number; paidAmount: number; createdAt: string; invoiceNumber?: string; metadata?: any; };
-type ClientProfile = { id: string; name: string; email: string | null; phone: string | null; address: string | null; notes: string | null; trackingLink?: string | null; contracts?: Contract[]; documents?: ClientDocument[]; invoices?: Invoice[]; };
+// FIXED: Zedt l'password hna bch mankhasrouhch
+type ClientProfile = { id: string; name: string; email: string | null; phone: string | null; address: string | null; password: string | null; notes: string | null; trackingLink?: string | null; contracts?: Contract[]; documents?: ClientDocument[]; invoices?: Invoice[]; };
 
 export default function ClientProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const unwrappedParams = use(params);
@@ -35,7 +36,6 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
   const [amountReceived, setAmountReceived] = useState<string>('');
   const [editingInvoiceId, setEditingInvoiceId] = useState<string | null>(null);
 
-  // Tracking State
   const [trackingLink, setTrackingLink] = useState<string>('');
 
   const totalNum = parseFloat(invoiceTotal) || 0;
@@ -78,7 +78,7 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
     return () => { document.body.style.overflow = 'unset'; };
   }, [secureFileUrl, generatedDoc]);
 
-  // FIXED: Fonction mrigla bch tsauvgardi l'lien bla matfassi les autres informations (email, password...)
+  // FIXED: Sauvegarde sécurisée sans effacer le mot de passe
   const handleSaveTracking = async () => {
     if (!client) return;
     try {
@@ -87,6 +87,7 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
         email: client.email || '',
         phone: client.phone || '',
         address: client.address || '',
+        password: client.password || '', // GARDER LE MOT DE PASSE INTACT
         notes: client.notes || '',
         trackingLink: trackingLink
       };
@@ -103,7 +104,7 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
     }
   };
 
-  // FIXED: Fonction bch tsupprimi l'lien facilement ml l'bouton rouge
+  // FIXED: Suppression sécurisée sans effacer le mot de passe
   const handleDeleteTracking = async () => {
     if (!client) return;
     if (window.confirm('Are you sure you want to remove the tracking link?')) {
@@ -113,8 +114,9 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
           email: client.email || '',
           phone: client.phone || '',
           address: client.address || '',
+          password: client.password || '', // GARDER LE MOT DE PASSE INTACT
           notes: client.notes || '',
-          trackingLink: '' // Yfari l'lien 
+          trackingLink: '' // Efface juste le lien
         };
         
         await fetch(`/api/clients/${clientId}`, {
@@ -325,7 +327,6 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
         </div>
       </div>
 
-      {/* --- SECTION TRACKING MRIGLA --- */}
       <div className="bg-white p-5 sm:p-6 rounded-2xl border border-gray-200 shadow-sm mb-6 sm:mb-8">
         <div className="flex items-center gap-2 mb-4">
           <Map className="text-blue-600" size={24} />
@@ -348,7 +349,6 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
             Save Link
           </button>
           
-          {/* Bouton Delete yban ghir ida kan kayen lien msauvgardi */}
           {client.trackingLink && client.trackingLink !== '' && (
             <button 
               onClick={handleDeleteTracking} 
@@ -359,7 +359,6 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
           )}
         </div>
         
-        {/* Affichage te3 l'lien ltaht bch t9der tdirlo Test */}
         {client.trackingLink && client.trackingLink !== '' && (
           <div className="mt-5 pt-4 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-3 overflow-hidden">

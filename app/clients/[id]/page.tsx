@@ -15,7 +15,6 @@ const SecurePdfViewer = dynamic(() => import('../../components/SecurePdfViewer')
 type ClientDocument = { id: string; title: string; details: string | null; date: string | null; fileUrls: string; createdAt: string; };
 type Contract = { id: string; startDate: string; expirationDate: string; status: string; fileUrls: string; };
 type Invoice = { id: string; title: string; currency: string; totalAmount: number; paidAmount: number; createdAt: string; invoiceNumber?: string; metadata?: any; };
-// NOUVEAU: Ajout de trackingLink dans le type ClientProfile
 type ClientProfile = { id: string; name: string; email: string | null; phone: string | null; address: string | null; notes: string | null; trackingLink?: string | null; contracts?: Contract[]; documents?: ClientDocument[]; invoices?: Invoice[]; };
 
 export default function ClientProfilePage({ params }: { params: Promise<{ id: string }> }) {
@@ -36,7 +35,7 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
   const [amountReceived, setAmountReceived] = useState<string>('');
   const [editingInvoiceId, setEditingInvoiceId] = useState<string | null>(null);
 
-  // NOUVEAU STATE: Gère le lien de tracking
+  // Tracking State
   const [trackingLink, setTrackingLink] = useState<string>('');
 
   const totalNum = parseFloat(invoiceTotal) || 0;
@@ -66,7 +65,6 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
       if (data.error || !data.name) return setPageStatus('error');
       
       setClient(data);
-      // NOUVEAU: Initialise le lien de tracking s'il existe
       setTrackingLink(data.trackingLink || '');
       setPageStatus('success');
     } catch (error) { setPageStatus('error'); }
@@ -80,18 +78,55 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
     return () => { document.body.style.overflow = 'unset'; };
   }, [secureFileUrl, generatedDoc]);
 
-  // NOUVEAU: Fonction pour sauvegarder le lien de tracking
+  // FIXED: Fonction mrigla bch tsauvgardi l'lien bla matfassi les autres informations (email, password...)
   const handleSaveTracking = async () => {
+    if (!client) return;
     try {
+      const payload = {
+        name: client.name,
+        email: client.email || '',
+        phone: client.phone || '',
+        address: client.address || '',
+        notes: client.notes || '',
+        trackingLink: trackingLink
+      };
+      
       await fetch(`/api/clients/${clientId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ trackingLink })
+        body: JSON.stringify(payload)
       });
       alert('Tracking link saved successfully!');
       fetchClientData();
     } catch (error) {
       alert('Error saving tracking link');
+    }
+  };
+
+  // FIXED: Fonction bch tsupprimi l'lien facilement ml l'bouton rouge
+  const handleDeleteTracking = async () => {
+    if (!client) return;
+    if (window.confirm('Are you sure you want to remove the tracking link?')) {
+      try {
+        const payload = {
+          name: client.name,
+          email: client.email || '',
+          phone: client.phone || '',
+          address: client.address || '',
+          notes: client.notes || '',
+          trackingLink: '' // Yfari l'lien 
+        };
+        
+        await fetch(`/api/clients/${clientId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        setTrackingLink('');
+        fetchClientData();
+      } catch (error) {
+        alert('Error removing tracking link');
+      }
     }
   };
 
@@ -290,7 +325,7 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
         </div>
       </div>
 
-      {/* --- ADDED: VEHICLE TRACKING LINK COMPONENT --- */}
+      {/* --- SECTION TRACKING MRIGLA --- */}
       <div className="bg-white p-5 sm:p-6 rounded-2xl border border-gray-200 shadow-sm mb-6 sm:mb-8">
         <div className="flex items-center gap-2 mb-4">
           <Map className="text-blue-600" size={24} />
@@ -312,13 +347,27 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
           >
             Save Link
           </button>
+          
+          {/* Bouton Delete yban ghir ida kan kayen lien msauvgardi */}
+          {client.trackingLink && client.trackingLink !== '' && (
+            <button 
+              onClick={handleDeleteTracking} 
+              className="bg-red-50 hover:bg-red-100 text-red-600 px-4 py-3 rounded-xl font-bold transition shadow-sm text-sm whitespace-nowrap flex items-center justify-center gap-2"
+            >
+              <Trash2 size={16} /> Delete
+            </button>
+          )}
         </div>
         
-        {client.trackingLink && (
-          <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
-            <span className="text-xs font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full uppercase tracking-widest">Active Link</span>
-            <a href={client.trackingLink} target="_blank" rel="noreferrer" className="text-sm text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1.5 font-medium transition">
-              Test Current Link <ExternalLink size={14} />
+        {/* Affichage te3 l'lien ltaht bch t9der tdirlo Test */}
+        {client.trackingLink && client.trackingLink !== '' && (
+          <div className="mt-5 pt-4 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3 overflow-hidden">
+              <span className="text-xs font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full uppercase tracking-widest shrink-0">Active</span>
+              <span className="text-sm text-gray-600 truncate bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100 w-full sm:w-auto">{client.trackingLink}</span>
+            </div>
+            <a href={client.trackingLink} target="_blank" rel="noreferrer" className="text-sm text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1.5 font-bold transition shrink-0">
+              Test Link <ExternalLink size={14} />
             </a>
           </div>
         )}

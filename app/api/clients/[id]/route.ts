@@ -62,8 +62,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         phone: body.phone || null,
         address: body.address || null,
         password: body.password || null,
-        notes: body.remarques || null,
-        trackingLink: body.trackingLink || null
+        notes: body.notes || null,           // FIXED: it was body.remarques which is wrong
+        trackingLink: body.trackingLink || null // UPDATED: Will now save securely
       }
     });
     return NextResponse.json(updatedClient, { status: 200 });

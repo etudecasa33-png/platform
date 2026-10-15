@@ -46,6 +46,8 @@ export default function AutoMondoDocument({
   const currencySuffix = (currency === 'DA' || currency === 'DZD') ? 'Algerian dinars' : 'Dirhams';
   const dynamicAmountInWords = `${numberToWords(amount)} ${currencySuffix}.`;
 
+  // FIXED: 794px and 1123px are the exact pixel dimensions of A4 at 96 DPI. 
+  // Using these pixels instead of "mm" stops the browser from zooming or shrinking.
   const docWidth = type === 'INVOICE' ? '794px' : '1123px';
   const docHeight = type === 'INVOICE' ? '1123px' : '794px';
 
@@ -63,23 +65,18 @@ export default function AutoMondoDocument({
               margin: 0 !important; 
             }
 
-            /* SOLUTION : On annule les limites du Modal pour que la facture s'imprime jusqu'en bas */
+            /* SOLUTION : Forcer tous les parents (surtout le Modal de la page Contract) à annuler le masquage/coupage */
             * {
-              transform: none !important;
-              filter: none !important;
-              backdrop-filter: none !important;
+              overflow: visible !important;
+              max-height: none !important;
             }
-            .h-[90vh] { height: auto !important; max-height: none !important; }
-            .overflow-y-auto { overflow: visible !important; }
-            .fixed.inset-0 { position: absolute !important; }
 
             html, body { 
               background: white !important; 
               margin: 0 !important; 
               padding: 0 !important; 
-              width: ${docWidth} !important;
-              height: ${docHeight} !important;
-              overflow: visible !important;
+              width: auto !important;
+              height: auto !important;
             }
             body * { visibility: hidden; }
             

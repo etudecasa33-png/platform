@@ -62,26 +62,41 @@ export default function AutoMondoDocument({
               size: ${type === 'INVOICE' ? 'A4 portrait' : 'A4 landscape'}; 
               margin: 0 !important; 
             }
+
+            /* SOLUTION PAGE BLANCHE : Annuler les effets de modal et forcer le fond blanc */
             html, body { 
               background: white !important; 
               margin: 0 !important; 
               padding: 0 !important; 
-              width: ${docWidth} !important;
-              height: ${docHeight} !important;
-              overflow: hidden !important;
+              width: 100% !important;
+              height: 100% !important;
+              overflow: visible !important;
             }
-            body * { visibility: hidden; }
+
+            /* Cacher absolument tout le reste du site */
+            body * { 
+              visibility: hidden !important; 
+            }
             
+            /* Rendre visible UNIQUEMENT notre document */
             #automondo-print-layer, #automondo-print-layer * { 
-              visibility: visible; 
+              visibility: visible !important; 
+            }
+
+            /* Annuler les flous et les transformations qui causent les bugs d'impression Chrome */
+            * {
+              transform: none !important;
+              filter: none !important;
+              backdrop-filter: none !important;
             }
             
+            /* Fixer le document exactement au format A4 en millimètres pour ne jamais déborder ou couper */
             #automondo-print-layer { 
-              position: absolute !important; 
+              position: fixed !important; 
               left: 0 !important; 
               top: 0 !important; 
-              width: ${docWidth} !important; 
-              height: ${docHeight} !important; 
+              width: ${type === 'INVOICE' ? '210mm' : '297mm'} !important; 
+              height: ${type === 'INVOICE' ? '296.5mm' : '209.5mm'} !important; 
               margin: 0 !important; 
               padding: 0 !important; 
               box-shadow: none !important; 
@@ -89,7 +104,9 @@ export default function AutoMondoDocument({
               page-break-after: avoid !important; 
               page-break-before: avoid !important; 
               page-break-inside: avoid !important;
+              box-sizing: border-box !important;
             }
+            
             * { -webkit-print-color-adjust: exact !important; color-adjust: exact !important; print-color-adjust: exact !important; }
           `}
         }
@@ -131,7 +148,7 @@ export default function AutoMondoDocument({
         {/* ======== EXACT INVOICE TEMPLATE (PORTRAIT) = */}
         {/* ========================================== */}
         {type === 'INVOICE' && (
-          <div className="w-full h-full relative flex flex-col justify-between pb-8 z-10">
+          <div className="w-full h-full relative z-10 flex flex-col justify-between pb-8">
             
             <div>
               {/* Top Black/Gold Header Bar */}

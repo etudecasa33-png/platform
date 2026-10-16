@@ -46,9 +46,8 @@ export default function AutoMondoDocument({
   const currencySuffix = (currency === 'DA' || currency === 'DZD') ? 'Algerian dinars' : 'Dirhams';
   const dynamicAmountInWords = `${numberToWords(amount)} ${currencySuffix}.`;
 
-  // FIXED: Physical A4 dimensions guarantee zero zoom issues and exactly 1 page
-  const docWidth = type === 'INVOICE' ? '210mm' : '297mm';
-  const docHeight = type === 'INVOICE' ? '297mm' : '210mm';
+  const docWidth = type === 'INVOICE' ? '794px' : '1123px';
+  const docHeight = type === 'INVOICE' ? '1123px' : '794px';
 
   return (
     <div className="flex flex-col items-center w-full relative overflow-auto no-scrollbar">
@@ -77,9 +76,9 @@ export default function AutoMondoDocument({
               visibility: visible; 
             }
             
-            /* FIXED: position 'fixed' au lieu de 'absolute' pour empêcher que le Modal ne coupe la page */
+            /* FIXED: position absolute anchors it safely, preventing Chrome refresh bugs */
             #automondo-print-layer { 
-              position: fixed !important; 
+              position: absolute !important; 
               left: 0 !important; 
               top: 0 !important; 
               width: ${docWidth} !important; 
@@ -133,8 +132,8 @@ export default function AutoMondoDocument({
         {/* ======== EXACT INVOICE TEMPLATE (PORTRAIT) = */}
         {/* ========================================== */}
         {type === 'INVOICE' && (
-          /* FIXED: pb-3 au lieu de pb-8 pour gagner de l'espace vertical et ne pas couper le texte */
-          <div className="w-full h-full relative z-10 flex flex-col justify-between pb-3">
+          // FIXED: Changed pb-8 to pb-4 to give the footer more breathing room at the bottom
+          <div className="w-full h-full relative z-10 flex flex-col justify-between pb-4">
             
             <div>
               {/* Top Black/Gold Header Bar */}
@@ -145,10 +144,11 @@ export default function AutoMondoDocument({
                 <h1 className="text-[#f7b718] text-2xl font-black tracking-widest uppercase relative z-20">PROFORMA INVOICE</h1>
               </div>
 
-              <div className="px-10 pt-24"> 
+              {/* FIXED: Changed pt-24 to pt-20. Still clears the logo perfectly but saves 16px of vertical space */}
+              <div className="px-10 pt-20"> 
                 <h2 className="text-4xl font-black tracking-widest text-[#231f20] mb-4">AUTOMONDO FZ-LLC</h2>
                 
-                <div className="flex justify-between text-[11px] font-bold text-[#4a4a4a] mb-6 leading-relaxed">
+                <div className="flex justify-between text-[11px] font-bold text-[#4a4a4a] mb-5 leading-relaxed">
                   <div>
                     <p className="text-right text-lg mb-1 font-black arabic-text">اوتوموندو ش.م.ح</p>
                     <p>Compass Building,</p>
@@ -156,14 +156,14 @@ export default function AutoMondoDocument({
                     <p>AL Hamra Industrial Zone-FZ,</p>
                     <p>Ras Al Khaimah, United Arab Emirates</p>
                   </div>
-                  <div className="text-right pt-8">
+                  <div className="text-right pt-6">
                     <p>Email : contact@automondodxb.com</p>
                     <p>Mob: +971 54 423 2321</p>
                     <p>Website : www.automondo.net</p>
                   </div>
                 </div>
 
-                <div className="flex justify-between text-xs font-black text-black mb-6">
+                <div className="flex justify-between text-xs font-black text-black mb-5">
                   <div>
                     <p>INVOICE TO: {clientName.toUpperCase()}</p>
                     <p className="ml-6 mt-0.5">DESTINATION : ALGERIA</p>
@@ -187,39 +187,40 @@ export default function AutoMondoDocument({
                   </thead>
                   <tbody className="bg-[#dcdcdc] text-black font-medium">
                     <tr>
-                      <td className="border border-black py-4 px-2 text-center text-[10px]">1</td>
-                      <td className="border border-black py-4 px-3">{itemDescription.toUpperCase()}</td>
-                      <td className="border border-black py-4 px-2 text-right">{formattedAmount}{currency}</td>
-                      <td className="border border-black py-4 px-2 text-center">1</td>
-                      <td className="border border-black py-4 px-2 text-right">{formattedAmount}{currency}</td>
+                      {/* FIXED: Changed py-4 to py-3 to tighten the table slightly and save space */}
+                      <td className="border border-black py-3 px-2 text-center text-[10px]">1</td>
+                      <td className="border border-black py-3 px-3">{itemDescription.toUpperCase()}</td>
+                      <td className="border border-black py-3 px-2 text-right">{formattedAmount}{currency}</td>
+                      <td className="border border-black py-3 px-2 text-center">1</td>
+                      <td className="border border-black py-3 px-2 text-right">{formattedAmount}{currency}</td>
                     </tr>
                   </tbody>
                 </table>
 
-                <div className="flex justify-between text-xs font-black mb-4 px-1">
+                <div className="flex justify-between text-xs font-black mb-3 px-1">
                   <p>Thank you for your business</p>
                   <p className="font-normal text-gray-600 mr-20">TAX: 0.00%</p>
                   <p>SUB TOTAL: {formattedAmount} {currency}</p>
                 </div>
 
-                <div className="flex justify-end mb-6">
+                <div className="flex justify-end mb-4">
                   <div className="bg-black text-white px-4 py-2 font-black text-sm flex items-center gap-2">
                     TOTAL: <span className="text-[#3b82f6] underline underline-offset-4 decoration-2">{formattedAmount} {currency}</span>
                   </div>
                 </div>
 
-                <div className="flex justify-end mb-2 pr-12 h-28 relative">
-                   <img src="/stamp1.png" className="absolute right-10 top-[-10px] w-40 opacity-90 z-30" style={{ mixBlendMode: 'multiply' }} alt="AutoMondo Stamp" />
+                {/* FIXED: Reduced height from h-28 to h-24 to pull the footer up safely */}
+                <div className="flex justify-end mb-2 pr-12 h-24 relative">
+                   <img src="/stamp.png" className="absolute right-10 top-[-10px] w-40 opacity-90 z-30" style={{ mixBlendMode: 'multiply' }} alt="AutoMondo Stamp" />
                 </div>
               </div>
             </div>
 
             {/* Section Footer */}
             <div className="px-10 mt-auto">
-              {/* FIXED: mb-2 au lieu de mb-4 pour que ça remonte un peu */}
-              <div className="grid grid-cols-2 gap-8 text-[10px] mb-2">
+              <div className="grid grid-cols-2 gap-8 text-[10px] mb-3">
                 <div>
-                  <p className="font-black text-sm mb-2">Payment Info:</p>
+                  <p className="font-black text-sm mb-1.5">Payment Info:</p>
                   <p className="font-bold mb-0.5">Account Iban:</p>
                   <p className="text-gray-600 mb-2">AE190860000009937709383</p>
                   <p className="font-bold mb-0.5">A/C Name:</p>
@@ -227,21 +228,21 @@ export default function AutoMondoDocument({
                   <p className="font-bold mb-0.5">Bank Details:</p>
                   <p className="text-gray-600 mb-2">WIOBAEADXXX</p>
                   <p className="font-bold mb-0.5">Business Address:</p>
-                  <p className="text-gray-600 mb-4">Etihad Airways Centre 5th Floor, Abu Dhabi, UAE</p>
+                  <p className="text-gray-600 mb-3">Etihad Airways Centre 5th Floor, Abu Dhabi, UAE</p>
                   <p className="font-black text-xs mb-1">TERMS AND CONDITIONS :</p>
                   <p className="font-bold">DELIVERY TIME (EXW-JEBEL ALI) : <span className="font-normal text-gray-600">UNITS IN STOCK, SUBJECTED PRIOR SAELS</span></p>
-                  <p className="font-bold mt-2">VALIDITY : <span className="font-normal text-gray-600">1 WEEK</span></p>
+                  <p className="font-bold mt-1.5">VALIDITY : <span className="font-normal text-gray-600">1 WEEK</span></p>
                 </div>
                 <div className="pt-2">
-                  <p className="font-black text-xs mb-2">PAYMENT TERMS</p>
-                  <p className="font-bold mb-4">100% PAYMENT BEFORE DELIVERY<br/>PAYMENT SHOULD BE COMPLETED WITHIN 10 DAYS FROM THE DATE OF DEPOSIT</p>
-                  <p className="font-black text-xs mb-2">PAYMENT DELAY</p>
-                  <p className="text-gray-600 mb-4">FINANCE CHARGES, VEHICLE MAINTANCE, STORAGE CHARGES WILL BE APPLICABLE IF PAYMENT DELAYED MORE THAN 20 DAYS AS AGREED.</p>
+                  <p className="font-black text-xs mb-1.5">PAYMENT TERMS</p>
+                  <p className="font-bold mb-3">100% PAYMENT BEFORE DELIVERY<br/>PAYMENT SHOULD BE COMPLETED WITHIN 10 DAYS FROM THE DATE OF DEPOSIT</p>
+                  <p className="font-black text-xs mb-1.5">PAYMENT DELAY</p>
+                  <p className="text-gray-600 mb-3">FINANCE CHARGES, VEHICLE MAINTANCE, STORAGE CHARGES WILL BE APPLICABLE IF PAYMENT DELAYED MORE THAN 20 DAYS AS AGREED.</p>
                   <p className="text-gray-600">ALL RIGHTS TO DECIDE THE FINANCE CHARGES WILL REMAIN WITH AUTOMONDO MANAGEMENT</p>
                 </div>
               </div>
 
-              {/* FIXED: space-y-1 au lieu de space-y-2 pour resserrer le dernier texte pour qu'il soit bien visible dans le cadre */}
+              {/* FIXED: Reduced space-y-2 to space-y-1 so it stays compact and fully visible */}
               <div className="text-[9px] font-bold space-y-1 pt-2 border-t border-gray-200">
                 <p>RECEIVING CONFIRMATION FROM THE BUYER THAT THERE IS NO ACTIVITY ASSOCIATED WITH MONEY LAUNDERING FROM THE ORIGIN OF THE MONEY RECEIVED OR ANYTHING SURROUNDING THE DEAL</p>
                 <p>NOT VALID FOR RE-EXPORT TO SANCTIONED COUNTRIES, GCC COUNTRIES & LOCAL REGISTRATION INSIDE UAE</p>
@@ -256,7 +257,7 @@ export default function AutoMondoDocument({
         {/* ======== EXACT RECEIPT TEMPLATE (PAYSAGE) == */}
         {/* ========================================== */}
         {type === 'RECEIPT' && (
-          <div className="w-full h-full bg-[#f5f5f5] flex flex-col pt-12 pb-0 justify-between">
+          <div className="w-full h-full bg-[#f5f5f5] relative z-10 flex flex-col pt-12 pb-0 justify-between">
             
             {/* Top Section */}
             <div className="bg-white px-12 py-8 flex justify-between items-center shadow-sm z-10 shrink-0">
@@ -316,13 +317,13 @@ export default function AutoMondoDocument({
             </div>
 
             {/* Dark Footer Section */}
-            <div className="bg-[#2a2a2a] w-full px-12 py-8 flex justify-between items-start text-white relative overflow-hidden mt-auto shrink-0">
-              <div className="flex items-center gap-3 z-10 mr-8">
-                 <img src="/logo.png" className="w-32 relative z-20" alt="AutoMondo Logo" />
-                 <h2 className="text-xl font-black leading-tight">AutoMondo<br/>FZ-LLC</h2>
+            <div className="bg-[#2a2a2a] w-full px-12 py-8 flex justify-between items-start text-white relative overflow-hidden mt-auto shrink-0 z-10">
+              <div className="flex items-center gap-3 z-50 mr-8 relative">
+                 <img src="/logo.png" className="w-32 relative z-50 block" alt="AutoMondo Logo" />
+                 <h2 className="text-xl font-black leading-tight relative z-50">AutoMondo<br/>FZ-LLC</h2>
               </div>
 
-              <div className="text-sm text-gray-300 font-light leading-snug z-10">
+              <div className="text-sm text-gray-300 font-light leading-snug z-50 relative">
                 <p>Compass Building,</p>
                 <p>Al Shohada Road,</p>
                 <p>AL Hamra Industrial Zone-FZ,</p>
@@ -330,16 +331,16 @@ export default function AutoMondoDocument({
                 <p className="font-bold text-white mt-2">www.automondo.net</p>
               </div>
 
-              <div className="text-center z-10 relative mt-4">
-                <p className="text-sm font-light text-gray-300 mb-2">Received By:</p>
-                <div className="border-b border-gray-500 w-48 mx-auto relative h-10">
+              <div className="text-center z-50 relative mt-4">
+                <p className="text-sm font-light text-gray-300 mb-2 relative z-50">Received By:</p>
+                <div className="border-b border-gray-500 w-48 mx-auto relative h-10 z-50">
                   <p 
-                    className="absolute bottom-1 w-full text-center text-[19px] whitespace-nowrap" 
+                    className="absolute bottom-1 w-full text-center text-[19px] whitespace-nowrap relative z-50" 
                     style={{ fontFamily: "'Segoe Script', 'Bradley Hand', 'Caveat', cursive" }}
                   >
                     Takieddine Semmache
                   </p>
-                  <img src="/stamp.png" className="absolute -top-12 -right-8 w-40 opacity-90 z-30" style={{ mixBlendMode: 'multiply' }} alt="AutoMondo Stamp" />
+                  <img src="/stamp.png" className="absolute -top-12 -right-8 w-40 opacity-90 z-50 block" alt="AutoMondo Stamp" />
                 </div>
               </div>
             </div>

@@ -46,9 +46,8 @@ export default function AutoMondoDocument({
   const currencySuffix = (currency === 'DA' || currency === 'DZD') ? 'Algerian dinars' : 'Dirhams';
   const dynamicAmountInWords = `${numberToWords(amount)} ${currencySuffix}.`;
 
-  // FIXED: Physical A4 dimensions guarantee zero zoom issues and exactly 1 page
-  const docWidth = type === 'INVOICE' ? '210mm' : '297mm';
-  const docHeight = type === 'INVOICE' ? '297mm' : '210mm';
+  const docWidth = type === 'INVOICE' ? '794px' : '1123px';
+  const docHeight = type === 'INVOICE' ? '1123px' : '794px';
 
   return (
     <div className="flex flex-col items-center w-full relative overflow-auto no-scrollbar">
@@ -56,9 +55,6 @@ export default function AutoMondoDocument({
       {/* --- STRICT EXACT 1-PAGE PRINT CSS --- */}
       <style dangerouslySetInnerHTML={{__html: `
         @media print {
-          ${isClientView ? `
-            html, body { display: none !important; }
-          ` : `
             @page { 
               size: ${type === 'INVOICE' ? 'A4 portrait' : 'A4 landscape'}; 
               margin: 0 !important; 
@@ -69,17 +65,17 @@ export default function AutoMondoDocument({
               padding: 0 !important; 
               width: ${docWidth} !important;
               height: ${docHeight} !important;
-              overflow: hidden !important;
+              overflow: visible !important;
             }
-            body * { visibility: hidden; }
+            body * { visibility: hidden !important; }
             
             #automondo-print-layer, #automondo-print-layer * { 
-              visibility: visible; 
+              visibility: visible !important; 
             }
             
-            /* FIXED: position 'fixed' au lieu de 'absolute' pour empêcher que le Modal ne coupe la page */
+            /* FIXED ROOT CAUSE: Position changed to 'absolute' to prevent the browser viewport from cutting off the bottom text */
             #automondo-print-layer { 
-              position: fixed !important; 
+              position: absolute !important; 
               left: 0 !important; 
               top: 0 !important; 
               width: ${docWidth} !important; 
@@ -88,12 +84,12 @@ export default function AutoMondoDocument({
               padding: 0 !important; 
               box-shadow: none !important; 
               z-index: 999999 !important;
+              overflow: visible !important;
               page-break-after: avoid !important; 
               page-break-before: avoid !important; 
               page-break-inside: avoid !important;
             }
             * { -webkit-print-color-adjust: exact !important; color-adjust: exact !important; print-color-adjust: exact !important; }
-          `}
         }
       `}} />
 
@@ -133,8 +129,7 @@ export default function AutoMondoDocument({
         {/* ======== EXACT INVOICE TEMPLATE (PORTRAIT) = */}
         {/* ========================================== */}
         {type === 'INVOICE' && (
-          /* FIXED: pb-3 au lieu de pb-8 pour gagner de l'espace vertical et ne pas couper le texte */
-          <div className="w-full h-full relative z-10 flex flex-col justify-between pb-3">
+          <div className="w-full h-full relative flex flex-col justify-between pb-8">
             
             <div>
               {/* Top Black/Gold Header Bar */}
@@ -216,8 +211,7 @@ export default function AutoMondoDocument({
 
             {/* Section Footer */}
             <div className="px-10 mt-auto">
-              {/* FIXED: mb-2 au lieu de mb-4 pour que ça remonte un peu */}
-              <div className="grid grid-cols-2 gap-8 text-[10px] mb-2">
+              <div className="grid grid-cols-2 gap-8 text-[10px] mb-4">
                 <div>
                   <p className="font-black text-sm mb-2">Payment Info:</p>
                   <p className="font-bold mb-0.5">Account Iban:</p>
@@ -241,8 +235,7 @@ export default function AutoMondoDocument({
                 </div>
               </div>
 
-              {/* FIXED: space-y-1 au lieu de space-y-2 pour resserrer le dernier texte pour qu'il soit bien visible dans le cadre */}
-              <div className="text-[9px] font-bold space-y-1 pt-2 border-t border-gray-200">
+              <div className="text-[9px] font-bold space-y-2 pt-2 border-t border-gray-200">
                 <p>RECEIVING CONFIRMATION FROM THE BUYER THAT THERE IS NO ACTIVITY ASSOCIATED WITH MONEY LAUNDERING FROM THE ORIGIN OF THE MONEY RECEIVED OR ANYTHING SURROUNDING THE DEAL</p>
                 <p>NOT VALID FOR RE-EXPORT TO SANCTIONED COUNTRIES, GCC COUNTRIES & LOCAL REGISTRATION INSIDE UAE</p>
                 <p><span className="underline text-blue-600">WARRANTY :</span> NO WARRANTY FOR VEHICLE & PARTS FOR RE-EXPORT</p>

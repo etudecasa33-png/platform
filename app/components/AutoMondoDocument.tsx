@@ -71,7 +71,11 @@ export default function AutoMondoDocument({
     window.print();
   };
 
-  // Bypass 307 Redirect in Client View by falling back to the authorized /api/portal route
+  // Use /api/portal?asset=... in client view to avoid 307 redirect, while keeping exact /logo.png & /stamp.png paths
+  const logoSrc = isClientView ? '/api/portal?asset=logo.png' : '/logo.png';
+  const invoiceStampSrc = isClientView ? '/api/portal?asset=stamp1.png' : '/stamp1.png';
+  const receiptStampSrc = isClientView ? '/api/portal?asset=stamp.png' : '/stamp.png';
+
   const handleImgError = (e: React.SyntheticEvent<HTMLImageElement, Event>, fallbacks: string[]) => {
     const img = e.currentTarget;
     const currentIdx = Number(img.dataset.fallbackIdx || 0);
@@ -181,8 +185,8 @@ export default function AutoMondoDocument({
               <div className="bg-[#161616] h-24 w-full flex items-center justify-end pr-8 relative">
                 <div className="absolute top-0 left-0 h-40 w-[350px] bg-[#1f2229] z-0 flex flex-col items-center pt-6" style={{ clipPath: 'polygon(0 0, 100% 0, 80% 100%, 0 100%)' }}>
                    <img 
-                     src="/logo.png" 
-                     onError={(e) => handleImgError(e, ['/api/portal?asset=logo.png'])}
+                     src={logoSrc} 
+                     onError={(e) => handleImgError(e, ['/logo.png', '/api/portal?asset=logo.png'])}
                      className="w-56 mt-2 mr-8 relative z-10" 
                      alt="AutoMondo Logo" 
                    />
@@ -255,8 +259,8 @@ export default function AutoMondoDocument({
 
                 <div className="flex justify-end mb-2 pr-12 h-28 relative">
                    <img 
-                     src="/stamp1.png" 
-                     onError={(e) => handleImgError(e, ['/api/portal?asset=stamp1.png', '/api/portal?asset=stamp.png', '/stamp.png'])}
+                     src={invoiceStampSrc} 
+                     onError={(e) => handleImgError(e, ['/api/portal?asset=stamp1.png', '/api/portal?asset=stamp.png', '/stamp1.png', '/stamp.png'])}
                      className="absolute right-10 top-[-10px] w-40 opacity-90 z-30" 
                      style={{ mixBlendMode: 'multiply' }} 
                      alt="AutoMondo Stamp" 
@@ -370,8 +374,8 @@ export default function AutoMondoDocument({
             <div className="bg-[#2a2a2a] w-full px-12 py-8 flex justify-between items-start text-white relative overflow-hidden mt-auto shrink-0">
               <div className="flex items-center gap-3 z-10 mr-8">
                  <img 
-                   src="/logo.png" 
-                   onError={(e) => handleImgError(e, ['/api/portal?asset=logo.png'])}
+                   src={logoSrc} 
+                   onError={(e) => handleImgError(e, ['/logo.png', '/api/portal?asset=logo.png'])}
                    className="w-32 relative z-20" 
                    alt="AutoMondo Logo" 
                  />
@@ -396,8 +400,8 @@ export default function AutoMondoDocument({
                     Takieddine Semmache
                   </p>
                   <img 
-                    src="/stamp.png" 
-                    onError={(e) => handleImgError(e, ['/api/portal?asset=stamp.png', '/api/portal?asset=stamp1.png', '/stamp1.png'])}
+                    src={receiptStampSrc} 
+                    onError={(e) => handleImgError(e, ['/api/portal?asset=stamp.png', '/api/portal?asset=stamp1.png', '/stamp.png', '/stamp1.png'])}
                     className="absolute -top-12 -right-8 w-40 opacity-90 z-30" 
                     style={{ mixBlendMode: 'multiply' }} 
                     alt="AutoMondo Stamp" 

@@ -3,28 +3,40 @@ import { cookies } from 'next/headers';
 import { PrismaClient } from '@prisma/client';
 import fs from 'fs';
 import path from 'path';
-import { NextResponse } from 'next/server';
 
-export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const asset = searchParams.get('asset');
-
-  // --- NOUVEAU: Bypass 307 redirect for public images in Client Portal ---
-  if (asset && ['logo.png', 'stamp.png', 'stamp1.png'].includes(asset)) {
-    const filePath = path.join(process.cwd(), 'public', asset);
-    if (fs.existsSync(filePath)) {
-      const fileBuffer = fs.readFileSync(filePath);
-      return new NextResponse(fileBuffer, {
-        headers: { 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=86400' },
-      });
-    }
-  }
-
-  // ... Khalli l'ba9i te3 l'code te3 GET kima rah exactement ...
 const prisma = new PrismaClient();
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    // 1. Servir les images (logo & stamp) directement via /api/portal pour éviter l'erreur 307 côté client
+    const { searchParams } = new URL(req.url);
+    const asset = searchParams.get('asset');
+
+    if (asset && ['logo.png', 'stamp.png', 'stamp1.png', 'logo.PNG', 'stamp.PNG', 'stamp1.PNG'].includes(asset)) {
+      const publicDir = path.join(process.cwd(), 'public');
+      const candidates = [
+        asset,
+        asset.toLowerCase(),
+        asset === 'stamp1.png' ? 'stamp.png' : asset,
+        asset === 'stamp.png' ? 'stamp1.png' : asset,
+      ];
+
+      for (const fileName of candidates) {
+        const filePath = path.join(publicDir, fileName);
+        if (fs.existsSync(filePath)) {
+          const fileBuffer = fs.readFileSync(filePath);
+          return new NextResponse(fileBuffer, {
+            status: 200,
+            headers: {
+              'Content-Type': 'image/png',
+              'Cache-Control': 'public, max-age=86400',
+            },
+          });
+        }
+      }
+    }
+
+    // 2. Récupération normale des données du client
     const cookieStore = await cookies();
     const clientId = cookieStore.get('client_auth')?.value;
 

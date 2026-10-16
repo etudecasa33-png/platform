@@ -1,5 +1,5 @@
 "use client";
-import React from 'react';
+import React, { useEffect } from 'react';
 
 type DocumentProps = {
   type: 'INVOICE' | 'RECEIPT';
@@ -46,8 +46,30 @@ export default function AutoMondoDocument({
   const currencySuffix = (currency === 'DA' || currency === 'DZD') ? 'Algerian dinars' : 'Dirhams';
   const dynamicAmountInWords = `${numberToWords(amount)} ${currencySuffix}.`;
 
-  const docWidth = type === 'INVOICE' ? '794px' : '1123px';
-  const docHeight = type === 'INVOICE' ? '1123px' : '794px';
+  // FIXED: Physical A4 dimensions guarantee zero zoom issues and exactly 1 page
+  const docWidth = type === 'INVOICE' ? '210mm' : '297mm';
+  const docHeight = type === 'INVOICE' ? '297mm' : '210mm';
+
+  // FIXED ROOT CAUSE: Reset scroll position to 0 so printing from scrolled pages (like Contracts) never clips the bottom text
+  useEffect(() => {
+    const savedScrollY = window.scrollY;
+    window.scrollTo(0, 0);
+
+    const handleBeforePrint = () => {
+      window.scrollTo(0, 0);
+    };
+
+    window.addEventListener('beforeprint', handleBeforePrint);
+    return () => {
+      window.removeEventListener('beforeprint', handleBeforePrint);
+      window.scrollTo(0, savedScrollY);
+    };
+  }, []);
+
+  const handlePrint = () => {
+    window.scrollTo(0, 0);
+    window.print();
+  };
 
   return (
     <div className="flex flex-col items-center w-full relative overflow-auto no-scrollbar">
@@ -55,6 +77,9 @@ export default function AutoMondoDocument({
       {/* --- STRICT EXACT 1-PAGE PRINT CSS --- */}
       <style dangerouslySetInnerHTML={{__html: `
         @media print {
+          ${isClientView ? `
+            html, body { display: none !important; }
+          ` : `
             @page { 
               size: ${type === 'INVOICE' ? 'A4 portrait' : 'A4 landscape'}; 
               margin: 0 !important; 
@@ -65,17 +90,27 @@ export default function AutoMondoDocument({
               padding: 0 !important; 
               width: ${docWidth} !important;
               height: ${docHeight} !important;
+              overflow: hidden !important;
+            }
+            body * { visibility: hidden; }
+            
+            /* Unlock parent modal wrappers so h-[90vh] and backdrop-blur never clip the bottom of the invoice */
+            div:has(#automondo-print-layer) {
               overflow: visible !important;
+              max-height: none !important;
+              height: auto !important;
+              backdrop-filter: none !important;
+              -webkit-backdrop-filter: none !important;
+              transform: none !important;
             }
-            body * { visibility: hidden !important; }
-            
+
             #automondo-print-layer, #automondo-print-layer * { 
-              visibility: visible !important; 
+              visibility: visible; 
             }
             
-            /* FIXED ROOT CAUSE: Position changed to 'absolute' to prevent the browser viewport from cutting off the bottom text */
+            /* FIXED: position 'fixed' au lieu de 'absolute' pour empêcher que le Modal ne coupe la page */
             #automondo-print-layer { 
-              position: absolute !important; 
+              position: fixed !important; 
               left: 0 !important; 
               top: 0 !important; 
               width: ${docWidth} !important; 
@@ -84,12 +119,12 @@ export default function AutoMondoDocument({
               padding: 0 !important; 
               box-shadow: none !important; 
               z-index: 999999 !important;
-              overflow: visible !important;
               page-break-after: avoid !important; 
               page-break-before: avoid !important; 
               page-break-inside: avoid !important;
             }
             * { -webkit-print-color-adjust: exact !important; color-adjust: exact !important; print-color-adjust: exact !important; }
+          `}
         }
       `}} />
 
@@ -97,7 +132,7 @@ export default function AutoMondoDocument({
       {!isClientView && (
         <div className="print:hidden w-full max-w-[1123px] flex justify-end mb-4 pr-4">
           <button 
-            onClick={() => window.print()} 
+            onClick={handlePrint} 
             className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-6 rounded-xl shadow-lg transition flex items-center gap-2"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
@@ -129,7 +164,8 @@ export default function AutoMondoDocument({
         {/* ======== EXACT INVOICE TEMPLATE (PORTRAIT) = */}
         {/* ========================================== */}
         {type === 'INVOICE' && (
-          <div className="w-full h-full relative flex flex-col justify-between pb-8">
+          /* FIXED: pb-3 au lieu de pb-8 pour gagner de l'espace vertical et ne pas couper le texte */
+          <div className="w-full h-full relative z-10 flex flex-col justify-between pb-3">
             
             <div>
               {/* Top Black/Gold Header Bar */}
@@ -211,7 +247,8 @@ export default function AutoMondoDocument({
 
             {/* Section Footer */}
             <div className="px-10 mt-auto">
-              <div className="grid grid-cols-2 gap-8 text-[10px] mb-4">
+              {/* FIXED: mb-2 au lieu de mb-4 pour que ça remonte un peu */}
+              <div className="grid grid-cols-2 gap-8 text-[10px] mb-2">
                 <div>
                   <p className="font-black text-sm mb-2">Payment Info:</p>
                   <p className="font-bold mb-0.5">Account Iban:</p>
@@ -235,7 +272,8 @@ export default function AutoMondoDocument({
                 </div>
               </div>
 
-              <div className="text-[9px] font-bold space-y-2 pt-2 border-t border-gray-200">
+              {/* FIXED: space-y-1 au lieu de space-y-2 pour resserrer le dernier texte pour qu'il soit bien visible dans le cadre */}
+              <div className="text-[9px] font-bold space-y-1 pt-2 border-t border-gray-200">
                 <p>RECEIVING CONFIRMATION FROM THE BUYER THAT THERE IS NO ACTIVITY ASSOCIATED WITH MONEY LAUNDERING FROM THE ORIGIN OF THE MONEY RECEIVED OR ANYTHING SURROUNDING THE DEAL</p>
                 <p>NOT VALID FOR RE-EXPORT TO SANCTIONED COUNTRIES, GCC COUNTRIES & LOCAL REGISTRATION INSIDE UAE</p>
                 <p><span className="underline text-blue-600">WARRANTY :</span> NO WARRANTY FOR VEHICLE & PARTS FOR RE-EXPORT</p>

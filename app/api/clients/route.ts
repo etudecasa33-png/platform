@@ -8,7 +8,7 @@ export async function GET() {
   try {
     const clients = await prisma.client.findMany({
       orderBy: { createdAt: 'desc' },
-      include: { invoices: true } // <-- THIS LINE IS NEW! It fetches the documents.
+      include: { invoices: true } 
     });
     return NextResponse.json(clients);
   } catch (error) {
@@ -25,18 +25,21 @@ export async function POST(request: Request) {
     const email = data.email || `${data.name.toLowerCase().replace(/\s+/g, '')}@client.automondo.net`;
     const password = data.password || Math.random().toString(36).slice(-8);
 
-    // If the CRM form sends an amount and item, we generate the full Invoice & Receipt
-    if (data.amount && data.itemDescription) {
+    // If the CRM form sends an amount and vehicle, we generate the full Invoice & Receipt
+    if (data.amount && data.vehicle) {
       const result = await prisma.$transaction(async (tx) => {
         
-        // Create client with login credentials
+        // Create client with login credentials AND new fields
         const client = await tx.client.create({
           data: { 
             name: data.name, 
             email: email,
             password: password,
             phone: data.phone || '',
-            notes: data.idNumber ? `ID: ${data.idNumber}` : '' 
+            address: data.address || '',
+            notes: data.notes || '',
+            idNumber: data.idNumber || null, // <-- SAVED
+            vehicle: data.vehicle || null    // <-- SAVED
           }
         });
 
@@ -46,7 +49,7 @@ export async function POST(request: Request) {
             amount: parseFloat(data.amount),
             currency: data.currency || 'DZD',
             category: 'Vehicle Purchase',
-            description: data.itemDescription,
+            description: data.vehicle,
             status: 'ACTIVE'
           }
         });
@@ -59,7 +62,7 @@ export async function POST(request: Request) {
             totalAmount: parseFloat(data.amount),
             paidAmount: parseFloat(data.amount),
             currency: data.currency || 'DZD',
-            metadata: { idNumber: data.idNumber, itemDescription: data.itemDescription } 
+            metadata: { idNumber: data.idNumber, itemDescription: data.vehicle } 
           }
         });
         
@@ -96,7 +99,10 @@ export async function POST(request: Request) {
           email: email,
           password: password,
           phone: data.phone || '',
-          notes: data.notes || ''
+          address: data.address || '',
+          notes: data.notes || '',
+          idNumber: data.idNumber || null, // <-- SAVED
+          vehicle: data.vehicle || null    // <-- SAVED
         }
       });
       return NextResponse.json(client, { status: 201 });

@@ -14,6 +14,8 @@ type Client = {
   address: string | null;
   password: string | null;
   notes: string | null; 
+  idNumber: string | null;
+  vehicle: string | null;
   invoices?: Invoice[]; 
 };
 
@@ -27,7 +29,7 @@ export default function ClientsDirectoryPage() {
   
   const [generatedDoc, setGeneratedDoc] = useState<{type: 'INVOICE' | 'RECEIPT', data: Invoice, clientName: string} | null>(null);
 
-  const defaultForm = { name: '', email: '', phone: '', address: '', password: '', notes: '', idNumber: '', amount: '', currency: 'DZD', itemDescription: '' };
+  const defaultForm = { name: '', email: '', phone: '', address: '', password: '', notes: '', idNumber: '', vehicle: '', amount: '', currency: 'DZD' };
   const [formState, setFormState] = useState(defaultForm);
 
   const fetchClients = async () => {
@@ -62,7 +64,9 @@ export default function ClientsDirectoryPage() {
       address: client.address || '',
       password: client.password || '',
       notes: client.notes || '',
-      idNumber: '', amount: '', currency: 'DZD', itemDescription: '' 
+      idNumber: client.idNumber || '',
+      vehicle: client.vehicle || '',
+      amount: '', currency: 'DZD' 
     });
   };
 
@@ -137,32 +141,11 @@ export default function ClientsDirectoryPage() {
               <div className="space-y-2 mt-auto pt-4 border-t border-gray-100 mb-3">
                 {client.email && <p className="text-sm text-gray-600 flex items-center gap-2 truncate"><Mail size={14} className="text-gray-400 shrink-0" /> {client.email}</p>}
                 {client.phone && <p className="text-sm text-gray-600 flex items-center gap-2 truncate"><Phone size={14} className="text-gray-400 shrink-0" /> {client.phone}</p>}
-                {client.password && <p className="text-sm text-gray-600 flex items-center gap-2 truncate"><Key size={14} className="text-gray-400 shrink-0" /> {client.password}</p>}
+                {client.vehicle && <p className="text-sm text-gray-600 flex items-center gap-2 truncate font-bold text-blue-700">Vehicle: {client.vehicle}</p>}
               </div>
 
-              {client.invoices && client.invoices.length > 0 && (
-                <div className="mb-4 flex flex-col gap-2">
-                  {client.invoices.map((inv) => (
-                    <div key={inv.id} className="flex gap-2">
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); setGeneratedDoc({ type: 'INVOICE', data: inv, clientName: client.name }); }} 
-                        className="flex-1 flex items-center justify-center gap-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 py-1.5 rounded-lg text-xs font-bold transition border border-blue-200"
-                      >
-                        <FileText size={14}/> Invoice
-                      </button>
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); setGeneratedDoc({ type: 'RECEIPT', data: inv, clientName: client.name }); }} 
-                        className="flex-1 flex items-center justify-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 py-1.5 rounded-lg text-xs font-bold transition border border-emerald-200"
-                      >
-                        <FileCheck size={14}/> Receipt
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-
               <div className="mt-auto bg-gray-50 text-gray-600 text-sm font-bold py-2.5 rounded-xl flex items-center justify-center gap-1 group-hover:bg-blue-50 group-hover:text-blue-700 transition">
-                View Full Profile <ChevronRight size={16} />
+                View Full Profile & Contracts <ChevronRight size={16} />
               </div>
             </div>
           ))}
@@ -183,6 +166,8 @@ export default function ClientsDirectoryPage() {
                   <label className="block text-sm font-bold text-gray-700 mb-1">Company / Client Name *</label>
                   <input type="text" required value={formState.name} onChange={e => setFormState({...formState, name: e.target.value})} className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
                 </div>
+                <div><label className="block text-sm font-bold text-gray-700 mb-1">ID Number (Carte Nationale)</label><input type="text" value={formState.idNumber} onChange={e => setFormState({...formState, idNumber: e.target.value})} className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. 204188745" /></div>
+                <div><label className="block text-sm font-bold text-gray-700 mb-1">Vehicle Name</label><input type="text" value={formState.vehicle} onChange={e => setFormState({...formState, vehicle: e.target.value})} className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. COOLRAY MANUAL" /></div>
                 <div><label className="block text-sm font-bold text-gray-700 mb-1">Email</label><input type="email" value={formState.email} onChange={e => setFormState({...formState, email: e.target.value})} className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" /></div>
                 <div><label className="block text-sm font-bold text-gray-700 mb-1">Phone</label><input type="text" value={formState.phone} onChange={e => setFormState({...formState, phone: e.target.value})} className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" /></div>
                 <div><label className="block text-sm font-bold text-gray-700 mb-1">Address</label><input type="text" value={formState.address} onChange={e => setFormState({...formState, address: e.target.value})} className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" /></div>
@@ -194,22 +179,18 @@ export default function ClientsDirectoryPage() {
                 <div className="mt-6 border-t border-blue-100 pt-6">
                   <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
                     <h4 className="font-bold text-blue-900 flex items-center gap-2 mb-4"><FileText size={18}/> Auto-Generate First Invoice (Optional)</h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="sm:col-span-2"><label className="block text-sm font-bold text-blue-900 mb-1">Vehicle / Item Description</label><input type="text" value={formState.itemDescription} onChange={e => setFormState({...formState, itemDescription: e.target.value})} className="w-full p-2 border border-blue-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g. COOLRAY MANUAL (GREY)"/></div>
-                      <div><label className="block text-sm font-bold text-blue-900 mb-1">ID Number (Carte Nationale)</label><input type="text" value={formState.idNumber} onChange={e => setFormState({...formState, idNumber: e.target.value})} className="w-full p-2 border border-blue-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g. 204188745"/></div>
-                      <div className="flex gap-2">
-                        <div className="flex-1"><label className="block text-sm font-bold text-blue-900 mb-1">Amount</label><input type="number" value={formState.amount} onChange={e => setFormState({...formState, amount: e.target.value})} className="w-full p-2 border border-blue-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="2450000"/></div>
-                        <div className="w-20"><label className="block text-sm font-bold text-blue-900 mb-1">Cur.</label><select value={formState.currency} onChange={e => setFormState({...formState, currency: e.target.value})} className="w-full p-2 border border-blue-200 rounded-lg outline-none font-bold"><option value="DZD">DA</option><option value="DH">DH</option></select></div>
-                      </div>
+                    <div className="flex gap-4">
+                      <div className="flex-1"><label className="block text-sm font-bold text-blue-900 mb-1">Amount</label><input type="number" value={formState.amount} onChange={e => setFormState({...formState, amount: e.target.value})} className="w-full p-2.5 border border-blue-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="2450000"/></div>
+                      <div className="w-24"><label className="block text-sm font-bold text-blue-900 mb-1">Cur.</label><select value={formState.currency} onChange={e => setFormState({...formState, currency: e.target.value})} className="w-full p-2.5 border border-blue-200 rounded-lg outline-none font-bold"><option value="DZD">DA</option><option value="DH">DH</option></select></div>
                     </div>
                   </div>
                 </div>
               )}
 
-              <div className="pt-4 border-t border-gray-100 flex gap-3 justify-end shrink-0 mt-4">
+              <div className="pt-4 border-t border-gray-100 flex gap-3 justify-end mt-4">
                 <button type="button" onClick={() => { setIsCreateModalOpen(false); setEditingClientId(null); }} className="px-5 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-100 rounded-lg transition">Cancel</button>
                 <button type="submit" className="px-5 py-2.5 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition flex items-center gap-2">
-                  {editingClientId ? 'Save Changes' : (formState.amount ? <><FileCheck size={16}/> Create & Generate Invoice</> : 'Create Client')}
+                  {editingClientId ? 'Save Changes' : (formState.amount ? <><FileCheck size={16}/> Create & Invoice</> : 'Create Client')}
                 </button>
               </div>
             </form>
@@ -224,7 +205,6 @@ export default function ClientsDirectoryPage() {
             <X size={20} /> Close Document
           </button>
 
-          {/* This wrapper allows pure scrolling down the document */}
           <div className="w-full max-w-5xl h-[90vh] bg-gray-200 rounded-xl overflow-y-auto shadow-2xl" dir="ltr">
             <div className="min-h-max w-full flex justify-center items-start p-4 sm:p-8">
               <AutoMondoDocument 

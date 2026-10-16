@@ -18,7 +18,9 @@ model Client {
   address      String?
   password     String?
   notes        String?
-  trackingLink String?   // <-- ADDED: Juste une chaine de caractères pour le lien
+  trackingLink String?
+  idNumber     String?   // <-- ZEDNA L'ID
+  vehicle      String?   // <-- ZEDNA L'VOITURE
 
   createdAt    DateTime  @default(now())
 

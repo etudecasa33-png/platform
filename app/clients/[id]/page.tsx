@@ -15,8 +15,7 @@ const SecurePdfViewer = dynamic(() => import('../../components/SecurePdfViewer')
 type ClientDocument = { id: string; title: string; details: string | null; date: string | null; fileUrls: string; createdAt: string; };
 type Contract = { id: string; startDate: string; expirationDate: string; status: string; fileUrls: string; };
 type Invoice = { id: string; title: string; currency: string; totalAmount: number; paidAmount: number; createdAt: string; invoiceNumber?: string; metadata?: any; };
-// FIXED: Zedt l'password hna bch mankhasrouhch
-type ClientProfile = { id: string; name: string; email: string | null; phone: string | null; address: string | null; password: string | null; notes: string | null; trackingLink?: string | null; contracts?: Contract[]; documents?: ClientDocument[]; invoices?: Invoice[]; };
+type ClientProfile = { id: string; name: string; email: string | null; phone: string | null; address: string | null; password: string | null; notes: string | null; trackingLink?: string | null; idNumber?: string | null; vehicle?: string | null; contracts?: Contract[]; documents?: ClientDocument[]; invoices?: Invoice[]; };
 
 export default function ClientProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const unwrappedParams = use(params);
@@ -78,7 +77,6 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
     return () => { document.body.style.overflow = 'unset'; };
   }, [secureFileUrl, generatedDoc]);
 
-  // FIXED: Sauvegarde sécurisée sans effacer le mot de passe
   const handleSaveTracking = async () => {
     if (!client) return;
     try {
@@ -87,8 +85,10 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
         email: client.email || '',
         phone: client.phone || '',
         address: client.address || '',
-        password: client.password || '', // GARDER LE MOT DE PASSE INTACT
+        password: client.password || '', 
         notes: client.notes || '',
+        idNumber: client.idNumber || '',
+        vehicle: client.vehicle || '',
         trackingLink: trackingLink
       };
       
@@ -104,7 +104,6 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
     }
   };
 
-  // FIXED: Suppression sécurisée sans effacer le mot de passe
   const handleDeleteTracking = async () => {
     if (!client) return;
     if (window.confirm('Are you sure you want to remove the tracking link?')) {
@@ -114,9 +113,11 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
           email: client.email || '',
           phone: client.phone || '',
           address: client.address || '',
-          password: client.password || '', // GARDER LE MOT DE PASSE INTACT
+          password: client.password || '',
           notes: client.notes || '',
-          trackingLink: '' // Efface juste le lien
+          idNumber: client.idNumber || '',
+          vehicle: client.vehicle || '',
+          trackingLink: ''
         };
         
         await fetch(`/api/clients/${clientId}`, {
@@ -238,6 +239,9 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
         <div className="flex-1">
           <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-3">{client.name}</h1>
           <div className="flex flex-wrap justify-center sm:justify-start gap-x-6 gap-y-2 text-xs sm:text-sm text-gray-600">
+            {/* ADDED ID AND VEHICLE BADGES */}
+            {client.idNumber && <div className="flex items-center gap-1.5 font-bold text-gray-800 bg-gray-100 px-2 py-1 rounded"><CreditCard size={14} className="text-gray-500"/> ID: {client.idNumber}</div>}
+            {client.vehicle && <div className="flex items-center gap-1.5 font-bold text-blue-800 bg-blue-50 px-2 py-1 rounded">🚗 {client.vehicle}</div>}
             {client.email && <div className="flex items-center gap-1.5"><Mail size={14} className="text-gray-400"/> {client.email}</div>}
             {client.phone && <div className="flex items-center gap-1.5"><Phone size={14} className="text-gray-400"/> {client.phone}</div>}
             {client.address && <div className="flex items-center gap-1.5"><MapPin size={14} className="text-gray-400"/> {client.address}</div>}
@@ -585,10 +589,10 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
               <AutoMondoDocument 
                 type={generatedDoc.type}
                 clientName={generatedDoc.clientName}
-                clientIdNumber={client.notes?.replace('ID: ', '') || ''} 
+                clientIdNumber={client.idNumber || generatedDoc.data.metadata?.idNumber} 
                 amount={generatedDoc.data.totalAmount}
                 currency={generatedDoc.data.currency}
-                itemDescription={generatedDoc.data.metadata?.itemDescription || generatedDoc.data.title}
+                itemDescription={client.vehicle || generatedDoc.data.metadata?.itemDescription || generatedDoc.data.title}
                 documentNumber={generatedDoc.data.invoiceNumber || 'PENDING'}
                 date={generatedDoc.data.createdAt}
               />

@@ -46,11 +46,9 @@ export default function AutoMondoDocument({
   const currencySuffix = (currency === 'DA' || currency === 'DZD') ? 'Algerian dinars' : 'Dirhams';
   const dynamicAmountInWords = `${numberToWords(amount)} ${currencySuffix}.`;
 
-  // FIXED: Physical A4 dimensions guarantee zero zoom issues and exactly 1 page
   const docWidth = type === 'INVOICE' ? '210mm' : '297mm';
   const docHeight = type === 'INVOICE' ? '297mm' : '210mm';
 
-  // FIXED ROOT CAUSE: Reset scroll position to 0 so printing from scrolled pages (like Contracts) never clips the bottom text
   useEffect(() => {
     const savedScrollY = window.scrollY;
     window.scrollTo(0, 0);
@@ -74,7 +72,6 @@ export default function AutoMondoDocument({
   return (
     <div className="flex flex-col items-center w-full relative overflow-auto no-scrollbar">
       
-      {/* --- STRICT EXACT 1-PAGE PRINT CSS --- */}
       <style dangerouslySetInnerHTML={{__html: `
         @media print {
           ${isClientView ? `
@@ -94,7 +91,6 @@ export default function AutoMondoDocument({
             }
             body * { visibility: hidden; }
             
-            /* Unlock parent modal wrappers so h-[90vh] and backdrop-blur never clip the bottom of the invoice */
             div:has(#automondo-print-layer) {
               overflow: visible !important;
               max-height: none !important;
@@ -108,7 +104,6 @@ export default function AutoMondoDocument({
               visibility: visible; 
             }
             
-            /* FIXED: position 'fixed' au lieu de 'absolute' pour empêcher que le Modal ne coupe la page */
             #automondo-print-layer { 
               position: fixed !important; 
               left: 0 !important; 
@@ -128,7 +123,6 @@ export default function AutoMondoDocument({
         }
       `}} />
 
-      {/* --- PRINT BUTTON: Hidden for clients --- */}
       {!isClientView && (
         <div className="print:hidden w-full max-w-[1123px] flex justify-end mb-4 pr-4">
           <button 
@@ -141,7 +135,6 @@ export default function AutoMondoDocument({
         </div>
       )}
 
-      {/* --- MAIN DOCUMENT CONTAINER --- */}
       <div 
         id="automondo-print-layer"
         className="bg-white font-sans select-none relative shadow-2xl print:shadow-none mx-auto overflow-hidden shrink-0" 
@@ -149,7 +142,6 @@ export default function AutoMondoDocument({
         onContextMenu={(e) => e.preventDefault()}
       >
         
-        {/* --- CLIENT WATERMARK --- */}
         {isClientView && (
           <div 
             className="absolute inset-0 z-50 pointer-events-none opacity-[0.05]" 
@@ -160,18 +152,21 @@ export default function AutoMondoDocument({
           />
         )}
 
-        {/* ========================================== */}
-        {/* ======== EXACT INVOICE TEMPLATE (PORTRAIT) = */}
-        {/* ========================================== */}
         {type === 'INVOICE' && (
-          /* FIXED: pb-3 au lieu de pb-8 pour gagner de l'espace vertical et ne pas couper le texte */
           <div className="w-full h-full relative z-10 flex flex-col justify-between pb-3">
             
             <div>
-              {/* Top Black/Gold Header Bar */}
               <div className="bg-[#161616] h-24 w-full flex items-center justify-end pr-8 relative">
                 <div className="absolute top-0 left-0 h-40 w-[350px] bg-[#1f2229] z-0 flex flex-col items-center pt-6" style={{ clipPath: 'polygon(0 0, 100% 0, 80% 100%, 0 100%)' }}>
-                   <img src="/logo.png" className="w-56 mt-2 mr-8 relative z-10" alt="AutoMondo Logo" />
+                   <img 
+                     src="/logo.png" 
+                     onError={(e) => {
+                       // Fallback to absolute URL or static asset path if relative path fails in portal
+                       e.currentTarget.src = window.location.origin + '/logo.png';
+                     }}
+                     className="w-56 mt-2 mr-8 relative z-10" 
+                     alt="AutoMondo Logo" 
+                   />
                 </div>
                 <h1 className="text-[#f7b718] text-2xl font-black tracking-widest uppercase relative z-20">PROFORMA INVOICE</h1>
               </div>
@@ -240,14 +235,23 @@ export default function AutoMondoDocument({
                 </div>
 
                 <div className="flex justify-end mb-2 pr-12 h-28 relative">
-                   <img src="/stamp1.png" className="absolute right-10 top-[-10px] w-40 opacity-90 z-30" style={{ mixBlendMode: 'multiply' }} alt="AutoMondo Stamp" />
+                   <img 
+                     src="/stamp1.png" 
+                     onError={(e) => { 
+                       e.currentTarget.onerror = () => {
+                         e.currentTarget.src = window.location.origin + '/stamp.png';
+                       };
+                       e.currentTarget.src = '/stamp.png'; 
+                     }}
+                     className="absolute right-10 top-[-10px] w-40 opacity-90 z-30" 
+                     style={{ mixBlendMode: 'multiply' }} 
+                     alt="AutoMondo Stamp" 
+                   />
                 </div>
               </div>
             </div>
 
-            {/* Section Footer */}
             <div className="px-10 mt-auto">
-              {/* FIXED: mb-2 au lieu de mb-4 pour que ça remonte un peu */}
               <div className="grid grid-cols-2 gap-8 text-[10px] mb-2">
                 <div>
                   <p className="font-black text-sm mb-2">Payment Info:</p>
@@ -272,7 +276,6 @@ export default function AutoMondoDocument({
                 </div>
               </div>
 
-              {/* FIXED: space-y-1 au lieu de space-y-2 pour resserrer le dernier texte pour qu'il soit bien visible dans le cadre */}
               <div className="text-[9px] font-bold space-y-1 pt-2 border-t border-gray-200">
                 <p>RECEIVING CONFIRMATION FROM THE BUYER THAT THERE IS NO ACTIVITY ASSOCIATED WITH MONEY LAUNDERING FROM THE ORIGIN OF THE MONEY RECEIVED OR ANYTHING SURROUNDING THE DEAL</p>
                 <p>NOT VALID FOR RE-EXPORT TO SANCTIONED COUNTRIES, GCC COUNTRIES & LOCAL REGISTRATION INSIDE UAE</p>
@@ -283,13 +286,9 @@ export default function AutoMondoDocument({
           </div>
         )}
 
-        {/* ========================================== */}
-        {/* ======== EXACT RECEIPT TEMPLATE (PAYSAGE) == */}
-        {/* ========================================== */}
         {type === 'RECEIPT' && (
           <div className="w-full h-full bg-[#f5f5f5] flex flex-col pt-12 pb-0 justify-between">
             
-            {/* Top Section */}
             <div className="bg-white px-12 py-8 flex justify-between items-center shadow-sm z-10 shrink-0">
               <div>
                 <h1 className="text-3xl font-black tracking-tight leading-none text-black">RECEIPT</h1>
@@ -315,7 +314,6 @@ export default function AutoMondoDocument({
               </div>
             </div>
 
-            {/* Middle Content Section */}
             <div className="px-12 py-16 flex-1 flex flex-col justify-center relative">
               <div className="flex items-end mb-10 w-full">
                 <span className="text-lg font-light text-gray-800 w-48 shrink-0">Payment Received</span>
@@ -346,10 +344,16 @@ export default function AutoMondoDocument({
               </div>
             </div>
 
-            {/* Dark Footer Section */}
             <div className="bg-[#2a2a2a] w-full px-12 py-8 flex justify-between items-start text-white relative overflow-hidden mt-auto shrink-0">
               <div className="flex items-center gap-3 z-10 mr-8">
-                 <img src="/logo.png" className="w-32 relative z-20" alt="AutoMondo Logo" />
+                 <img 
+                   src="/logo.png" 
+                   onError={(e) => {
+                     e.currentTarget.src = window.location.origin + '/logo.png';
+                   }}
+                   className="w-32 relative z-20" 
+                   alt="AutoMondo Logo" 
+                 />
                  <h2 className="text-xl font-black leading-tight">AutoMondo<br/>FZ-LLC</h2>
               </div>
 
@@ -370,7 +374,18 @@ export default function AutoMondoDocument({
                   >
                     Takieddine Semmache
                   </p>
-                  <img src="/stamp.png" className="absolute -top-12 -right-8 w-40 opacity-90 z-30" style={{ mixBlendMode: 'multiply' }} alt="AutoMondo Stamp" />
+                  <img 
+                    src="/stamp.png" 
+                    onError={(e) => { 
+                      e.currentTarget.onerror = () => {
+                        e.currentTarget.src = window.location.origin + '/stamp1.png';
+                      };
+                      e.currentTarget.src = '/stamp1.png'; 
+                    }}
+                    className="absolute -top-12 -right-8 w-40 opacity-90 z-30" 
+                    style={{ mixBlendMode: 'multiply' }} 
+                    alt="AutoMondo Stamp" 
+                  />
                 </div>
               </div>
             </div>

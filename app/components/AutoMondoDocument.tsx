@@ -46,8 +46,9 @@ export default function AutoMondoDocument({
   const currencySuffix = (currency === 'DA' || currency === 'DZD') ? 'Algerian dinars' : 'Dirhams';
   const dynamicAmountInWords = `${numberToWords(amount)} ${currencySuffix}.`;
 
-  const docWidth = type === 'INVOICE' ? '794px' : '1123px';
-  const docHeight = type === 'INVOICE' ? '1123px' : '794px';
+  // FIXED: Physical A4 dimensions guarantee zero zoom issues and exactly 1 page
+  const docWidth = type === 'INVOICE' ? '210mm' : '297mm';
+  const docHeight = type === 'INVOICE' ? '297mm' : '210mm';
 
   return (
     <div className="flex flex-col items-center w-full relative overflow-auto no-scrollbar">
@@ -62,28 +63,21 @@ export default function AutoMondoDocument({
               size: ${type === 'INVOICE' ? 'A4 portrait' : 'A4 landscape'}; 
               margin: 0 !important; 
             }
-            
-            /* SOLUTION PAGE BLANCHE : Annuler les flous et transformations du modal */
-            * {
-              transform: none !important;
-              filter: none !important;
-              backdrop-filter: none !important;
-            }
-
             html, body { 
               background: white !important; 
               margin: 0 !important; 
               padding: 0 !important; 
-              width: 100% !important;
-              height: 100% !important;
-              overflow: visible !important;
+              width: ${docWidth} !important;
+              height: ${docHeight} !important;
+              overflow: hidden !important;
             }
             body * { visibility: hidden; }
             
             #automondo-print-layer, #automondo-print-layer * { 
-              visibility: visible !important; 
+              visibility: visible; 
             }
             
+            /* FIXED: position 'fixed' au lieu de 'absolute' pour empêcher que le Modal ne coupe la page */
             #automondo-print-layer { 
               position: fixed !important; 
               left: 0 !important; 
@@ -139,25 +133,19 @@ export default function AutoMondoDocument({
         {/* ======== EXACT INVOICE TEMPLATE (PORTRAIT) = */}
         {/* ========================================== */}
         {type === 'INVOICE' && (
-          <div className="w-full h-full relative flex flex-col justify-between pb-8">
+          /* FIXED: pb-3 au lieu de pb-8 pour gagner de l'espace vertical et ne pas couper le texte */
+          <div className="w-full h-full relative z-10 flex flex-col justify-between pb-3">
             
             <div>
               {/* Top Black/Gold Header Bar */}
               <div className="bg-[#161616] h-24 w-full flex items-center justify-end pr-8 relative">
-                {/* 
-                  SOLUTION ESPACE: 
-                  - h-32 au lieu de h-40 (Réduit la hauteur de l'arrière-plan noir)
-                  - w-48 au lieu de w-56 (Logo légèrement plus petit pour correspondre)
-                  - pt-3 au lieu de pt-6 (Remonte le logo)
-                */}
-                <div className="absolute top-0 left-0 h-32 w-[350px] bg-[#1f2229] z-0 flex flex-col items-center pt-3" style={{ clipPath: 'polygon(0 0, 100% 0, 80% 100%, 0 100%)' }}>
-                   <img src="/logo.png" className="w-48 mt-1 mr-8 relative z-10" alt="AutoMondo Logo" />
+                <div className="absolute top-0 left-0 h-40 w-[350px] bg-[#1f2229] z-0 flex flex-col items-center pt-6" style={{ clipPath: 'polygon(0 0, 100% 0, 80% 100%, 0 100%)' }}>
+                   <img src="/logo.png" className="w-56 mt-2 mr-8 relative z-10" alt="AutoMondo Logo" />
                 </div>
                 <h1 className="text-[#f7b718] text-2xl font-black tracking-widest uppercase relative z-20">PROFORMA INVOICE</h1>
               </div>
 
-              {/* SOLUTION ESPACE: pt-12 au lieu de pt-24. Cela remonte tout le contenu et libère beaucoup d'espace pour le footer ! */}
-              <div className="px-10 pt-12"> 
+              <div className="px-10 pt-24"> 
                 <h2 className="text-4xl font-black tracking-widest text-[#231f20] mb-4">AUTOMONDO FZ-LLC</h2>
                 
                 <div className="flex justify-between text-[11px] font-bold text-[#4a4a4a] mb-6 leading-relaxed">
@@ -226,15 +214,20 @@ export default function AutoMondoDocument({
               </div>
             </div>
 
-            {/* Section Footer : Grâce à l'espace libéré en haut, ce bloc entier s'imprimera parfaitement */}
+            {/* Section Footer */}
             <div className="px-10 mt-auto">
-              <div className="grid grid-cols-2 gap-8 text-[10px] mb-4">
+              {/* FIXED: mb-2 au lieu de mb-4 pour que ça remonte un peu */}
+              <div className="grid grid-cols-2 gap-8 text-[10px] mb-2">
                 <div>
                   <p className="font-black text-sm mb-2">Payment Info:</p>
-                  <p className="font-bold mb-0.5">Account Iban: AE190860000009937709383</p>
-                  <p className="font-bold mb-0.5">A/C Name: AutoMondo FZ-LLC</p>
-                  <p className="font-bold mb-0.5">Bank Details: WIOBAEADXXX</p>
-                  <p className="font-bold mb-4">Business Address: Etihad Airways Centre 5th Floor, Abu Dhabi, UAE</p>
+                  <p className="font-bold mb-0.5">Account Iban:</p>
+                  <p className="text-gray-600 mb-2">AE190860000009937709383</p>
+                  <p className="font-bold mb-0.5">A/C Name:</p>
+                  <p className="text-gray-600 mb-2">AutoMondo FZ-LLC</p>
+                  <p className="font-bold mb-0.5">Bank Details:</p>
+                  <p className="text-gray-600 mb-2">WIOBAEADXXX</p>
+                  <p className="font-bold mb-0.5">Business Address:</p>
+                  <p className="text-gray-600 mb-4">Etihad Airways Centre 5th Floor, Abu Dhabi, UAE</p>
                   <p className="font-black text-xs mb-1">TERMS AND CONDITIONS :</p>
                   <p className="font-bold">DELIVERY TIME (EXW-JEBEL ALI) : <span className="font-normal text-gray-600">UNITS IN STOCK, SUBJECTED PRIOR SAELS</span></p>
                   <p className="font-bold mt-2">VALIDITY : <span className="font-normal text-gray-600">1 WEEK</span></p>
@@ -243,11 +236,13 @@ export default function AutoMondoDocument({
                   <p className="font-black text-xs mb-2">PAYMENT TERMS</p>
                   <p className="font-bold mb-4">100% PAYMENT BEFORE DELIVERY<br/>PAYMENT SHOULD BE COMPLETED WITHIN 10 DAYS FROM THE DATE OF DEPOSIT</p>
                   <p className="font-black text-xs mb-2">PAYMENT DELAY</p>
-                  <p className="text-gray-600 mb-4">FINANCE CHARGES, VEHICLE MAINTANCE, STORAGE CHARGES WILL BE APPLICABLE IF PAYMENT DELAYED MORE THAN 20 DAYS AS AGREED.<br/><br/>ALL RIGHTS TO DECIDE THE FINANCE CHARGES WILL REMAIN WITH AUTOMONDO MANAGEMENT</p>
+                  <p className="text-gray-600 mb-4">FINANCE CHARGES, VEHICLE MAINTANCE, STORAGE CHARGES WILL BE APPLICABLE IF PAYMENT DELAYED MORE THAN 20 DAYS AS AGREED.</p>
+                  <p className="text-gray-600">ALL RIGHTS TO DECIDE THE FINANCE CHARGES WILL REMAIN WITH AUTOMONDO MANAGEMENT</p>
                 </div>
               </div>
 
-              <div className="text-[9px] font-bold space-y-2 pt-2 border-t border-gray-200">
+              {/* FIXED: space-y-1 au lieu de space-y-2 pour resserrer le dernier texte pour qu'il soit bien visible dans le cadre */}
+              <div className="text-[9px] font-bold space-y-1 pt-2 border-t border-gray-200">
                 <p>RECEIVING CONFIRMATION FROM THE BUYER THAT THERE IS NO ACTIVITY ASSOCIATED WITH MONEY LAUNDERING FROM THE ORIGIN OF THE MONEY RECEIVED OR ANYTHING SURROUNDING THE DEAL</p>
                 <p>NOT VALID FOR RE-EXPORT TO SANCTIONED COUNTRIES, GCC COUNTRIES & LOCAL REGISTRATION INSIDE UAE</p>
                 <p><span className="underline text-blue-600">WARRANTY :</span> NO WARRANTY FOR VEHICLE & PARTS FOR RE-EXPORT</p>

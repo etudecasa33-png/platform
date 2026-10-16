@@ -2,7 +2,8 @@
 import { useEffect, useState, use } from 'react';
 import React from 'react';
 import Link from 'next/link';
-import { ArrowLeft, FileText, Calendar, AlertCircle, Eye, Pencil, Trash2, X, Phone, Mail, MapPin, Building2, Plus, CreditCard, FileCheck, Map, ExternalLink } from 'lucide-react';
+// Zedt l'icone "Key" hna l'password
+import { ArrowLeft, FileText, Calendar, AlertCircle, Eye, Pencil, Trash2, X, Phone, Mail, MapPin, Building2, Plus, CreditCard, FileCheck, Map, ExternalLink, Key } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
 import AutoMondoDocument from '../../components/AutoMondoDocument';
@@ -239,12 +240,18 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
         <div className="flex-1">
           <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-3">{client.name}</h1>
           <div className="flex flex-wrap justify-center sm:justify-start gap-x-6 gap-y-2 text-xs sm:text-sm text-gray-600">
-            {/* ADDED ID AND VEHICLE BADGES */}
             {client.idNumber && <div className="flex items-center gap-1.5 font-bold text-gray-800 bg-gray-100 px-2 py-1 rounded"><CreditCard size={14} className="text-gray-500"/> ID: {client.idNumber}</div>}
             {client.vehicle && <div className="flex items-center gap-1.5 font-bold text-blue-800 bg-blue-50 px-2 py-1 rounded">🚗 {client.vehicle}</div>}
             {client.email && <div className="flex items-center gap-1.5"><Mail size={14} className="text-gray-400"/> {client.email}</div>}
             {client.phone && <div className="flex items-center gap-1.5"><Phone size={14} className="text-gray-400"/> {client.phone}</div>}
             {client.address && <div className="flex items-center gap-1.5"><MapPin size={14} className="text-gray-400"/> {client.address}</div>}
+            
+            {/* NEW: Affichage de l'Mot de Passe hna */}
+            {client.password && (
+              <div className="flex items-center gap-1.5 font-bold text-purple-800 bg-purple-50 px-2 py-1 rounded border border-purple-100 shadow-sm">
+                <Key size={14} className="text-purple-500"/> Password: {client.password}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -306,6 +313,9 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {safeInvoices.map((inv) => {
                 const isPaidOff = (inv.totalAmount - inv.paidAmount) <= 0;
+                // NEW: Use vehicle name from metadata if it exists, otherwise fall back to title
+                const displayTitle = inv.metadata?.itemDescription || inv.title;
+
                 return (
                   <div key={inv.id} className="p-4 border border-gray-200 rounded-xl hover:shadow-md transition bg-white relative group">
                     <div className="flex justify-between items-start mb-2">
@@ -317,7 +327,8 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
                         <button onClick={() => handleDeleteInvoice(inv.id)} className="p-1 sm:p-0 text-gray-400 hover:text-red-600"><Trash2 size={14}/></button>
                       </div>
                     </div>
-                    <h5 className="font-bold text-gray-800 mb-1 text-sm sm:text-base truncate" title={inv.title}>{inv.title}</h5>
+                    {/* UPDATED: Displays vehicle name here */}
+                    <h5 className="font-bold text-gray-800 mb-1 text-sm sm:text-base truncate" title={displayTitle}>{displayTitle}</h5>
                     <p className="text-xl sm:text-2xl font-extrabold text-gray-900 mb-1">{inv.totalAmount.toLocaleString()} <span className="text-xs sm:text-sm text-gray-500">{inv.currency}</span></p>
                     <div className="flex justify-between text-xs sm:text-sm mt-3 border-t border-gray-100 pt-3">
                       <span className="text-gray-500 font-medium">Paid: <span className="text-green-600 font-bold">{inv.paidAmount.toLocaleString()}</span></span>
@@ -431,28 +442,34 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
             <div className="mb-6">
               <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">AutoMondo Documents</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                {safeInvoices.map((inv) => (
-                  <div key={inv.id} className="bg-white border border-blue-100 p-4 rounded-xl flex flex-col justify-between shadow-sm hover:shadow-md transition">
-                    <div className="mb-4">
-                      <p className="font-bold text-gray-800 text-sm truncate" title={inv.title}>{inv.title}</p>
-                      <p className="text-xs text-gray-500 font-medium">{inv.totalAmount.toLocaleString()} {inv.currency}</p>
+                {safeInvoices.map((inv) => {
+                  // NEW: Use vehicle name from metadata if it exists
+                  const displayTitle = inv.metadata?.itemDescription || inv.title;
+                  
+                  return (
+                    <div key={inv.id} className="bg-white border border-blue-100 p-4 rounded-xl flex flex-col justify-between shadow-sm hover:shadow-md transition">
+                      <div className="mb-4">
+                        {/* UPDATED: Displays vehicle name here */}
+                        <p className="font-bold text-gray-800 text-sm truncate" title={displayTitle}>{displayTitle}</p>
+                        <p className="text-xs text-gray-500 font-medium">{inv.totalAmount.toLocaleString()} {inv.currency}</p>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button 
+                          onClick={() => setGeneratedDoc({ type: 'INVOICE', data: inv, clientName: client.name })} 
+                          className="flex justify-center items-center gap-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 px-2 py-2 rounded-lg text-xs font-bold transition border border-blue-200"
+                        >
+                          <FileText size={14}/> Invoice
+                        </button>
+                        <button 
+                          onClick={() => setGeneratedDoc({ type: 'RECEIPT', data: inv, clientName: client.name })} 
+                          className="flex justify-center items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-2 py-2 rounded-lg text-xs font-bold transition border border-emerald-200"
+                        >
+                          <FileCheck size={14}/> Receipt
+                        </button>
+                      </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <button 
-                        onClick={() => setGeneratedDoc({ type: 'INVOICE', data: inv, clientName: client.name })} 
-                        className="flex justify-center items-center gap-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 px-2 py-2 rounded-lg text-xs font-bold transition border border-blue-200"
-                      >
-                        <FileText size={14}/> Invoice
-                      </button>
-                      <button 
-                        onClick={() => setGeneratedDoc({ type: 'RECEIPT', data: inv, clientName: client.name })} 
-                        className="flex justify-center items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-2 py-2 rounded-lg text-xs font-bold transition border border-emerald-200"
-                      >
-                        <FileCheck size={14}/> Receipt
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}

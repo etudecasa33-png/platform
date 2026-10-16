@@ -46,8 +46,9 @@ export default function AutoMondoDocument({
   const currencySuffix = (currency === 'DA' || currency === 'DZD') ? 'Algerian dinars' : 'Dirhams';
   const dynamicAmountInWords = `${numberToWords(amount)} ${currencySuffix}.`;
 
-  const docWidth = type === 'INVOICE' ? '794px' : '1123px';
-  const docHeight = type === 'INVOICE' ? '1123px' : '794px';
+  // FIXED: Physical A4 dimensions guarantee zero zoom issues and exactly 1 page
+  const docWidth = type === 'INVOICE' ? '210mm' : '297mm';
+  const docHeight = type === 'INVOICE' ? '297mm' : '210mm';
 
   return (
     <div className="flex flex-col items-center w-full relative overflow-auto no-scrollbar">
@@ -62,41 +63,27 @@ export default function AutoMondoDocument({
               size: ${type === 'INVOICE' ? 'A4 portrait' : 'A4 landscape'}; 
               margin: 0 !important; 
             }
-
-            /* SOLUTION PAGE BLANCHE : Annuler les effets de modal et forcer le fond blanc */
             html, body { 
               background: white !important; 
               margin: 0 !important; 
               padding: 0 !important; 
-              width: 100% !important;
-              height: 100% !important;
-              overflow: visible !important;
+              width: ${docWidth} !important;
+              height: ${docHeight} !important;
+              overflow: hidden !important;
             }
-
-            /* Cacher absolument tout le reste du site */
-            body * { 
-              visibility: hidden !important; 
-            }
+            body * { visibility: hidden; }
             
-            /* Rendre visible UNIQUEMENT notre document */
             #automondo-print-layer, #automondo-print-layer * { 
-              visibility: visible !important; 
-            }
-
-            /* Annuler les flous et les transformations qui causent les bugs d'impression Chrome */
-            * {
-              transform: none !important;
-              filter: none !important;
-              backdrop-filter: none !important;
+              visibility: visible; 
             }
             
-            /* Fixer le document exactement au format A4 en millimètres pour ne jamais déborder ou couper */
+            /* FIXED: position 'fixed' au lieu de 'absolute' pour empêcher que le Modal ne coupe la page */
             #automondo-print-layer { 
               position: fixed !important; 
               left: 0 !important; 
               top: 0 !important; 
-              width: ${type === 'INVOICE' ? '210mm' : '297mm'} !important; 
-              height: ${type === 'INVOICE' ? '296.5mm' : '209.5mm'} !important; 
+              width: ${docWidth} !important; 
+              height: ${docHeight} !important; 
               margin: 0 !important; 
               padding: 0 !important; 
               box-shadow: none !important; 
@@ -104,9 +91,7 @@ export default function AutoMondoDocument({
               page-break-after: avoid !important; 
               page-break-before: avoid !important; 
               page-break-inside: avoid !important;
-              box-sizing: border-box !important;
             }
-            
             * { -webkit-print-color-adjust: exact !important; color-adjust: exact !important; print-color-adjust: exact !important; }
           `}
         }
@@ -136,7 +121,7 @@ export default function AutoMondoDocument({
         {/* --- CLIENT WATERMARK --- */}
         {isClientView && (
           <div 
-            className="absolute inset-0 z-[1] pointer-events-none opacity-[0.05]" 
+            className="absolute inset-0 z-50 pointer-events-none opacity-[0.05]" 
             style={{ 
               backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' transform='rotate(-45 150 150)' font-size='28' fill='black' font-family='sans-serif' font-weight='900' letter-spacing='4'%3EAUTOMONDO%3C/text%3E%3C/svg%3E")`, 
               backgroundRepeat: 'repeat' 
@@ -148,13 +133,14 @@ export default function AutoMondoDocument({
         {/* ======== EXACT INVOICE TEMPLATE (PORTRAIT) = */}
         {/* ========================================== */}
         {type === 'INVOICE' && (
-          <div className="w-full h-full relative z-10 flex flex-col justify-between pb-8">
+          /* FIXED: pb-3 au lieu de pb-8 pour gagner de l'espace vertical et ne pas couper le texte */
+          <div className="w-full h-full relative z-10 flex flex-col justify-between pb-3">
             
             <div>
               {/* Top Black/Gold Header Bar */}
               <div className="bg-[#161616] h-24 w-full flex items-center justify-end pr-8 relative">
                 <div className="absolute top-0 left-0 h-40 w-[350px] bg-[#1f2229] z-0 flex flex-col items-center pt-6" style={{ clipPath: 'polygon(0 0, 100% 0, 80% 100%, 0 100%)' }}>
-                   <img src="/logo.png" className="w-56 mt-2 mr-8 relative z-50 block" alt="AutoMondo Logo" />
+                   <img src="/logo.png" className="w-56 mt-2 mr-8 relative z-10" alt="AutoMondo Logo" />
                 </div>
                 <h1 className="text-[#f7b718] text-2xl font-black tracking-widest uppercase relative z-20">PROFORMA INVOICE</h1>
               </div>
@@ -223,14 +209,15 @@ export default function AutoMondoDocument({
                 </div>
 
                 <div className="flex justify-end mb-2 pr-12 h-28 relative">
-                   <img src="/stamp1.png" className="absolute right-10 top-[-10px] w-40 opacity-90 z-50 block" alt="AutoMondo Stamp" />
+                   <img src="/stamp1.png" className="absolute right-10 top-[-10px] w-40 opacity-90 z-30" style={{ mixBlendMode: 'multiply' }} alt="AutoMondo Stamp" />
                 </div>
               </div>
             </div>
 
             {/* Section Footer */}
             <div className="px-10 mt-auto">
-              <div className="grid grid-cols-2 gap-8 text-[10px] mb-4">
+              {/* FIXED: mb-2 au lieu de mb-4 pour que ça remonte un peu */}
+              <div className="grid grid-cols-2 gap-8 text-[10px] mb-2">
                 <div>
                   <p className="font-black text-sm mb-2">Payment Info:</p>
                   <p className="font-bold mb-0.5">Account Iban:</p>
@@ -254,7 +241,8 @@ export default function AutoMondoDocument({
                 </div>
               </div>
 
-              <div className="text-[9px] font-bold space-y-2 pt-2 border-t border-gray-200">
+              {/* FIXED: space-y-1 au lieu de space-y-2 pour resserrer le dernier texte pour qu'il soit bien visible dans le cadre */}
+              <div className="text-[9px] font-bold space-y-1 pt-2 border-t border-gray-200">
                 <p>RECEIVING CONFIRMATION FROM THE BUYER THAT THERE IS NO ACTIVITY ASSOCIATED WITH MONEY LAUNDERING FROM THE ORIGIN OF THE MONEY RECEIVED OR ANYTHING SURROUNDING THE DEAL</p>
                 <p>NOT VALID FOR RE-EXPORT TO SANCTIONED COUNTRIES, GCC COUNTRIES & LOCAL REGISTRATION INSIDE UAE</p>
                 <p><span className="underline text-blue-600">WARRANTY :</span> NO WARRANTY FOR VEHICLE & PARTS FOR RE-EXPORT</p>
@@ -268,7 +256,7 @@ export default function AutoMondoDocument({
         {/* ======== EXACT RECEIPT TEMPLATE (PAYSAGE) == */}
         {/* ========================================== */}
         {type === 'RECEIPT' && (
-          <div className="w-full h-full bg-[#f5f5f5] relative z-10 flex flex-col pt-12 pb-0 justify-between">
+          <div className="w-full h-full bg-[#f5f5f5] flex flex-col pt-12 pb-0 justify-between">
             
             {/* Top Section */}
             <div className="bg-white px-12 py-8 flex justify-between items-center shadow-sm z-10 shrink-0">
@@ -328,13 +316,13 @@ export default function AutoMondoDocument({
             </div>
 
             {/* Dark Footer Section */}
-            <div className="bg-[#2a2a2a] w-full px-12 py-8 flex justify-between items-start text-white relative overflow-hidden mt-auto shrink-0 z-10">
-              <div className="flex items-center gap-3 z-50 mr-8 relative">
-                 <img src="/logo.png" className="w-32 relative z-50 block" alt="AutoMondo Logo" />
-                 <h2 className="text-xl font-black leading-tight relative z-50">AutoMondo<br/>FZ-LLC</h2>
+            <div className="bg-[#2a2a2a] w-full px-12 py-8 flex justify-between items-start text-white relative overflow-hidden mt-auto shrink-0">
+              <div className="flex items-center gap-3 z-10 mr-8">
+                 <img src="/logo.png" className="w-32 relative z-20" alt="AutoMondo Logo" />
+                 <h2 className="text-xl font-black leading-tight">AutoMondo<br/>FZ-LLC</h2>
               </div>
 
-              <div className="text-sm text-gray-300 font-light leading-snug z-50 relative">
+              <div className="text-sm text-gray-300 font-light leading-snug z-10">
                 <p>Compass Building,</p>
                 <p>Al Shohada Road,</p>
                 <p>AL Hamra Industrial Zone-FZ,</p>
@@ -342,16 +330,16 @@ export default function AutoMondoDocument({
                 <p className="font-bold text-white mt-2">www.automondo.net</p>
               </div>
 
-              <div className="text-center z-50 relative mt-4">
-                <p className="text-sm font-light text-gray-300 mb-2 relative z-50">Received By:</p>
-                <div className="border-b border-gray-500 w-48 mx-auto relative h-10 z-50">
+              <div className="text-center z-10 relative mt-4">
+                <p className="text-sm font-light text-gray-300 mb-2">Received By:</p>
+                <div className="border-b border-gray-500 w-48 mx-auto relative h-10">
                   <p 
-                    className="absolute bottom-1 w-full text-center text-[19px] whitespace-nowrap relative z-50" 
+                    className="absolute bottom-1 w-full text-center text-[19px] whitespace-nowrap" 
                     style={{ fontFamily: "'Segoe Script', 'Bradley Hand', 'Caveat', cursive" }}
                   >
                     Takieddine Semmache
                   </p>
-                  <img src="/stamp.png" className="absolute -top-12 -right-8 w-40 opacity-90 z-50 block" alt="AutoMondo Stamp" />
+                  <img src="/stamp.png" className="absolute -top-12 -right-8 w-40 opacity-90 z-30" style={{ mixBlendMode: 'multiply' }} alt="AutoMondo Stamp" />
                 </div>
               </div>
             </div>

@@ -46,13 +46,13 @@ export default function AutoMondoDocument({
   const currencySuffix = (currency === 'DA' || currency === 'DZD') ? 'Algerian dinars' : 'Dirhams';
   const dynamicAmountInWords = `${numberToWords(amount)} ${currencySuffix}.`;
 
-  const docWidth = type === 'INVOICE' ? '210mm' : '297mm';
-  const docHeight = type === 'INVOICE' ? '297mm' : '210mm';
+  const docWidth = type === 'INVOICE' ? '794px' : '1123px';
+  const docHeight = type === 'INVOICE' ? '1123px' : '794px';
 
   return (
     <div className="flex flex-col items-center w-full relative overflow-auto no-scrollbar">
       
-      {/* --- CSS IMPRESSION : CORRIGÉ POUR LA PAGE BLANCHE ET LE TEXTE COMPLET --- */}
+      {/* --- STRICT EXACT 1-PAGE PRINT CSS --- */}
       <style dangerouslySetInnerHTML={{__html: `
         @media print {
           ${isClientView ? `
@@ -63,23 +63,21 @@ export default function AutoMondoDocument({
               margin: 0 !important; 
             }
             
-            /* SOLUTION PAGE BLANCHE : overflow: visible obligatoirement */
-            html, body { 
-              background: white !important; 
-              margin: 0 !important; 
-              padding: 0 !important; 
-              width: auto !important;
-              height: auto !important;
-              overflow: visible !important;
-            }
-
-            /* ANNULER LE BLUR ET LES FILTRES QUI CAUSENT LA PAGE BLANCHE */
+            /* SOLUTION PAGE BLANCHE : Annuler les flous et transformations du modal */
             * {
               transform: none !important;
               filter: none !important;
               backdrop-filter: none !important;
             }
 
+            html, body { 
+              background: white !important; 
+              margin: 0 !important; 
+              padding: 0 !important; 
+              width: 100% !important;
+              height: 100% !important;
+              overflow: visible !important;
+            }
             body * { visibility: hidden; }
             
             #automondo-print-layer, #automondo-print-layer * { 
@@ -87,7 +85,7 @@ export default function AutoMondoDocument({
             }
             
             #automondo-print-layer { 
-              position: absolute !important; 
+              position: fixed !important; 
               left: 0 !important; 
               top: 0 !important; 
               width: ${docWidth} !important; 
@@ -122,7 +120,7 @@ export default function AutoMondoDocument({
       <div 
         id="automondo-print-layer"
         className="bg-white font-sans select-none relative shadow-2xl print:shadow-none mx-auto overflow-hidden shrink-0" 
-        style={{ width: type === 'INVOICE' ? '794px' : '1123px', height: type === 'INVOICE' ? '1123px' : '794px' }}
+        style={{ width: docWidth, height: docHeight }}
         onContextMenu={(e) => e.preventDefault()}
       >
         
@@ -141,23 +139,28 @@ export default function AutoMondoDocument({
         {/* ======== EXACT INVOICE TEMPLATE (PORTRAIT) = */}
         {/* ========================================== */}
         {type === 'INVOICE' && (
-          // SOLUTION TEXTE NA9ES: pb-4 f blasset pb-8 bch ntal3o l'footer
-          <div className="w-full h-full relative flex flex-col justify-between pb-4">
+          <div className="w-full h-full relative flex flex-col justify-between pb-8">
             
             <div>
               {/* Top Black/Gold Header Bar */}
               <div className="bg-[#161616] h-24 w-full flex items-center justify-end pr-8 relative">
-                <div className="absolute top-0 left-0 h-40 w-[350px] bg-[#1f2229] z-0 flex flex-col items-center pt-6" style={{ clipPath: 'polygon(0 0, 100% 0, 80% 100%, 0 100%)' }}>
-                   <img src="/logo.png" className="w-56 mt-2 mr-8 relative z-10" alt="AutoMondo Logo" />
+                {/* 
+                  SOLUTION ESPACE: 
+                  - h-32 au lieu de h-40 (Réduit la hauteur de l'arrière-plan noir)
+                  - w-48 au lieu de w-56 (Logo légèrement plus petit pour correspondre)
+                  - pt-3 au lieu de pt-6 (Remonte le logo)
+                */}
+                <div className="absolute top-0 left-0 h-32 w-[350px] bg-[#1f2229] z-0 flex flex-col items-center pt-3" style={{ clipPath: 'polygon(0 0, 100% 0, 80% 100%, 0 100%)' }}>
+                   <img src="/logo.png" className="w-48 mt-1 mr-8 relative z-10" alt="AutoMondo Logo" />
                 </div>
                 <h1 className="text-[#f7b718] text-2xl font-black tracking-widest uppercase relative z-20">PROFORMA INVOICE</h1>
               </div>
 
-              {/* L'espace taht l'logo mrigel (pt-20) */}
-              <div className="px-10 pt-20"> 
+              {/* SOLUTION ESPACE: pt-12 au lieu de pt-24. Cela remonte tout le contenu et libère beaucoup d'espace pour le footer ! */}
+              <div className="px-10 pt-12"> 
                 <h2 className="text-4xl font-black tracking-widest text-[#231f20] mb-4">AUTOMONDO FZ-LLC</h2>
                 
-                <div className="flex justify-between text-[11px] font-bold text-[#4a4a4a] mb-5 leading-relaxed">
+                <div className="flex justify-between text-[11px] font-bold text-[#4a4a4a] mb-6 leading-relaxed">
                   <div>
                     <p className="text-right text-lg mb-1 font-black arabic-text">اوتوموندو ش.م.ح</p>
                     <p>Compass Building,</p>
@@ -172,7 +175,7 @@ export default function AutoMondoDocument({
                   </div>
                 </div>
 
-                <div className="flex justify-between text-xs font-black text-black mb-5">
+                <div className="flex justify-between text-xs font-black text-black mb-6">
                   <div>
                     <p>INVOICE TO: {clientName.toUpperCase()}</p>
                     <p className="ml-6 mt-0.5">DESTINATION : ALGERIA</p>
@@ -196,63 +199,55 @@ export default function AutoMondoDocument({
                   </thead>
                   <tbody className="bg-[#dcdcdc] text-black font-medium">
                     <tr>
-                      {/* SOLUTION TEXTE NA9ES: py-2 au lieu de py-4 bch nrbhou espace vertical */}
-                      <td className="border border-black py-2 px-2 text-center text-[10px]">1</td>
-                      <td className="border border-black py-2 px-3">{itemDescription.toUpperCase()}</td>
-                      <td className="border border-black py-2 px-2 text-right">{formattedAmount}{currency}</td>
-                      <td className="border border-black py-2 px-2 text-center">1</td>
-                      <td className="border border-black py-2 px-2 text-right">{formattedAmount}{currency}</td>
+                      <td className="border border-black py-4 px-2 text-center text-[10px]">1</td>
+                      <td className="border border-black py-4 px-3">{itemDescription.toUpperCase()}</td>
+                      <td className="border border-black py-4 px-2 text-right">{formattedAmount}{currency}</td>
+                      <td className="border border-black py-4 px-2 text-center">1</td>
+                      <td className="border border-black py-4 px-2 text-right">{formattedAmount}{currency}</td>
                     </tr>
                   </tbody>
                 </table>
 
-                <div className="flex justify-between text-xs font-black mb-3 px-1">
+                <div className="flex justify-between text-xs font-black mb-4 px-1">
                   <p>Thank you for your business</p>
                   <p className="font-normal text-gray-600 mr-20">TAX: 0.00%</p>
                   <p>SUB TOTAL: {formattedAmount} {currency}</p>
                 </div>
 
-                <div className="flex justify-end mb-4">
+                <div className="flex justify-end mb-6">
                   <div className="bg-black text-white px-4 py-2 font-black text-sm flex items-center gap-2">
                     TOTAL: <span className="text-[#3b82f6] underline underline-offset-4 decoration-2">{formattedAmount} {currency}</span>
                   </div>
                 </div>
 
-                {/* SOLUTION TEXTE NA9ES: h-20 au lieu de h-28 bch ntal3ou l'footer */}
-                <div className="flex justify-end pr-12 h-20 relative">
-                   <img src="/stamp.png" className="absolute right-10 top-[-10px] w-40 opacity-90 z-30" style={{ mixBlendMode: 'multiply' }} alt="AutoMondo Stamp" />
+                <div className="flex justify-end mb-2 pr-12 h-28 relative">
+                   <img src="/stamp1.png" className="absolute right-10 top-[-10px] w-40 opacity-90 z-30" style={{ mixBlendMode: 'multiply' }} alt="AutoMondo Stamp" />
                 </div>
               </div>
             </div>
 
-            {/* Section Footer */}
+            {/* Section Footer : Grâce à l'espace libéré en haut, ce bloc entier s'imprimera parfaitement */}
             <div className="px-10 mt-auto">
-              <div className="grid grid-cols-2 gap-8 text-[10px] mb-3">
+              <div className="grid grid-cols-2 gap-8 text-[10px] mb-4">
                 <div>
-                  <p className="font-black text-sm mb-1.5">Payment Info:</p>
-                  <p className="font-bold mb-0.5">Account Iban:</p>
-                  <p className="text-gray-600 mb-1.5">AE190860000009937709383</p>
-                  <p className="font-bold mb-0.5">A/C Name:</p>
-                  <p className="text-gray-600 mb-1.5">AutoMondo FZ-LLC</p>
-                  <p className="font-bold mb-0.5">Bank Details:</p>
-                  <p className="text-gray-600 mb-1.5">WIOBAEADXXX</p>
-                  <p className="font-bold mb-0.5">Business Address:</p>
-                  <p className="text-gray-600 mb-3">Etihad Airways Centre 5th Floor, Abu Dhabi, UAE</p>
+                  <p className="font-black text-sm mb-2">Payment Info:</p>
+                  <p className="font-bold mb-0.5">Account Iban: AE190860000009937709383</p>
+                  <p className="font-bold mb-0.5">A/C Name: AutoMondo FZ-LLC</p>
+                  <p className="font-bold mb-0.5">Bank Details: WIOBAEADXXX</p>
+                  <p className="font-bold mb-4">Business Address: Etihad Airways Centre 5th Floor, Abu Dhabi, UAE</p>
                   <p className="font-black text-xs mb-1">TERMS AND CONDITIONS :</p>
                   <p className="font-bold">DELIVERY TIME (EXW-JEBEL ALI) : <span className="font-normal text-gray-600">UNITS IN STOCK, SUBJECTED PRIOR SAELS</span></p>
-                  <p className="font-bold mt-1.5">VALIDITY : <span className="font-normal text-gray-600">1 WEEK</span></p>
+                  <p className="font-bold mt-2">VALIDITY : <span className="font-normal text-gray-600">1 WEEK</span></p>
                 </div>
                 <div className="pt-2">
-                  <p className="font-black text-xs mb-1.5">PAYMENT TERMS</p>
-                  <p className="font-bold mb-3">100% PAYMENT BEFORE DELIVERY<br/>PAYMENT SHOULD BE COMPLETED WITHIN 10 DAYS FROM THE DATE OF DEPOSIT</p>
-                  <p className="font-black text-xs mb-1.5">PAYMENT DELAY</p>
-                  <p className="text-gray-600 mb-3">FINANCE CHARGES, VEHICLE MAINTANCE, STORAGE CHARGES WILL BE APPLICABLE IF PAYMENT DELAYED MORE THAN 20 DAYS AS AGREED.</p>
-                  <p className="text-gray-600">ALL RIGHTS TO DECIDE THE FINANCE CHARGES WILL REMAIN WITH AUTOMONDO MANAGEMENT</p>
+                  <p className="font-black text-xs mb-2">PAYMENT TERMS</p>
+                  <p className="font-bold mb-4">100% PAYMENT BEFORE DELIVERY<br/>PAYMENT SHOULD BE COMPLETED WITHIN 10 DAYS FROM THE DATE OF DEPOSIT</p>
+                  <p className="font-black text-xs mb-2">PAYMENT DELAY</p>
+                  <p className="text-gray-600 mb-4">FINANCE CHARGES, VEHICLE MAINTANCE, STORAGE CHARGES WILL BE APPLICABLE IF PAYMENT DELAYED MORE THAN 20 DAYS AS AGREED.<br/><br/>ALL RIGHTS TO DECIDE THE FINANCE CHARGES WILL REMAIN WITH AUTOMONDO MANAGEMENT</p>
                 </div>
               </div>
 
-              {/* SOLUTION TEXTE NA9ES: space-y-1 bch l'ktiba ttkteb mlih f l'espace li b9a */}
-              <div className="text-[9px] font-bold space-y-1 pt-2 border-t border-gray-200">
+              <div className="text-[9px] font-bold space-y-2 pt-2 border-t border-gray-200">
                 <p>RECEIVING CONFIRMATION FROM THE BUYER THAT THERE IS NO ACTIVITY ASSOCIATED WITH MONEY LAUNDERING FROM THE ORIGIN OF THE MONEY RECEIVED OR ANYTHING SURROUNDING THE DEAL</p>
                 <p>NOT VALID FOR RE-EXPORT TO SANCTIONED COUNTRIES, GCC COUNTRIES & LOCAL REGISTRATION INSIDE UAE</p>
                 <p><span className="underline text-blue-600">WARRANTY :</span> NO WARRANTY FOR VEHICLE & PARTS FOR RE-EXPORT</p>

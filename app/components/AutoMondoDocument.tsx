@@ -46,13 +46,13 @@ export default function AutoMondoDocument({
   const currencySuffix = (currency === 'DA' || currency === 'DZD') ? 'Algerian dinars' : 'Dirhams';
   const dynamicAmountInWords = `${numberToWords(amount)} ${currencySuffix}.`;
 
-  const docWidth = type === 'INVOICE' ? '794px' : '1123px';
-  const docHeight = type === 'INVOICE' ? '1123px' : '794px';
+  const docWidth = type === 'INVOICE' ? '210mm' : '297mm';
+  const docHeight = type === 'INVOICE' ? '297mm' : '210mm';
 
   return (
     <div className="flex flex-col items-center w-full relative overflow-auto no-scrollbar">
       
-      {/* --- STRICT EXACT 1-PAGE PRINT CSS --- */}
+      {/* --- CSS IMPRESSION : CORRIGÉ POUR LA PAGE BLANCHE ET LE TEXTE COMPLET --- */}
       <style dangerouslySetInnerHTML={{__html: `
         @media print {
           ${isClientView ? `
@@ -62,21 +62,30 @@ export default function AutoMondoDocument({
               size: ${type === 'INVOICE' ? 'A4 portrait' : 'A4 landscape'}; 
               margin: 0 !important; 
             }
+            
+            /* SOLUTION PAGE BLANCHE : overflow: visible obligatoirement */
             html, body { 
               background: white !important; 
               margin: 0 !important; 
               padding: 0 !important; 
-              width: ${docWidth} !important;
-              height: ${docHeight} !important;
-              overflow: hidden !important;
+              width: auto !important;
+              height: auto !important;
+              overflow: visible !important;
             }
+
+            /* ANNULER LE BLUR ET LES FILTRES QUI CAUSENT LA PAGE BLANCHE */
+            * {
+              transform: none !important;
+              filter: none !important;
+              backdrop-filter: none !important;
+            }
+
             body * { visibility: hidden; }
             
             #automondo-print-layer, #automondo-print-layer * { 
-              visibility: visible; 
+              visibility: visible !important; 
             }
             
-            /* FIXED: position absolute anchors it safely, preventing Chrome refresh bugs */
             #automondo-print-layer { 
               position: absolute !important; 
               left: 0 !important; 
@@ -113,7 +122,7 @@ export default function AutoMondoDocument({
       <div 
         id="automondo-print-layer"
         className="bg-white font-sans select-none relative shadow-2xl print:shadow-none mx-auto overflow-hidden shrink-0" 
-        style={{ width: docWidth, height: docHeight }}
+        style={{ width: type === 'INVOICE' ? '794px' : '1123px', height: type === 'INVOICE' ? '1123px' : '794px' }}
         onContextMenu={(e) => e.preventDefault()}
       >
         
@@ -132,8 +141,8 @@ export default function AutoMondoDocument({
         {/* ======== EXACT INVOICE TEMPLATE (PORTRAIT) = */}
         {/* ========================================== */}
         {type === 'INVOICE' && (
-          // FIXED: Changed pb-8 to pb-4 to give the footer more breathing room at the bottom
-          <div className="w-full h-full relative z-10 flex flex-col justify-between pb-4">
+          // SOLUTION TEXTE NA9ES: pb-4 f blasset pb-8 bch ntal3o l'footer
+          <div className="w-full h-full relative flex flex-col justify-between pb-4">
             
             <div>
               {/* Top Black/Gold Header Bar */}
@@ -144,7 +153,7 @@ export default function AutoMondoDocument({
                 <h1 className="text-[#f7b718] text-2xl font-black tracking-widest uppercase relative z-20">PROFORMA INVOICE</h1>
               </div>
 
-              {/* FIXED: Changed pt-24 to pt-20. Still clears the logo perfectly but saves 16px of vertical space */}
+              {/* L'espace taht l'logo mrigel (pt-20) */}
               <div className="px-10 pt-20"> 
                 <h2 className="text-4xl font-black tracking-widest text-[#231f20] mb-4">AUTOMONDO FZ-LLC</h2>
                 
@@ -156,7 +165,7 @@ export default function AutoMondoDocument({
                     <p>AL Hamra Industrial Zone-FZ,</p>
                     <p>Ras Al Khaimah, United Arab Emirates</p>
                   </div>
-                  <div className="text-right pt-6">
+                  <div className="text-right pt-8">
                     <p>Email : contact@automondodxb.com</p>
                     <p>Mob: +971 54 423 2321</p>
                     <p>Website : www.automondo.net</p>
@@ -187,12 +196,12 @@ export default function AutoMondoDocument({
                   </thead>
                   <tbody className="bg-[#dcdcdc] text-black font-medium">
                     <tr>
-                      {/* FIXED: Changed py-4 to py-3 to tighten the table slightly and save space */}
-                      <td className="border border-black py-3 px-2 text-center text-[10px]">1</td>
-                      <td className="border border-black py-3 px-3">{itemDescription.toUpperCase()}</td>
-                      <td className="border border-black py-3 px-2 text-right">{formattedAmount}{currency}</td>
-                      <td className="border border-black py-3 px-2 text-center">1</td>
-                      <td className="border border-black py-3 px-2 text-right">{formattedAmount}{currency}</td>
+                      {/* SOLUTION TEXTE NA9ES: py-2 au lieu de py-4 bch nrbhou espace vertical */}
+                      <td className="border border-black py-2 px-2 text-center text-[10px]">1</td>
+                      <td className="border border-black py-2 px-3">{itemDescription.toUpperCase()}</td>
+                      <td className="border border-black py-2 px-2 text-right">{formattedAmount}{currency}</td>
+                      <td className="border border-black py-2 px-2 text-center">1</td>
+                      <td className="border border-black py-2 px-2 text-right">{formattedAmount}{currency}</td>
                     </tr>
                   </tbody>
                 </table>
@@ -209,8 +218,8 @@ export default function AutoMondoDocument({
                   </div>
                 </div>
 
-                {/* FIXED: Reduced height from h-28 to h-24 to pull the footer up safely */}
-                <div className="flex justify-end mb-2 pr-12 h-24 relative">
+                {/* SOLUTION TEXTE NA9ES: h-20 au lieu de h-28 bch ntal3ou l'footer */}
+                <div className="flex justify-end pr-12 h-20 relative">
                    <img src="/stamp.png" className="absolute right-10 top-[-10px] w-40 opacity-90 z-30" style={{ mixBlendMode: 'multiply' }} alt="AutoMondo Stamp" />
                 </div>
               </div>
@@ -222,11 +231,11 @@ export default function AutoMondoDocument({
                 <div>
                   <p className="font-black text-sm mb-1.5">Payment Info:</p>
                   <p className="font-bold mb-0.5">Account Iban:</p>
-                  <p className="text-gray-600 mb-2">AE190860000009937709383</p>
+                  <p className="text-gray-600 mb-1.5">AE190860000009937709383</p>
                   <p className="font-bold mb-0.5">A/C Name:</p>
-                  <p className="text-gray-600 mb-2">AutoMondo FZ-LLC</p>
+                  <p className="text-gray-600 mb-1.5">AutoMondo FZ-LLC</p>
                   <p className="font-bold mb-0.5">Bank Details:</p>
-                  <p className="text-gray-600 mb-2">WIOBAEADXXX</p>
+                  <p className="text-gray-600 mb-1.5">WIOBAEADXXX</p>
                   <p className="font-bold mb-0.5">Business Address:</p>
                   <p className="text-gray-600 mb-3">Etihad Airways Centre 5th Floor, Abu Dhabi, UAE</p>
                   <p className="font-black text-xs mb-1">TERMS AND CONDITIONS :</p>
@@ -242,7 +251,7 @@ export default function AutoMondoDocument({
                 </div>
               </div>
 
-              {/* FIXED: Reduced space-y-2 to space-y-1 so it stays compact and fully visible */}
+              {/* SOLUTION TEXTE NA9ES: space-y-1 bch l'ktiba ttkteb mlih f l'espace li b9a */}
               <div className="text-[9px] font-bold space-y-1 pt-2 border-t border-gray-200">
                 <p>RECEIVING CONFIRMATION FROM THE BUYER THAT THERE IS NO ACTIVITY ASSOCIATED WITH MONEY LAUNDERING FROM THE ORIGIN OF THE MONEY RECEIVED OR ANYTHING SURROUNDING THE DEAL</p>
                 <p>NOT VALID FOR RE-EXPORT TO SANCTIONED COUNTRIES, GCC COUNTRIES & LOCAL REGISTRATION INSIDE UAE</p>
@@ -257,7 +266,7 @@ export default function AutoMondoDocument({
         {/* ======== EXACT RECEIPT TEMPLATE (PAYSAGE) == */}
         {/* ========================================== */}
         {type === 'RECEIPT' && (
-          <div className="w-full h-full bg-[#f5f5f5] relative z-10 flex flex-col pt-12 pb-0 justify-between">
+          <div className="w-full h-full bg-[#f5f5f5] flex flex-col pt-12 pb-0 justify-between">
             
             {/* Top Section */}
             <div className="bg-white px-12 py-8 flex justify-between items-center shadow-sm z-10 shrink-0">
@@ -317,13 +326,13 @@ export default function AutoMondoDocument({
             </div>
 
             {/* Dark Footer Section */}
-            <div className="bg-[#2a2a2a] w-full px-12 py-8 flex justify-between items-start text-white relative overflow-hidden mt-auto shrink-0 z-10">
-              <div className="flex items-center gap-3 z-50 mr-8 relative">
-                 <img src="/logo.png" className="w-32 relative z-50 block" alt="AutoMondo Logo" />
-                 <h2 className="text-xl font-black leading-tight relative z-50">AutoMondo<br/>FZ-LLC</h2>
+            <div className="bg-[#2a2a2a] w-full px-12 py-8 flex justify-between items-start text-white relative overflow-hidden mt-auto shrink-0">
+              <div className="flex items-center gap-3 z-10 mr-8">
+                 <img src="/logo.png" className="w-32 relative z-20" alt="AutoMondo Logo" />
+                 <h2 className="text-xl font-black leading-tight">AutoMondo<br/>FZ-LLC</h2>
               </div>
 
-              <div className="text-sm text-gray-300 font-light leading-snug z-50 relative">
+              <div className="text-sm text-gray-300 font-light leading-snug z-10">
                 <p>Compass Building,</p>
                 <p>Al Shohada Road,</p>
                 <p>AL Hamra Industrial Zone-FZ,</p>
@@ -331,16 +340,16 @@ export default function AutoMondoDocument({
                 <p className="font-bold text-white mt-2">www.automondo.net</p>
               </div>
 
-              <div className="text-center z-50 relative mt-4">
-                <p className="text-sm font-light text-gray-300 mb-2 relative z-50">Received By:</p>
-                <div className="border-b border-gray-500 w-48 mx-auto relative h-10 z-50">
+              <div className="text-center z-10 relative mt-4">
+                <p className="text-sm font-light text-gray-300 mb-2">Received By:</p>
+                <div className="border-b border-gray-500 w-48 mx-auto relative h-10">
                   <p 
-                    className="absolute bottom-1 w-full text-center text-[19px] whitespace-nowrap relative z-50" 
+                    className="absolute bottom-1 w-full text-center text-[19px] whitespace-nowrap" 
                     style={{ fontFamily: "'Segoe Script', 'Bradley Hand', 'Caveat', cursive" }}
                   >
                     Takieddine Semmache
                   </p>
-                  <img src="/stamp.png" className="absolute -top-12 -right-8 w-40 opacity-90 z-50 block" alt="AutoMondo Stamp" />
+                  <img src="/stamp.png" className="absolute -top-12 -right-8 w-40 opacity-90 z-30" style={{ mixBlendMode: 'multiply' }} alt="AutoMondo Stamp" />
                 </div>
               </div>
             </div>

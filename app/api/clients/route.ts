@@ -25,8 +25,11 @@ export async function POST(request: Request) {
     const email = data.email || `${data.name.toLowerCase().replace(/\s+/g, '')}@client.automondo.net`;
     const password = data.password || Math.random().toString(36).slice(-8);
 
-    // If the CRM form sends an amount and vehicle, we generate the full Invoice & Receipt
-    if (data.amount && data.vehicle) {
+    // FIXED: Accept 'itemDescription' from the CRM frontend instead of expecting 'vehicle'
+    const vehicleOrItem = data.itemDescription || data.vehicle;
+
+    // If the CRM form sends an amount and itemDescription, we generate the full Invoice & Receipt
+    if (data.amount && vehicleOrItem) {
       const result = await prisma.$transaction(async (tx) => {
         
         // Create client with login credentials AND new fields
@@ -38,8 +41,8 @@ export async function POST(request: Request) {
             phone: data.phone || '',
             address: data.address || '',
             notes: data.notes || '',
-            idNumber: data.idNumber || null, // <-- SAVED
-            vehicle: data.vehicle || null    // <-- SAVED
+            idNumber: data.idNumber || null, 
+            vehicle: vehicleOrItem || null    
           }
         });
 
@@ -49,7 +52,7 @@ export async function POST(request: Request) {
             amount: parseFloat(data.amount),
             currency: data.currency || 'DZD',
             category: 'Vehicle Purchase',
-            description: data.vehicle,
+            description: vehicleOrItem,
             status: 'ACTIVE'
           }
         });
@@ -62,7 +65,7 @@ export async function POST(request: Request) {
             totalAmount: parseFloat(data.amount),
             paidAmount: parseFloat(data.amount),
             currency: data.currency || 'DZD',
-            metadata: { idNumber: data.idNumber, itemDescription: data.vehicle } 
+            metadata: { idNumber: data.idNumber, itemDescription: vehicleOrItem } 
           }
         });
         
@@ -101,8 +104,8 @@ export async function POST(request: Request) {
           phone: data.phone || '',
           address: data.address || '',
           notes: data.notes || '',
-          idNumber: data.idNumber || null, // <-- SAVED
-          vehicle: data.vehicle || null    // <-- SAVED
+          idNumber: data.idNumber || null,
+          vehicle: vehicleOrItem || null    
         }
       });
       return NextResponse.json(client, { status: 201 });

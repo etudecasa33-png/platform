@@ -57,13 +57,6 @@ export default function DinarPage() {
     fetchData(); 
   };
 
-  const handleDeleteLog = async (logId: string) => {
-    if (window.confirm("Are you sure you want to PERMANENTLY erase this record from the history? This action cannot be undone.")) {
-      await fetch(`/api/audit/${logId}`, { method: 'DELETE' });
-      fetchData(); 
-    }
-  };
-
   const formatDateTime = (dateString: string) => {
     return new Date(dateString).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   };
@@ -78,7 +71,6 @@ export default function DinarPage() {
 
     const tableData = auditLogs.map((log) => {
       const amount = log.newData?.amount ?? log.previousData?.amount;
-      // FIX: Forced 'en-US' so it generates a comma (1,000) instead of a space/slash
       const amountStr = amount ? `${amount.toLocaleString('en-US')} DA` : '-';
       const reason = log.action === 'DELETE' ? `Reason: ${log.newData?.reason}` : (log.newData?.description || log.newData?.category || 'Logged transaction');
       
@@ -167,7 +159,7 @@ export default function DinarPage() {
                 <div className="bg-slate-200 p-2.5 rounded-xl text-slate-700"><History size={20} /></div>
                 <div>
                   <h2 className="text-lg font-black text-gray-900">System History Log (DZD)</h2>
-                  <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mt-0.5">Edit and Delete Capabilities Unlocked</p>
+                  <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mt-0.5">Read-Only History</p>
                 </div>
               </div>
               
@@ -182,9 +174,9 @@ export default function DinarPage() {
             </div>
 
             <div className="overflow-y-auto overflow-x-auto w-full flex-1 p-0">
-              <table className="w-full text-left min-w-[1100px]">
+              <table className="w-full text-left min-w-[1000px]">
                 <thead className="bg-white text-gray-400 border-b border-gray-200 text-xs uppercase tracking-widest sticky top-0 z-10">
-                  <tr><th className="p-5 font-bold">Timestamp</th><th className="p-5 font-bold">Action Taken</th><th className="p-5 font-bold">Admin User</th><th className="p-5 font-bold text-right">Amount Affected</th><th className="p-5 font-bold">Reason / Details</th><th className="p-5 font-bold text-center">Erase Log</th></tr>
+                  <tr><th className="p-5 font-bold">Timestamp</th><th className="p-5 font-bold">Action Taken</th><th className="p-5 font-bold">Admin User</th><th className="p-5 font-bold text-right">Amount Affected</th><th className="p-5 font-bold">Reason / Details</th></tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 text-sm">
                   {auditLogs.map((log) => {
@@ -221,11 +213,6 @@ export default function DinarPage() {
                                {log.newData?.description ? log.newData.description : `Logged ${log.newData?.category || 'transaction'}`}
                              </span>
                           )}
-                        </td>
-                        <td className="p-5 text-center">
-                           <button onClick={() => handleDeleteLog(log.id)} className="p-2 bg-gray-100 text-gray-400 rounded-lg hover:bg-rose-100 hover:text-rose-600 transition" title="Permanently erase this record">
-                             <Trash2 size={18} />
-                           </button>
                         </td>
                       </tr>
                     );

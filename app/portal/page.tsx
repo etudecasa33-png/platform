@@ -134,23 +134,23 @@ export default function ClientPortal() {
           </div>
         </div>
 
-        {/* --- TRACKING BANNER (BLEU) --- */}
+        {/* --- TRACKING BANNER (SLATE-900 / LIKE OLD WELCOME BANNER) --- */}
         {client.trackingLink && (
-          <div className="mb-10 bg-gradient-to-r from-blue-600 to-indigo-700 rounded-3xl p-6 shadow-xl text-white flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-start border-l-4 border-blue-400">
-            <div className="flex flex-col md:flex-row items-center gap-4">
-              <div className="bg-white/20 p-4 rounded-full shrink-0">
-                <MapPin size={28} className="text-white sm:w-8 sm:h-8" />
+          <div className="mb-10 bg-slate-900 rounded-[2rem] p-6 sm:p-8 shadow-xl border border-slate-800 text-white flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-start relative overflow-hidden">
+            <div className="flex flex-col md:flex-row items-center gap-4 relative z-10">
+              <div className="bg-slate-800 p-4 rounded-full shrink-0 border border-slate-700">
+                <MapPin size={28} className="text-slate-300 sm:w-8 sm:h-8" />
               </div>
               <div>
                 <h3 className="text-xl md:text-2xl font-black mb-1 text-white">{t.trackVehicle}</h3>
-                <p className="text-blue-100 text-sm sm:text-base font-medium">{t.trackDesc}</p>
+                <p className="text-slate-400 text-sm sm:text-base font-medium">{t.trackDesc}</p>
               </div>
             </div>
             <a
               href={client.trackingLink}
               target="_blank"
               rel="noreferrer"
-              className="bg-white text-blue-700 hover:bg-gray-50 px-6 sm:px-8 py-3 sm:py-3.5 rounded-xl font-black text-base sm:text-lg transition-transform hover:scale-105 shadow-lg whitespace-nowrap flex items-center justify-center gap-2 w-full md:w-auto"
+              className="bg-slate-800 border border-slate-700 text-white hover:bg-slate-700 px-6 sm:px-8 py-3 sm:py-3.5 rounded-xl font-black text-base sm:text-lg transition-transform hover:scale-105 shadow-lg whitespace-nowrap flex items-center justify-center gap-2 w-full md:w-auto relative z-10"
             >
               <Map size={20} />
               {t.trackBtn}

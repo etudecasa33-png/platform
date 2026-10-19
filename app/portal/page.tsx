@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from 'react';
-import { FileText, Calendar, Building2, Eye, FolderOpen, ShieldCheck, X, Globe, FileCheck, Map, MapPin } from 'lucide-react';
+import { FileText, Calendar, Eye, FolderOpen, ShieldCheck, X, Globe, FileCheck, Map, MapPin } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { Cairo } from 'next/font/google';
 
@@ -21,7 +21,7 @@ type ClientProfile = { id: string; name: string; trackingLink?: string | null; c
 const translations = {
   en: {
     loadingPortal: "Loading your secure portal...",
-    secureConnection: "Client Workspace",
+    secureConnection: "Automondo Workspace",
     welcome: "Welcome,",
     billing: "Billing & Invoices",
     fullyPaid: "Fully Paid",
@@ -43,7 +43,7 @@ const translations = {
   },
   ar: {
     loadingPortal: "جاري تحميل بوابتك الآمنة...",
-    secureConnection: "مساحة عمل العميل",
+    secureConnection: "مساحة عمل أوتوموندو",
     welcome: "مرحباً،",
     billing: "الفواتير والمدفوعات",
     fullyPaid: "مدفوع بالكامل",
@@ -96,7 +96,7 @@ export default function ClientPortal() {
   return (
     <div 
       dir={lang === 'ar' ? 'rtl' : 'ltr'} 
-      className={`min-h-screen bg-slate-50 p-4 sm:p-6 md:p-12 select-none overflow-x-hidden ${lang === 'ar' ? cairo.className : 'font-sans'}`} 
+      className={`min-h-screen bg-[#f4f6f9] p-4 sm:p-6 md:p-12 select-none overflow-x-hidden ${lang === 'ar' ? cairo.className : 'font-sans'}`} 
       onContextMenu={(e) => e.preventDefault()}
     >
       <div className="max-w-5xl mx-auto relative">
@@ -106,40 +106,50 @@ export default function ClientPortal() {
             onClick={() => setLang(lang === 'en' ? 'ar' : 'en')}
             className={`flex items-center gap-2 bg-white px-4 py-2 rounded-xl border border-gray-200 shadow-sm hover:bg-gray-50 transition text-sm font-bold text-gray-700 ${lang === 'en' ? cairo.className : 'font-sans'}`}
           >
-            <Globe size={18} className="text-blue-600" />
+            <Globe size={18} className="text-[#f7b718]" />
             {t.langToggle}
           </button>
         </div>
 
-        <div className="bg-slate-900 p-6 sm:p-8 rounded-3xl shadow-xl flex flex-col md:flex-row items-center md:items-start text-center md:text-start gap-6 mb-8 border border-slate-800 text-white">
-          <div className="bg-blue-500/20 p-5 rounded-2xl text-blue-400 shrink-0">
-            <Building2 size={40} className="sm:w-12 sm:h-12" />
+        {/* --- HEADER WITH AUTOMONDO LOGO --- */}
+        <div className="bg-slate-900 p-6 sm:p-8 rounded-[2rem] shadow-xl flex flex-col md:flex-row items-center md:items-center text-center md:text-start gap-6 mb-8 border border-slate-800 text-white relative overflow-hidden">
+          
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl pointer-events-none transform translate-x-1/2 -translate-y-1/2"></div>
+
+          <div className="bg-[#161616] p-4 sm:p-5 rounded-2xl shrink-0 border-b-[3px] border-[#f7b718] flex items-center justify-center shadow-lg relative z-10 w-full md:w-auto max-w-[200px] mx-auto md:mx-0">
+            <img 
+              src="/api/portal?asset=logo.png" 
+              onError={(e) => { e.currentTarget.src = '/api/portal?asset=looogo.PNG'; }}
+              alt="Automondo Logo" 
+              className="w-32 sm:w-40 h-auto object-contain drop-shadow-md"
+            />
           </div>
-          <div className="w-full">
+
+          <div className="w-full relative z-10">
             <div className="flex items-center justify-center md:justify-start gap-2 mb-2">
-              <ShieldCheck size={18} className="text-emerald-400" />
-              <span className="text-emerald-400 font-bold text-xs sm:text-sm tracking-widest uppercase">{t.secureConnection}</span>
+              <ShieldCheck size={18} className="text-[#f7b718]" />
+              <span className="text-[#f7b718] font-bold text-xs sm:text-sm tracking-widest uppercase">{t.secureConnection}</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black mb-1">{t.welcome} {client.name}</h1>
           </div>
         </div>
 
         {client.trackingLink && (
-          <div className="mb-10 bg-gradient-to-r from-blue-600 to-indigo-700 rounded-3xl p-6 shadow-xl text-white flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-start">
+          <div className="mb-10 bg-gradient-to-r from-[#161616] to-slate-800 rounded-3xl p-6 shadow-xl text-white flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-start border-l-4 border-[#f7b718]">
             <div className="flex flex-col md:flex-row items-center gap-4">
-              <div className="bg-white/20 p-4 rounded-full shrink-0">
-                <MapPin size={28} className="text-white sm:w-8 sm:h-8" />
+              <div className="bg-[#f7b718]/20 p-4 rounded-full shrink-0">
+                <MapPin size={28} className="text-[#f7b718] sm:w-8 sm:h-8" />
               </div>
               <div>
-                <h3 className="text-xl md:text-2xl font-black mb-1">{t.trackVehicle}</h3>
-                <p className="text-blue-100 text-sm sm:text-base font-medium">{t.trackDesc}</p>
+                <h3 className="text-xl md:text-2xl font-black mb-1 text-white">{t.trackVehicle}</h3>
+                <p className="text-gray-300 text-sm sm:text-base font-medium">{t.trackDesc}</p>
               </div>
             </div>
             <a
               href={client.trackingLink}
               target="_blank"
               rel="noreferrer"
-              className="bg-white text-blue-700 hover:bg-gray-50 px-6 sm:px-8 py-3 sm:py-3.5 rounded-xl font-black text-base sm:text-lg transition-transform hover:scale-105 shadow-lg whitespace-nowrap flex items-center justify-center gap-2 w-full md:w-auto"
+              className="bg-gradient-to-r from-[#f7b718] to-[#e5a60b] text-[#161616] px-6 sm:px-8 py-3 sm:py-3.5 rounded-xl font-black text-base sm:text-lg transition-transform hover:scale-105 shadow-lg whitespace-nowrap flex items-center justify-center gap-2 w-full md:w-auto"
             >
               <Map size={20} />
               {t.trackBtn}
@@ -160,7 +170,6 @@ export default function ClientPortal() {
                   <div key={inv.id} className="bg-white border border-gray-200 rounded-2xl p-4 sm:p-5 shadow-sm relative overflow-hidden transition hover:shadow-md">
                     <div className={`absolute top-0 start-0 w-full h-1.5 ${isPaidOff ? 'bg-green-500' : 'bg-amber-400'}`} />
                     
-                    {/* FIXED: 100% Responsive Top Section (Price wraps down cleanly on mobile) */}
                     <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-4 mb-4 mt-2">
                       <div className="pe-0 sm:pe-4 border-b sm:border-0 border-gray-100 pb-4 sm:pb-0 w-full">
                         <span className={`inline-block px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider mb-2 ${isPaidOff ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'}`}>
@@ -178,7 +187,6 @@ export default function ClientPortal() {
                       </div>
                     </div>
 
-                    {/* FIXED: 100% Responsive Bottom Section (Splits into 2 stacked rows on tiny screens) */}
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-gray-50 p-4 rounded-xl border border-gray-100 gap-3 sm:gap-0">
                       <div className="flex justify-between items-center w-full sm:w-auto sm:block">
                         <p className="text-xs text-gray-500 font-medium mb-0 sm:mb-0.5">{t.amountPaid}</p>
@@ -202,10 +210,10 @@ export default function ClientPortal() {
         )}
 
         <div className="flex flex-col sm:flex-row gap-3 mb-8">
-          <button onClick={() => setActiveTab('contracts')} className={`flex items-center justify-center gap-2 px-6 py-3.5 sm:py-3 rounded-xl font-bold transition-all w-full sm:w-auto ${activeTab === 'contracts' ? 'bg-purple-600 text-white shadow-lg shadow-purple-200' : 'bg-white text-gray-500 hover:bg-gray-100 border border-gray-200'}`}>
+          <button onClick={() => setActiveTab('contracts')} className={`flex items-center justify-center gap-2 px-6 py-3.5 sm:py-3 rounded-xl font-bold transition-all w-full sm:w-auto ${activeTab === 'contracts' ? 'bg-[#161616] text-[#f7b718] shadow-lg shadow-black/10' : 'bg-white text-gray-500 hover:bg-gray-100 border border-gray-200'}`}>
             <FileText size={18} /> {t.myContracts}
           </button>
-          <button onClick={() => setActiveTab('documents')} className={`flex items-center justify-center gap-2 px-6 py-3.5 sm:py-3 rounded-xl font-bold transition-all w-full sm:w-auto ${activeTab === 'documents' ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'bg-white text-gray-500 hover:bg-gray-100 border border-gray-200'}`}>
+          <button onClick={() => setActiveTab('documents')} className={`flex items-center justify-center gap-2 px-6 py-3.5 sm:py-3 rounded-xl font-bold transition-all w-full sm:w-auto ${activeTab === 'documents' ? 'bg-[#161616] text-[#f7b718] shadow-lg shadow-black/10' : 'bg-white text-gray-500 hover:bg-gray-100 border border-gray-200'}`}>
             <FolderOpen size={18} /> {t.otherDocs}
           </button>
         </div>
@@ -217,7 +225,7 @@ export default function ClientPortal() {
               <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3 px-1">AutoMondo Documents</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {displayInvoices.map((inv) => (
-                  <div key={inv.id} className="bg-white border border-blue-100 p-4 sm:p-5 rounded-2xl shadow-sm flex flex-col justify-between">
+                  <div key={inv.id} className="bg-white border border-gray-200 p-4 sm:p-5 rounded-2xl shadow-sm flex flex-col justify-between hover:border-[#f7b718]/50 transition-colors">
                     <div className="mb-4">
                       <p className="font-bold text-gray-900 truncate">{inv.title}</p>
                       <p className="text-sm text-gray-500 font-sans">{inv.totalAmount.toLocaleString('en-US')} {inv.currency}</p>
@@ -225,13 +233,13 @@ export default function ClientPortal() {
                     <div className="grid grid-cols-2 gap-2 mt-auto border-t border-gray-100 pt-4">
                       <button 
                         onClick={() => setGeneratedDoc({ type: 'INVOICE', data: inv })} 
-                        className="flex items-center justify-center gap-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition"
+                        className="flex items-center justify-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition"
                       >
                         <FileText size={16}/> {t.viewInvoice}
                       </button>
                       <button 
                         onClick={() => setGeneratedDoc({ type: 'RECEIPT', data: inv })} 
-                        className="flex items-center justify-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition"
+                        className="flex items-center justify-center gap-1.5 bg-[#f7b718]/10 hover:bg-[#f7b718]/20 text-[#b5820a] py-2.5 rounded-xl text-xs sm:text-sm font-bold transition"
                       >
                         <FileCheck size={16}/> {t.viewReceipt}
                       </button>
@@ -256,7 +264,7 @@ export default function ClientPortal() {
                   </div>
                   <div className="flex flex-col gap-2 w-full sm:w-auto">
                     {files.map((url, i) => (
-                      <button key={i} onClick={() => setSecureFileUrl(url)} className="flex items-center justify-center gap-2 bg-purple-50 text-purple-700 px-5 py-3 sm:py-2 rounded-xl sm:rounded-lg text-sm font-bold hover:bg-purple-100 transition border border-purple-200 w-full">
+                      <button key={i} onClick={() => setSecureFileUrl(url)} className="flex items-center justify-center gap-2 bg-slate-100 text-slate-700 px-5 py-3 sm:py-2 rounded-xl sm:rounded-lg text-sm font-bold hover:bg-slate-200 transition border border-slate-200 w-full">
                         <Eye size={16}/> {t.viewSecurely}
                       </button>
                     ))}
@@ -279,7 +287,7 @@ export default function ClientPortal() {
                   {doc.date && <p className="text-sm text-gray-500 mb-4 flex items-center gap-1 font-sans"><Calendar size={14}/> {new Date(doc.date).toLocaleDateString()}</p>}
                   <div className="mt-auto pt-4 border-t border-gray-100 flex flex-col sm:flex-row flex-wrap gap-2">
                     {files.map((url, i) => (
-                      <button key={i} onClick={() => setSecureFileUrl(url)} className="flex items-center justify-center gap-1.5 bg-blue-50 text-blue-700 px-4 py-3 sm:py-2 rounded-xl sm:rounded-lg text-sm font-bold hover:bg-blue-100 transition border border-blue-200 w-full sm:w-auto">
+                      <button key={i} onClick={() => setSecureFileUrl(url)} className="flex items-center justify-center gap-1.5 bg-slate-100 text-slate-700 px-4 py-3 sm:py-2 rounded-xl sm:rounded-lg text-sm font-bold hover:bg-slate-200 transition border border-slate-200 w-full sm:w-auto">
                         <Eye size={16}/> {t.viewDoc} {i + 1}
                       </button>
                     ))}
@@ -304,7 +312,6 @@ export default function ClientPortal() {
 
           <div className="relative w-full max-w-5xl h-[92vh] sm:h-[85vh] bg-gray-200 rounded-xl sm:rounded-2xl overflow-auto shadow-2xl" dir="ltr">
             
-            {/* FIXED: 'w-fit', 'min-w-full', and 'justify-start' ensure the document doesn't clip on small screens and allows full horizontal scroll */}
             <div className="min-h-max w-fit min-w-full flex justify-start lg:justify-center items-start p-2 sm:p-8 overflow-x-auto">
               {generatedDoc ? (
                 <AutoMondoDocument 

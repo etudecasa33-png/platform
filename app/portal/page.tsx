@@ -111,17 +111,17 @@ export default function ClientPortal() {
           </button>
         </div>
 
-        {/* --- HEADER WITH AUTOMONDO LOGO --- */}
+        {/* --- HEADER WITH AUTOMONDO LOGO (NO BLACK BACKGROUND) --- */}
         <div className="bg-slate-900 p-6 sm:p-8 rounded-[2rem] shadow-xl flex flex-col md:flex-row items-center md:items-center text-center md:text-start gap-6 mb-8 border border-slate-800 text-white relative overflow-hidden">
           
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl pointer-events-none transform translate-x-1/2 -translate-y-1/2"></div>
 
-          <div className="bg-[#161616] p-4 sm:p-5 rounded-2xl shrink-0 border-b-[3px] border-[#f7b718] flex items-center justify-center shadow-lg relative z-10 w-full md:w-auto max-w-[200px] mx-auto md:mx-0">
+          <div className="shrink-0 flex items-center justify-center relative z-10 w-full md:w-auto mx-auto md:mx-0">
             <img 
               src="/api/portal?asset=logo.png" 
               onError={(e) => { e.currentTarget.src = '/api/portal?asset=looogo.PNG'; }}
               alt="Automondo Logo" 
-              className="w-32 sm:w-40 h-auto object-contain drop-shadow-md"
+              className="w-40 sm:w-48 h-auto object-contain drop-shadow-2xl"
             />
           </div>
 

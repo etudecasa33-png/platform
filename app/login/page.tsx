@@ -42,7 +42,6 @@ export default function LoginPage() {
           <div className="w-full bg-[#1f2229] rounded-2xl flex items-center justify-center py-6 mb-5 shadow-inner">
             <img 
               src="/logo.png" 
-              onError={(e) => { e.currentTarget.src = '/looogo.PNG'; }}
               alt="AutoMondo Logo" 
               className="w-48 object-contain"
             />

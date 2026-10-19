@@ -105,7 +105,7 @@ export default function ClientsDirectoryPage() {
         </div>
         <button 
           onClick={() => { setFormState(defaultForm); setIsCreateModalOpen(true); }} 
-          className="w-full sm:w-auto bg-[#4a3520] hover:bg-[#382717] text-[#f7b718] px-6 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg transform hover:-translate-y-0.5"
+          className="w-full sm:w-auto bg-[#161616] hover:bg-black text-[#f7b718] px-6 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg transform hover:-translate-y-0.5"
         >
           <Plus size={18} strokeWidth={3} /> New Client
         </button>
@@ -140,8 +140,8 @@ export default function ClientsDirectoryPage() {
               <div className="p-5 sm:p-6 flex-1 flex flex-col">
                 <div className="flex justify-between items-start mb-5">
                   <div className="flex items-start gap-4 min-w-0 pr-12">
-                    {/* VIP AutoMondo Icon with Soft Brown */}
-                    <div className="bg-[#4a3520] p-3 rounded-xl border-b-[3px] border-[#f7b718] text-[#f7b718] shrink-0 shadow-md group-hover:scale-105 transition-transform">
+                    {/* VIP AutoMondo Icon */}
+                    <div className="bg-[#161616] p-3 rounded-xl border-b-[3px] border-[#f7b718] text-[#f7b718] shrink-0 shadow-md group-hover:scale-105 transition-transform">
                       <Building2 size={24} />
                     </div>
                     <div className="min-w-0 pt-1">
@@ -191,7 +191,7 @@ export default function ClientsDirectoryPage() {
               </div>
 
               {/* VIP Footer */}
-              <div className="bg-gray-50 text-gray-500 text-xs uppercase tracking-widest font-bold py-3.5 flex items-center justify-center gap-2 group-hover:bg-[#4a3520] group-hover:text-[#f7b718] transition-colors border-t border-gray-100 group-hover:border-[#4a3520]">
+              <div className="bg-gray-50 text-gray-500 text-xs uppercase tracking-widest font-bold py-3.5 flex items-center justify-center gap-2 group-hover:bg-[#161616] group-hover:text-[#f7b718] transition-colors border-t border-gray-100 group-hover:border-[#161616]">
                 View Full Profile <ChevronRight size={16} />
               </div>
             </div>
@@ -205,9 +205,9 @@ export default function ClientsDirectoryPage() {
           <div className="bg-white rounded-3xl w-full max-w-2xl shadow-2xl relative overflow-hidden max-h-[90vh] flex flex-col border border-gray-200">
             
             {/* VIP MODAL HEADER */}
-            <div className="bg-[#4a3520] p-6 flex justify-between items-center text-white shrink-0 border-b-[3px] border-[#f7b718]">
+            <div className="bg-[#161616] p-6 flex justify-between items-center text-white shrink-0 border-b-[3px] border-[#f7b718]">
               <h3 className="text-xl font-black tracking-tight">{editingClientId ? 'Edit Client Details' : 'Create New Client'}</h3>
-              <button onClick={() => { setIsCreateModalOpen(false); setEditingClientId(null); }} className="text-gray-300 hover:text-[#f7b718] transition-colors bg-white/5 hover:bg-white/10 p-2 rounded-full">
+              <button onClick={() => { setIsCreateModalOpen(false); setEditingClientId(null); }} className="text-gray-400 hover:text-[#f7b718] transition-colors bg-white/5 hover:bg-white/10 p-2 rounded-full">
                 <X size={20}/>
               </button>
             </div>
@@ -281,7 +281,7 @@ export default function ClientsDirectoryPage() {
                 <button type="button" onClick={() => { setIsCreateModalOpen(false); setEditingClientId(null); }} className="px-6 py-3 text-sm font-bold text-gray-500 hover:bg-gray-100 rounded-xl transition-colors">
                   Cancel
                 </button>
-                <button type="submit" className="px-6 py-3 text-sm font-black text-[#4a3520] bg-gradient-to-r from-[#f7b718] to-[#e5a60b] hover:from-[#e5a60b] hover:to-[#d4980a] rounded-xl transition-all shadow-[0_8px_20px_-6px_rgba(247,183,24,0.4)] flex items-center gap-2 transform hover:-translate-y-0.5">
+                <button type="submit" className="px-6 py-3 text-sm font-black text-[#161616] bg-gradient-to-r from-[#f7b718] to-[#e5a60b] hover:from-[#e5a60b] hover:to-[#d4980a] rounded-xl transition-all shadow-[0_8px_20px_-6px_rgba(247,183,24,0.4)] flex items-center gap-2 transform hover:-translate-y-0.5">
                   {editingClientId ? 'Save Changes' : (formState.amount ? <><FileCheck size={18}/> Create & Generate Invoice</> : 'Create Client')}
                 </button>
               </div>

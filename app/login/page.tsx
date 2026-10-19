@@ -34,69 +34,69 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f4f6f9] flex items-center justify-center p-4 selection:bg-[#f7b718] selection:text-black font-sans relative overflow-hidden">
+    <div className="h-screen w-full bg-[#f4f6f9] flex items-center justify-center p-4 selection:bg-[#f7b718] selection:text-black font-sans relative overflow-hidden">
       
       {/* Subtle luxury background elements */}
-      <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-[#e5e9f0] to-transparent pointer-events-none"></div>
+      <div className="absolute top-0 left-0 w-full h-72 bg-gradient-to-b from-[#e5e9f0] to-transparent pointer-events-none"></div>
       
-      <div className="bg-white max-w-md w-full p-8 sm:p-10 rounded-[2rem] shadow-[0_20px_50px_-12px_rgba(0,0,0,0.1)] border border-gray-100 relative z-10">
+      <div className="bg-white max-w-md w-full p-6 sm:p-8 rounded-[1.5rem] shadow-[0_20px_50px_-12px_rgba(0,0,0,0.1)] border border-gray-100 relative z-10 max-h-full overflow-y-auto no-scrollbar">
         
-        <div className="flex flex-col items-center mb-10 relative">
+        <div className="flex flex-col items-center mb-6 relative">
           
           {/* SLIM BLACK BACKGROUND WITH GOLDEN ACCENT */}
-          <div className="w-full bg-[#161616] rounded-xl flex items-center justify-center py-2 px-4 mb-8 shadow-md border-b-[3px] border-[#f7b718]">
+          <div className="w-full bg-[#161616] rounded-xl flex items-center justify-center py-2 px-4 mb-4 shadow-md border-b-[3px] border-[#f7b718]">
             <img 
               src="/api/portal?asset=logo.png" 
               onError={(e) => { e.currentTarget.src = '/api/portal?asset=looogo.PNG'; }}
-              alt="AutoMondo Logo" 
-              className="w-40 h-auto object-contain drop-shadow-lg"
+              alt="Automondo Logo" 
+              className="w-36 h-auto object-contain drop-shadow-lg"
             />
           </div>
 
-          <h1 className="text-2xl sm:text-3xl font-black text-gray-900 text-center tracking-tight">
-            AutoMondo <span className="text-[#f7b718]">Portal</span>
+          <h1 className="text-xl sm:text-2xl font-black text-gray-900 text-center tracking-tight">
+            Automondo <span className="text-[#f7b718]">Portal</span>
           </h1>
-          <p className="text-gray-500 font-medium mt-2 text-center text-sm sm:text-base">
+          <p className="text-gray-500 font-medium mt-1 text-center text-xs sm:text-sm">
             Access your secure client workspace
           </p>
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-100 text-red-600 p-4 rounded-xl text-sm font-bold text-center mb-6 flex items-center justify-center gap-2 animate-in fade-in zoom-in duration-200">
-            <ShieldCheck className="text-red-500 shrink-0" size={18} /> {error}
+          <div className="bg-red-50 border border-red-100 text-red-600 p-3 rounded-lg text-sm font-bold text-center mb-5 flex items-center justify-center gap-2 animate-in fade-in zoom-in duration-200">
+            <ShieldCheck className="text-red-500 shrink-0" size={16} /> {error}
           </div>
         )}
 
-        <form onSubmit={handleLogin} className="space-y-5">
+        <form onSubmit={handleLogin} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-2 ml-1">Username</label>
+            <label className="block text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-1.5 ml-1">Username</label>
             <div className="relative group">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-[#f7b718]">
-                <User size={18} className="text-gray-400 group-focus-within:text-[#f7b718] transition-colors" />
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors group-focus-within:text-[#f7b718]">
+                <User size={16} className="text-gray-400 group-focus-within:text-[#f7b718] transition-colors" />
               </div>
               <input 
                 type="text" 
                 required
                 value={username}
                 onChange={e => setUsername(e.target.value)}
-                className="w-full bg-gray-50 border border-gray-200 py-3.5 pl-11 pr-4 rounded-xl focus:ring-2 focus:ring-[#f7b718] focus:border-[#f7b718] focus:bg-white outline-none transition-all font-semibold text-gray-800 placeholder:text-gray-400 placeholder:font-medium shadow-sm"
+                className="w-full bg-gray-50 border border-gray-200 py-3 pl-10 pr-3 rounded-lg focus:ring-2 focus:ring-[#f7b718] focus:border-[#f7b718] focus:bg-white outline-none transition-all text-sm font-semibold text-gray-800 placeholder:text-gray-400 placeholder:font-medium shadow-sm"
                 placeholder="Enter your username"
               />
             </div>
           </div>
           
           <div>
-            <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-2 ml-1">Password</label>
+            <label className="block text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-1.5 ml-1">Password</label>
             <div className="relative group">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-[#f7b718]">
-                <Key size={18} className="text-gray-400 group-focus-within:text-[#f7b718] transition-colors" />
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors group-focus-within:text-[#f7b718]">
+                <Key size={16} className="text-gray-400 group-focus-within:text-[#f7b718] transition-colors" />
               </div>
               <input 
                 type="password" 
                 required
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                className="w-full bg-gray-50 border border-gray-200 py-3.5 pl-11 pr-4 rounded-xl focus:ring-2 focus:ring-[#f7b718] focus:border-[#f7b718] focus:bg-white outline-none transition-all font-semibold text-gray-800 placeholder:text-gray-400 placeholder:font-medium shadow-sm"
+                className="w-full bg-gray-50 border border-gray-200 py-3 pl-10 pr-3 rounded-lg focus:ring-2 focus:ring-[#f7b718] focus:border-[#f7b718] focus:bg-white outline-none transition-all text-sm font-semibold text-gray-800 placeholder:text-gray-400 placeholder:font-medium shadow-sm"
                 placeholder="••••••••"
               />
             </div>
@@ -105,11 +105,11 @@ export default function LoginPage() {
           <button 
             type="submit" 
             disabled={isLoading}
-            className="w-full bg-gradient-to-r from-[#f7b718] to-[#e5a60b] hover:from-[#e5a60b] hover:to-[#d4980a] text-[#161616] font-black py-4 rounded-xl transition-all shadow-[0_8px_20px_-6px_rgba(247,183,24,0.4)] disabled:opacity-70 mt-8 text-base sm:text-lg flex items-center justify-center gap-2 transform hover:-translate-y-0.5 active:translate-y-0 active:scale-95"
+            className="w-full bg-gradient-to-r from-[#f7b718] to-[#e5a60b] hover:from-[#e5a60b] hover:to-[#d4980a] text-[#161616] font-black py-3.5 rounded-lg transition-all shadow-[0_8px_20px_-6px_rgba(247,183,24,0.4)] disabled:opacity-70 mt-6 text-sm flex items-center justify-center gap-2 transform hover:-translate-y-0.5 active:translate-y-0 active:scale-95"
           >
             {isLoading ? (
               <span className="flex items-center gap-2">
-                <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-[#161616]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-[#161616]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
@@ -117,7 +117,7 @@ export default function LoginPage() {
               </span>
             ) : (
               <>
-                <LogIn size={20} strokeWidth={2.5} /> Secure Login
+                <LogIn size={18} strokeWidth={2.5} /> Secure Login
               </>
             )}
           </button>

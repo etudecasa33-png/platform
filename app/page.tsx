@@ -34,10 +34,6 @@ export default function Dashboard() {
         
         <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div>
-            <div className="flex items-center gap-2 mb-3">
-              <Sparkles size={20} className="text-[#f7b718]" />
-              <span className="text-[#f7b718] font-bold text-xs uppercase tracking-widest bg-[#f7b718]/10 px-3 py-1 rounded-full">System Overview</span>
-            </div>
             <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight mb-2">
               Welcome back, <span className="text-[#f7b718]">Admin</span> 👋
             </h1>

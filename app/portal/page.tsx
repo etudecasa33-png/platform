@@ -111,10 +111,10 @@ export default function ClientPortal() {
           </button>
         </div>
 
-        {/* --- HEADER WITH AUTOMONDO LOGO (NO BLACK BACKGROUND) --- */}
-        <div className="bg-slate-900 p-6 sm:p-8 rounded-[2rem] shadow-xl flex flex-col md:flex-row items-center md:items-center text-center md:text-start gap-6 mb-8 border border-slate-800 text-white relative overflow-hidden">
+        {/* --- HEADER WITH AUTOMONDO LOGO (NOIR) --- */}
+        <div className="bg-[#161616] p-6 sm:p-8 rounded-[2rem] shadow-2xl flex flex-col md:flex-row items-center md:items-center text-center md:text-start gap-6 mb-8 border border-[#2a2a2a] text-white relative overflow-hidden">
           
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl pointer-events-none transform translate-x-1/2 -translate-y-1/2"></div>
+          <div className="absolute top-0 right-0 w-64 h-64 bg-[#f7b718]/5 rounded-full blur-3xl pointer-events-none transform translate-x-1/2 -translate-y-1/2"></div>
 
           <div className="shrink-0 flex items-center justify-center relative z-10 w-full md:w-auto mx-auto md:mx-0">
             <img 
@@ -130,26 +130,27 @@ export default function ClientPortal() {
               <ShieldCheck size={18} className="text-[#f7b718]" />
               <span className="text-[#f7b718] font-bold text-xs sm:text-sm tracking-widest uppercase">{t.secureConnection}</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black mb-1">{t.welcome} {client.name}</h1>
+            <h1 className="text-2xl sm:text-3xl font-black mb-1">{t.welcome} <span className="text-white">{client.name}</span></h1>
           </div>
         </div>
 
+        {/* --- TRACKING BANNER (BLEU) --- */}
         {client.trackingLink && (
-          <div className="mb-10 bg-gradient-to-r from-[#161616] to-slate-800 rounded-3xl p-6 shadow-xl text-white flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-start border-l-4 border-[#f7b718]">
+          <div className="mb-10 bg-gradient-to-r from-blue-600 to-indigo-700 rounded-3xl p-6 shadow-xl text-white flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-start border-l-4 border-blue-400">
             <div className="flex flex-col md:flex-row items-center gap-4">
-              <div className="bg-[#f7b718]/20 p-4 rounded-full shrink-0">
-                <MapPin size={28} className="text-[#f7b718] sm:w-8 sm:h-8" />
+              <div className="bg-white/20 p-4 rounded-full shrink-0">
+                <MapPin size={28} className="text-white sm:w-8 sm:h-8" />
               </div>
               <div>
                 <h3 className="text-xl md:text-2xl font-black mb-1 text-white">{t.trackVehicle}</h3>
-                <p className="text-gray-300 text-sm sm:text-base font-medium">{t.trackDesc}</p>
+                <p className="text-blue-100 text-sm sm:text-base font-medium">{t.trackDesc}</p>
               </div>
             </div>
             <a
               href={client.trackingLink}
               target="_blank"
               rel="noreferrer"
-              className="bg-gradient-to-r from-[#f7b718] to-[#e5a60b] text-[#161616] px-6 sm:px-8 py-3 sm:py-3.5 rounded-xl font-black text-base sm:text-lg transition-transform hover:scale-105 shadow-lg whitespace-nowrap flex items-center justify-center gap-2 w-full md:w-auto"
+              className="bg-white text-blue-700 hover:bg-gray-50 px-6 sm:px-8 py-3 sm:py-3.5 rounded-xl font-black text-base sm:text-lg transition-transform hover:scale-105 shadow-lg whitespace-nowrap flex items-center justify-center gap-2 w-full md:w-auto"
             >
               <Map size={20} />
               {t.trackBtn}

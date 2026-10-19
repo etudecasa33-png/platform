@@ -37,11 +37,10 @@ export default function LoginPage() {
     <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
       <div className="bg-white max-w-md w-full p-8 rounded-3xl shadow-xl border border-slate-200">
         
-        <div className="flex flex-col items-center mb-8">
-          {/* Logo ya AutoMondo yenye background inayoendana na muonekano wako */}
-          <div className="w-full bg-[#1f2229] rounded-2xl flex items-center justify-center py-6 mb-5 shadow-inner">
+        <div className="w-full bg-[#1f2229] rounded-2xl flex items-center justify-center py-6 mb-5 shadow-inner">
             <img 
-              src="/logo.png" 
+              src="/api/portal?asset=logo.png" 
+              onError={(e) => { e.currentTarget.src = '/api/portal?asset=looogo.PNG'; }}
               alt="AutoMondo Logo" 
               className="w-48 object-contain"
             />

@@ -16,7 +16,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "AUTOMONDO Workspace",
+  title: "Automondo Workspace",
   description: "Secure Finance & CRM Management",
 };
 
@@ -27,48 +27,54 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html lang="en">
-      <body className={`${inter.className} bg-slate-50 flex flex-col md:flex-row min-h-screen`}>
+      <body className={`${inter.className} bg-[#f4f6f9] flex flex-col md:flex-row min-h-screen selection:bg-[#f7b718] selection:text-black`}>
         
         {isAdmin && (
-          <aside className="w-full md:w-72 md:sticky md:top-0 md:h-screen bg-gradient-to-b from-slate-950 to-slate-900 text-slate-300 flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.05)] border-b md:border-b-0 md:border-r border-slate-800 z-20 shrink-0">
+          <aside className="w-full md:w-72 md:sticky md:top-0 md:h-screen bg-[#161616] text-slate-300 flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.1)] border-b md:border-b-0 md:border-r border-[#2a2a2a] z-20 shrink-0 relative overflow-hidden">
             
-            <div className="p-4 md:p-8 border-b border-slate-800/60 relative overflow-hidden flex justify-between items-center">
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-600"></div>
-              <div>
-                <h1 className="text-xl md:text-3xl font-black text-white tracking-tighter">
-                  AUTO<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">MONDO</span>
-                </h1>
-                <p className="text-[9px] md:text-[10px] text-slate-500 mt-1 uppercase tracking-[0.25em] font-bold">
-                  Workspace
+            {/* Effet de lumière discret f l'arrière plan */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-[#f7b718]/5 rounded-full blur-2xl pointer-events-none transform translate-x-1/2 -translate-y-1/2"></div>
+
+            <div className="p-4 md:p-8 border-b border-[#2a2a2a] relative flex justify-center items-center">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#f7b718] to-[#e5a60b]"></div>
+              <div className="flex flex-col items-center justify-center w-full pt-2">
+                <img 
+                  src="/api/portal?asset=logo.png" 
+                  onError={(e) => { e.currentTarget.src = '/api/portal?asset=looogo.PNG'; }}
+                  alt="Automondo Logo" 
+                  className="w-36 md:w-44 object-contain drop-shadow-xl mb-3" 
+                />
+                <p className="text-[9px] md:text-[10px] text-[#f7b718] uppercase tracking-[0.25em] font-bold bg-[#f7b718]/10 px-3 py-1 rounded-full">
+                  Admin Workspace
                 </p>
               </div>
             </div>
             
-            <nav className="flex md:flex-col gap-2 px-4 py-3 md:py-6 overflow-x-auto md:overflow-y-auto scrollbar-hide">
-              <Link href="/" className="flex shrink-0 items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3 rounded-xl hover:bg-slate-800/50 hover:text-white hover:shadow-inner transition-all group">
-                <LayoutDashboard size={18} className="text-slate-400 group-hover:text-blue-400 transition-colors" /> 
-                <span className="font-medium text-sm md:text-base">Dashboard</span>
+            <nav className="flex md:flex-col gap-2 px-4 py-3 md:py-6 overflow-x-auto md:overflow-y-auto scrollbar-hide relative z-10">
+              <Link href="/" className="flex shrink-0 items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3 rounded-xl hover:bg-[#f7b718]/10 hover:text-[#f7b718] transition-all group">
+                <LayoutDashboard size={18} className="text-gray-400 group-hover:text-[#f7b718] transition-colors" /> 
+                <span className="font-bold text-sm md:text-base">Dashboard</span>
               </Link>
-              <Link href="/dinar" className="flex shrink-0 items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3 rounded-xl hover:bg-slate-800/50 hover:text-white hover:shadow-inner transition-all group">
-                <Wallet size={18} className="text-slate-400 group-hover:text-emerald-400 transition-colors" /> 
-                <span className="font-medium text-sm md:text-base">Dinar Ledger</span>
+              <Link href="/dinar" className="flex shrink-0 items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3 rounded-xl hover:bg-[#f7b718]/10 hover:text-[#f7b718] transition-all group">
+                <Wallet size={18} className="text-gray-400 group-hover:text-[#f7b718] transition-colors" /> 
+                <span className="font-bold text-sm md:text-base">Dinar Ledger</span>
               </Link>
-              <Link href="/dirham" className="flex shrink-0 items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3 rounded-xl hover:bg-slate-800/50 hover:text-white hover:shadow-inner transition-all group">
-                <Briefcase size={18} className="text-slate-400 group-hover:text-purple-400 transition-colors" /> 
-                <span className="font-medium text-sm md:text-base">Dirham Ledger</span>
+              <Link href="/dirham" className="flex shrink-0 items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3 rounded-xl hover:bg-[#f7b718]/10 hover:text-[#f7b718] transition-all group">
+                <Briefcase size={18} className="text-gray-400 group-hover:text-[#f7b718] transition-colors" /> 
+                <span className="font-bold text-sm md:text-base">Dirham Ledger</span>
               </Link>
-              <Link href="/clients" className="flex shrink-0 items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3 rounded-xl hover:bg-slate-800/50 hover:text-white hover:shadow-inner transition-all group">
-                <Users size={18} className="text-slate-400 group-hover:text-orange-400 transition-colors" /> 
-                <span className="font-medium text-sm md:text-base">Client CRM</span>
+              <Link href="/clients" className="flex shrink-0 items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3 rounded-xl hover:bg-[#f7b718]/10 hover:text-[#f7b718] transition-all group">
+                <Users size={18} className="text-gray-400 group-hover:text-[#f7b718] transition-colors" /> 
+                <span className="font-bold text-sm md:text-base">Client CRM</span>
               </Link>
             </nav>
 
-            <div className="hidden md:block p-6 border-t border-slate-800/60 bg-slate-950/50 mt-auto">
+            <div className="hidden md:block p-6 border-t border-[#2a2a2a] bg-[#111111] mt-auto relative z-10">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold shadow-lg shadow-purple-500/20">A</div>
+                <div className="w-10 h-10 bg-gradient-to-br from-[#f7b718] to-[#d4980a] rounded-full flex items-center justify-center text-[#161616] font-black shadow-[0_0_15px_rgba(247,183,24,0.3)]">A</div>
                 <div>
                   <p className="text-sm font-bold text-white">Admin User</p>
-                  <p className="text-xs text-slate-400">System Manager</p>
+                  <p className="text-xs text-[#f7b718] font-medium">System Manager</p>
                 </div>
               </div>
             </div>

@@ -18,56 +18,70 @@ export default function Dashboard() {
   }, []);
 
   return (
-    <div className="p-8 max-w-5xl mx-auto">
-      <h1 className="text-3xl font-bold mb-8 text-gray-800">Business Overview</h1>
+    <div className="p-4 sm:p-8 max-w-5xl mx-auto">
       
-      {/* This is the main container. 
-        'flex flex-col' forces EVERYTHING to stack perfectly vertically.
-      */}
+      <div className="flex items-center gap-3 mb-8">
+        <div className="w-2 h-8 bg-[#f7b718] rounded-full"></div>
+        <h1 className="text-2xl sm:text-3xl font-black text-gray-900">Business Overview</h1>
+      </div>
+      
       <div className="flex flex-col gap-6">
         
-        {/* 1. DINAR BALANCE - Horizontal Row */}
-        <div className="bg-white p-6 md:p-8 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        {/* 1. DINAR BALANCE - Premium Card */}
+        <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100 hover:border-[#f7b718]/40 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 group">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-green-50 rounded-lg">
-              <Wallet className="text-green-500" size={28} />
+            <div className="p-3.5 bg-[#161616] rounded-xl border-b-[3px] border-[#f7b718] shadow-lg group-hover:scale-105 transition-transform">
+              <Wallet className="text-[#f7b718]" size={28} />
             </div>
-            <h2 className="text-xl text-gray-600 font-medium">Dinar Balance</h2>
+            <h2 className="text-xl text-gray-800 font-bold">Dinar Ledger</h2>
           </div>
-          <p className="text-3xl lg:text-4xl font-bold text-green-600 break-all md:text-right">
-            {stats.totalDzd.toLocaleString()} DZD
-          </p>
+          <div className="bg-gray-50 md:bg-transparent p-4 md:p-0 rounded-xl md:rounded-none">
+            <p className="text-3xl lg:text-4xl font-black text-gray-900 break-all md:text-right font-sans">
+              {stats.totalDzd.toLocaleString('en-US')} <span className="text-lg text-[#f7b718] ml-1">DZD</span>
+            </p>
+          </div>
         </div>
 
-        {/* 2. DIRHAM BALANCE - Horizontal Row */}
-        <div className="bg-white p-6 md:p-8 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        {/* 2. DIRHAM BALANCE - Premium Card */}
+        <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100 hover:border-[#f7b718]/40 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 group">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-blue-50 rounded-lg">
-              <Coins className="text-blue-500" size={28} />
+            <div className="p-3.5 bg-[#161616] rounded-xl border-b-[3px] border-[#f7b718] shadow-lg group-hover:scale-105 transition-transform">
+              <Coins className="text-[#f7b718]" size={28} />
             </div>
-            <h2 className="text-xl text-gray-600 font-medium">Dirham Balance</h2>
+            <h2 className="text-xl text-gray-800 font-bold">Dirham Ledger</h2>
           </div>
-          <p className="text-3xl lg:text-4xl font-bold text-blue-600 break-all md:text-right">
-            {stats.totalDirham.toLocaleString()} DH
-          </p>
+          <div className="bg-gray-50 md:bg-transparent p-4 md:p-0 rounded-xl md:rounded-none">
+            <p className="text-3xl lg:text-4xl font-black text-gray-900 break-all md:text-right font-sans">
+              {stats.totalDirham.toLocaleString('en-US')} <span className="text-lg text-[#f7b718] ml-1">DH</span>
+            </p>
+          </div>
         </div>
 
-        {/* 3. TOTAL CLIENTS - Vertical Box */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-center">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-gray-500 font-medium">Total Clients</h2>
-            <Users className="text-purple-500" size={24} />
+        {/* BOTTOM METRICS */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          
+          {/* 3. TOTAL CLIENTS */}
+          <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100 hover:border-[#f7b718]/40 transition-all flex flex-col justify-center group">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-gray-600 font-bold uppercase tracking-wider text-sm">Total Clients</h2>
+              <div className="p-2.5 bg-[#161616] rounded-lg shadow-md border-b-2 border-[#f7b718] group-hover:scale-110 transition-transform">
+                <Users className="text-[#f7b718]" size={20} />
+              </div>
+            </div>
+            <p className="text-4xl lg:text-5xl font-black text-gray-900">{stats.clientsCount}</p>
           </div>
-          <p className="text-4xl font-bold text-gray-800">{stats.clientsCount}</p>
-        </div>
 
-        {/* 4. ACTIVE CONTRACTS - Vertical Box */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-center">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-gray-500 font-medium">Active Contracts</h2>
-            <FileText className="text-orange-500" size={24} />
+          {/* 4. ACTIVE CONTRACTS */}
+          <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100 hover:border-[#f7b718]/40 transition-all flex flex-col justify-center group">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-gray-600 font-bold uppercase tracking-wider text-sm">Active Contracts</h2>
+              <div className="p-2.5 bg-[#161616] rounded-lg shadow-md border-b-2 border-[#f7b718] group-hover:scale-110 transition-transform">
+                <FileText className="text-[#f7b718]" size={20} />
+              </div>
+            </div>
+            <p className="text-4xl lg:text-5xl font-black text-gray-900">{stats.contractsCount}</p>
           </div>
-          <p className="text-4xl font-bold text-gray-800">{stats.contractsCount}</p>
+
         </div>
 
       </div>

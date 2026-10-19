@@ -38,7 +38,7 @@ export default function Dashboard() {
               Welcome back, <span className="text-[#f7b718]">Admin</span> 👋
             </h1>
             <p className="text-gray-400 font-medium max-w-lg">
-              Here is what's happening in your AutoMondo workspace today. Manage your finances and clients efficiently.
+              Here is what's happening in your Automondo workspace today. Manage your finances and clients efficiently.
             </p>
           </div>
           

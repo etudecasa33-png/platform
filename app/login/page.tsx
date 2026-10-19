@@ -1,6 +1,5 @@
 "use client";
 import { useState } from 'react';
-import { Lock } from 'lucide-react';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
@@ -39,11 +38,17 @@ export default function LoginPage() {
       <div className="bg-white max-w-md w-full p-8 rounded-3xl shadow-xl border border-slate-200">
         
         <div className="flex flex-col items-center mb-8">
-          <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mb-4">
-            <Lock size={32} />
+          {/* Logo ya AutoMondo yenye background inayoendana na muonekano wako */}
+          <div className="w-full bg-[#1f2229] rounded-2xl flex items-center justify-center py-6 mb-5 shadow-inner">
+            <img 
+              src="/logo.png" 
+              onError={(e) => { e.currentTarget.src = '/looogo.PNG'; }}
+              alt="AutoMondo Logo" 
+              className="w-48 object-contain"
+            />
           </div>
-          <h1 className="text-3xl font-black text-slate-900">Platform Access</h1>
-          <p className="text-slate-500 font-medium mt-1">Please log in to continue.</p>
+          <h1 className="text-3xl font-black text-slate-900 text-center">AutoMondo Portal</h1>
+          <p className="text-slate-500 font-medium mt-2 text-center">Please log in to your secure workspace.</p>
         </div>
 
         {error && (
@@ -80,7 +85,7 @@ export default function LoginPage() {
           <button 
             type="submit" 
             disabled={isLoading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl transition shadow-lg shadow-blue-200 disabled:opacity-70 mt-4"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl transition shadow-lg shadow-blue-200 disabled:opacity-70 mt-4 text-lg"
           >
             {isLoading ? 'Verifying...' : 'Secure Login'}
           </button>

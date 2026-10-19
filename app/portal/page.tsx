@@ -134,25 +134,36 @@ export default function ClientPortal() {
           </div>
         </div>
 
-        {/* --- TRACKING BANNER (SLATE-900 / LIKE OLD WELCOME BANNER) --- */}
+        {/* --- TRACKING BANNER (NOIR AVEC TOUCHES GOLD) --- */}
         {client.trackingLink && (
-          <div className="mb-10 bg-slate-900 rounded-[2rem] p-6 sm:p-8 shadow-xl border border-slate-800 text-white flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-start relative overflow-hidden">
-            <div className="flex flex-col md:flex-row items-center gap-4 relative z-10">
-              <div className="bg-slate-800 p-4 rounded-full shrink-0 border border-slate-700">
-                <MapPin size={28} className="text-slate-300 sm:w-8 sm:h-8" />
+          <div className="mb-10 bg-[#161616] rounded-[2rem] p-6 sm:p-8 shadow-xl border border-[#f7b718]/20 text-white flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-start relative overflow-hidden group hover:border-[#f7b718]/40 transition-colors">
+            
+            {/* Effet de lumière gold f l'arrière-plan */}
+            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-[#f7b718]/5 to-transparent pointer-events-none"></div>
+            <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-[#f7b718]/10 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div className="flex flex-col md:flex-row items-center gap-5 relative z-10">
+              <div className="bg-[#f7b718]/10 p-4 rounded-full shrink-0 border border-[#f7b718]/20 shadow-[0_0_15px_rgba(247,183,24,0.1)]">
+                <MapPin size={32} className="text-[#f7b718] sm:w-8 sm:h-8" />
               </div>
               <div>
-                <h3 className="text-xl md:text-2xl font-black mb-1 text-white">{t.trackVehicle}</h3>
-                <p className="text-slate-400 text-sm sm:text-base font-medium">{t.trackDesc}</p>
+                <h3 className="text-xl md:text-2xl font-black mb-1 text-white flex items-center justify-center md:justify-start gap-3">
+                  {t.trackVehicle}
+                  <span className="relative flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#f7b718] opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-[#f7b718]"></span>
+                  </span>
+                </h3>
+                <p className="text-gray-400 text-sm sm:text-base font-medium">{t.trackDesc}</p>
               </div>
             </div>
             <a
               href={client.trackingLink}
               target="_blank"
               rel="noreferrer"
-              className="bg-slate-800 border border-slate-700 text-white hover:bg-slate-700 px-6 sm:px-8 py-3 sm:py-3.5 rounded-xl font-black text-base sm:text-lg transition-transform hover:scale-105 shadow-lg whitespace-nowrap flex items-center justify-center gap-2 w-full md:w-auto relative z-10"
+              className="bg-gradient-to-r from-[#f7b718] to-[#e5a60b] hover:from-[#e5a60b] hover:to-[#d4980a] text-[#161616] px-8 py-3.5 rounded-xl font-black text-base sm:text-lg transition-all shadow-[0_8px_20px_-6px_rgba(247,183,24,0.4)] whitespace-nowrap flex items-center justify-center gap-2 w-full md:w-auto relative z-10 transform hover:-translate-y-0.5 active:translate-y-0"
             >
-              <Map size={20} />
+              <Map size={20} strokeWidth={2.5} />
               {t.trackBtn}
             </a>
           </div>

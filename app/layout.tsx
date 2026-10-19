@@ -38,7 +38,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <div className="p-4 md:p-8 border-b border-[#2a2a2a] relative flex justify-center items-center">
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#f7b718] to-[#e5a60b]"></div>
               <div className="flex flex-col items-center justify-center w-full pt-2">
-                {/* NAHIT L'onError li dar l'erreur f l'Server Component */}
                 <img 
                   src="/api/portal?asset=logo.png" 
                   alt="Automondo Logo" 
@@ -50,7 +49,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               </div>
             </div>
             
-            <nav className="flex md:flex-col gap-2 px-4 py-3 md:py-6 overflow-x-auto md:overflow-y-auto scrollbar-hide relative z-10">
+            {/* NAHIT L'SCROLL W ZEDT flex-wrap */}
+            <nav className="flex flex-wrap md:flex-col gap-2 px-4 py-3 md:py-6 relative z-10">
               <Link href="/" className="flex shrink-0 items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3 rounded-xl hover:bg-[#f7b718]/10 hover:text-[#f7b718] transition-all group">
                 <LayoutDashboard size={18} className="text-gray-400 group-hover:text-[#f7b718] transition-colors" /> 
                 <span className="font-bold text-sm md:text-base">Dashboard</span>
